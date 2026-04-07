@@ -284,6 +284,7 @@
 <script>
   const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
   let allSubmissions = [], allStudents = [], allClasses = [], pendingGenHw = null, activeReviewId = null;
+  const transcriptMap = {}; // id → full transcript object
 
   function showSection(name) {
     ['review','students','homework','transcripts'].forEach(s => {
@@ -447,6 +448,9 @@
         return;
       }
 
+      // Store transcripts in map for safe access by id (avoids embedding text in onclick)
+      transcripts.forEach(t => { transcriptMap[t.id] = t; });
+
       list.innerHTML = transcripts.map(t => `
         <div class="transcript-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -454,7 +458,7 @@
               <span style="font-size:13px;font-weight:600">${t.created_at?.slice(0,10) || 'Recent'}</span>
               ${t.duration_minutes ? `<span style="font-size:12px;color:var(--muted);margin-left:10px">~${t.duration_minutes} min</span>` : ''}
             </div>
-            <button onclick="generateHwFromTranscript(${t.id}, \`${t.text.slice(0,500).replace(/`/g,"'")}\`)"
+            <button data-transcript-id="${t.id}"
               style="padding:8px 16px;background:linear-gradient(135deg,#1a6090,#12a0c8);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
               ✨ Generate Homework
             </button>
@@ -462,10 +466,15 @@
           <div class="transcript-text">${t.text.slice(0,300)}…</div>
           <div style="font-size:12px;color:var(--muted);margin-top:8px">${t.text.split(' ').length} words</div>
         </div>`).join('');
+
+      // Attach click handlers safely after rendering
+      list.querySelectorAll('button[data-transcript-id]').forEach(btn => {
+        btn.addEventListener('click', () => generateHwFromTranscript(btn.dataset.transcriptId));
+      });
     } catch(e) {}
   }
 
-  async function generateHwFromTranscript(transcriptId, previewText) {
+  async function generateHwFromTranscript(transcriptId) {
     showToast('✨ AI is reading the transcript…');
     try {
       const res = await fetch(W + '/ai/generate-homework', {
@@ -473,8 +482,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript_id: transcriptId })
       });
-      const gText = await res.text(); let data; try { data = JSON.parse(gText); } catch(e) { throw new Error('AI homework endpoint non-JSON: ' + gText.slice(0,120)); }
-      if (!data.ok) throw new Error(data.error);
+      const gText = await res.text();
+      if (!gText || !gText.trim()) throw new Error('AI homework endpoint returned empty response (check Worker logs)');
+      let data;
+      try { data = JSON.parse(gText); }
+      catch(e) { throw new Error('AI homework endpoint non-JSON (status ' + res.status + '): ' + gText.slice(0,200)); }
+      if (!data.ok) throw new Error(data.error || 'Unknown error from AI endpoint');
 
       pendingGenHw = data.homework;
       const hw = data.homework;
