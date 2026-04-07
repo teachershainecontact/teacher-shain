@@ -422,7 +422,7 @@
 </div>
 
 <script>
-  const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
 
   let recognition = null;
   let isListening = false;
