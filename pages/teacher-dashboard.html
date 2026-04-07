@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard — Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c; --paper: #faf8f4; --cream: #f2ede4;
+      --gold: #c8963e; --gold-light: #e8b96a; --red: #c0392b;
+      --sage: #4a6741; --muted: #8a8070; --border: #ddd8ce; --navy: #1a2540;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); }
+    .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+    .sidebar { background: var(--navy); padding: 32px 24px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+    .sidebar-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .sidebar-logo span { color: var(--gold); }
+    .teacher-badge { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 36px; }
+    .nav-section-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 8px; margin-top: 20px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 9px; color: rgba(255,255,255,0.5); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.15s; margin-bottom: 2px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: var(--gold); color: var(--ink); }
+    .nav-item .icon { font-size: 15px; width: 20px; text-align: center; }
+    .nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
+    .sidebar-bottom { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; }
+    .user-chip { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--ink); flex-shrink: 0; }
+    .user-name { font-size: 13px; color: rgba(255,255,255,0.6); }
+    .logout-btn { margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.25); cursor: pointer; font-size: 18px; transition: color 0.2s; }
+    .logout-btn:hover { color: rgba(255,255,255,0.6); }
+    .main { padding: 40px 48px; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
+    .page-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; }
+    .page-title span { font-style: italic; color: var(--gold); }
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; background: var(--ink); color: #fff; border: none; border-radius: 11px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.2s; text-decoration: none; }
+    .btn-primary:hover { opacity: 0.8; }
+    .btn-ai { background: linear-gradient(135deg, #1a6090, #12a0c8); }
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 36px; }
+    .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; }
+    .stat-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 700; }
+    .stat-value.red { color: var(--red); }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.blue { color: #1a6090; }
+    .stat-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+    .section-title { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .see-all { font-size: 12px; color: var(--gold); text-decoration: none; text-transform: none; letter-spacing: 0; font-weight: 400; }
+    .review-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; cursor: pointer; text-decoration: none; color: var(--ink); transition: border-color 0.2s; }
+    .review-card:hover { border-color: var(--gold); }
+    .review-student { width: 38px; height: 38px; border-radius: 50%; background: var(--cream); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--muted); flex-shrink: 0; }
+    .review-info { flex: 1; }
+    .review-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .review-hw { font-size: 13px; color: var(--muted); }
+    .review-time { font-size: 12px; color: var(--muted); }
+    .review-chip { padding: 5px 12px; border-radius: 100px; font-size: 11px; font-weight: 600; background: #fff8e6; color: var(--gold); border: 1px solid #f0d080; white-space: nowrap; }
+    .review-chip.ai { background: #e8f4fb; color: #1a6090; border-color: #b0d4f0; }
+    .panel-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; }
+    .action-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 16px; background: var(--cream); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; font-family: 'DM Sans', sans-serif; margin-bottom: 8px; transition: background 0.15s; text-decoration: none; }
+    .action-btn:hover { background: var(--border); }
+    .action-icon { font-size: 18px; width: 24px; text-align: center; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,14,12,0.6); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--paper); border-radius: 20px; padding: 36px; max-width: 560px; width: 100%; border: 1px solid var(--border); transform: translateY(20px); transition: transform 0.2s; max-height: 90vh; overflow-y: auto; }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 24px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 7px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; background: #fff; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--ink); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+    .btn-cancel { padding: 11px 20px; border: 1px solid var(--border); border-radius: 10px; background: none; font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    .btn-save { padding: 11px 22px; background: var(--ink); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.2s; }
+    .btn-save:hover { opacity: 0.8; }
+    .student-table { width: 100%; border-collapse: collapse; }
+    .student-table th { text-align: left; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 10px 14px; border-bottom: 2px solid var(--border); }
+    .student-table td { padding: 14px 14px; border-bottom: 1px solid var(--cream); font-size: 14px; }
+    .student-table tr:hover td { background: var(--cream); }
+    .transcript-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin-bottom: 12px; }
+    .transcript-text { font-size: 14px; line-height: 1.7; color: var(--ink); margin: 10px 0; max-height: 120px; overflow: hidden; position: relative; }
+    .transcript-text::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, #fff); }
+    .skeleton { background: linear-gradient(90deg, var(--cream) 25%, var(--border) 50%, var(--cream) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; height: 16px; margin-bottom: 8px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+    @media (max-width: 1100px) { .content-grid { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main { padding: 24px 20px; } }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">Teacher <span>Shain</span></div>
+    <p class="teacher-badge">Teacher Portal</p>
+
+    <p class="nav-section-label">Manage</p>
+    <button class="nav-item active" onclick="showSection('review')"><span class="icon">🎧</span> Review Queue <span class="nav-badge" id="reviewBadge" style="display:none">0</span></button>
+    <button class="nav-item" onclick="showSection('homework')"><span class="icon">📝</span> All Homework</button>
+    <button class="nav-item" onclick="showSection('students')"><span class="icon">👩‍🎓</span> Students</button>
+    <button class="nav-item" onclick="showSection('transcripts')"><span class="icon">📄</span> Transcripts</button>
+
+    <p class="nav-section-label">Create</p>
+    <button class="nav-item" onclick="openModal('hw')"><span class="icon">＋</span> New Homework</button>
+    <button class="nav-item" onclick="openModal('student')"><span class="icon">＋</span> Add Student</button>
+
+    <p class="nav-section-label">Tools</p>
+    <a class="nav-item" href="subtitles.html" target="_blank"><span class="icon">字</span> Live Subtitles</a>
+    <button class="nav-item" onclick="openModal('classin')"><span class="icon">🔗</span> Set ClassIn Link</button>
+    <button class="nav-item" onclick="openModal('plan')"><span class="icon">📅</span> Update Plan</button>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="avatar">S</div>
+        <span class="user-name">Shain 老师</span>
+        <button class="logout-btn" onclick="doLogout()">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- Review section -->
+    <div id="section-review">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Review <span>Queue</span></h1>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">Submissions waiting for your feedback</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('hw')">＋ New Homework</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><p class="stat-label">To Review</p><p class="stat-value red" id="tReview">—</p><p class="stat-sub">submissions</p></div>
+        <div class="stat-card"><p class="stat-label">Total Students</p><p class="stat-value" id="tStudents">—</p><p class="stat-sub">active</p></div>
+        <div class="stat-card"><p class="stat-label">Avg Score</p><p class="stat-value gold" id="tAvg">—</p><p class="stat-sub">this month</p></div>
+        <div class="stat-card"><p class="stat-label">Homework</p><p class="stat-value" id="tHw">—</p><p class="stat-sub">assignments total</p></div>
+      </div>
+
+      <div class="content-grid">
+        <div>
+          <div class="section-title">Pending Reviews <a href="#" class="see-all" onclick="showSection('homework');return false">All submissions</a></div>
+          <div id="reviewList">
+            <div class="review-card"><div class="skeleton" style="width:100%;height:48px;border-radius:10px"></div></div>
+            <div class="review-card"><div class="skeleton" style="width:100%;height:48px;border-radius:10px"></div></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel-card">
+            <p class="section-title">Quick Actions</p>
+            <button class="action-btn" onclick="openModal('hw')"><span class="action-icon">📝</span> Create homework</button>
+            <button class="action-btn" onclick="openModal('student')"><span class="action-icon">👩‍🎓</span> Add student</button>
+            <a class="action-btn" href="subtitles.html" target="_blank"><span class="action-icon">字</span> Open live subtitles</a>
+            <button class="action-btn" onclick="openModal('classin')"><span class="action-icon">🔗</span> Update ClassIn link</button>
+            <button class="action-btn" onclick="openModal('plan')"><span class="action-icon">📅</span> Edit study plan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students section -->
+    <div id="section-students" style="display:none">
+      <div class="page-header">
+        <h1 class="page-title">My <span>Students</span></h1>
+        <button class="btn-primary" onclick="openModal('student')">＋ Add Student</button>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden">
+        <table class="student-table">
+          <thead><tr><th>Name</th><th>Username</th><th>Class</th><th>Submissions</th><th>Avg Score</th></tr></thead>
+          <tbody id="studentTableBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Homework section -->
+    <div id="section-homework" style="display:none">
+      <div class="page-header">
+        <h1 class="page-title">All <span>Homework</span></h1>
+        <button class="btn-primary" onclick="openModal('hw')">＋ New Homework</button>
+      </div>
+      <div id="allHwList"></div>
+    </div>
+
+    <!-- Transcripts section -->
+    <div id="section-transcripts" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Lesson <span>Transcripts</span></h1>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">Saved from live subtitle sessions</p>
+        </div>
+      </div>
+      <div id="transcriptsList"><div class="empty">No transcripts saved yet. Use Live Subtitles and click "Save Transcript" after class.</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-hw">
+  <div class="modal">
+    <h2 class="modal-title">New Homework</h2>
+    <div class="form-group"><label>TITLE</label><input type="text" id="hwTitle" placeholder="e.g. Unit 3 Pronunciation"></div>
+    <div class="form-group"><label>INSTRUCTIONS</label><textarea id="hwInstr" placeholder="What should students do?"></textarea></div>
+    <div class="form-group"><label>CLASS</label><select id="hwClass"><option value="">Select class…</option></select></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('hw')">Cancel</button>
+      <button class="btn-save" onclick="createHomework()">Create Homework</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-student">
+  <div class="modal">
+    <h2 class="modal-title">Add Student</h2>
+    <div class="form-group"><label>FULL NAME</label><input type="text" id="newStudentName" placeholder="e.g. 小明 / Xiao Ming"></div>
+    <div class="form-group"><label>USERNAME</label><input type="text" id="newStudentUsername" placeholder="e.g. xiaoming2024"></div>
+    <div class="form-group"><label>PASSWORD</label><input type="text" id="newStudentPw" placeholder="They can change later" value="changeme123"></div>
+    <div class="form-group"><label>CLASS</label><select id="newStudentClass"><option value="">Select class…</option></select></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('student')">Cancel</button>
+      <button class="btn-save" onclick="addStudent()">Add Student</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-classin">
+  <div class="modal">
+    <h2 class="modal-title">ClassIn Link</h2>
+    <div class="form-group"><label>CLASSIN CLASS URL</label><input type="url" id="classinUrl" placeholder="https://www.classin.com/..."></div>
+    <div class="form-group"><label>NEXT CLASS TIME</label><input type="text" id="classinTime" placeholder="e.g. Tuesday 7:00 PM"></div>
+    <div class="form-group"><label>CLASS INFO</label><input type="text" id="classinInfo" placeholder="e.g. Intermediate Group · 90 min"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('classin')">Cancel</button>
+      <button class="btn-save" onclick="saveClassin()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-plan">
+  <div class="modal">
+    <h2 class="modal-title">Weekly Study Plan</h2>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px">One task per line. Add ✓ at start to mark as done.</p>
+    <div class="form-group">
+      <label>PLAN ITEMS (one per line)</label>
+      <textarea id="planText" style="min-height:160px" placeholder="Review Unit 3 vocabulary&#10;✓ Practice 'th' sounds&#10;Listen to podcast Episode 4"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('plan')">Cancel</button>
+      <button class="btn-save" onclick="savePlan()">Save Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Review submission modal -->
+<div class="modal-overlay" id="modal-review">
+  <div class="modal" style="max-width:640px">
+    <h2 class="modal-title">Review Submission</h2>
+    <div id="reviewModalContent"></div>
+    <div class="form-group" style="margin-top:20px"><label>YOUR SCORE (0–100)</label><input type="number" id="reviewScore" min="0" max="100" placeholder="e.g. 85"></div>
+    <div class="form-group"><label>YOUR FEEDBACK</label><textarea id="reviewFeedback" placeholder="Great pronunciation on 'th' sounds! Work on…" style="min-height:100px"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('review')">Cancel</button>
+      <button class="btn-save" onclick="submitReview()">Save Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generate homework from transcript modal -->
+<div class="modal-overlay" id="modal-gen-hw">
+  <div class="modal" style="max-width:600px">
+    <h2 class="modal-title">✨ AI Generated Homework</h2>
+    <div id="genHwContent"></div>
+    <div class="form-group" style="margin-top:20px"><label>CLASS</label><select id="genHwClass"><option value="">Select class…</option></select></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('gen-hw')">Cancel</button>
+      <button class="btn-save btn-ai" onclick="deployGeneratedHw()">→ Send to Students</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200"></div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  let allSubmissions = [], allStudents = [], allClasses = [], pendingGenHw = null, activeReviewId = null;
+
+  function showSection(name) {
+    ['review','students','homework','transcripts'].forEach(s => {
+      document.getElementById('section-'+s).style.display = s===name ? '' : 'none';
+    });
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event?.currentTarget?.classList.add('active');
+  }
+
+  function doLogout() {
+    localStorage.removeItem('ts_user');
+    window.location.href = '../index.html';
+  }
+
+  function openModal(name) { document.getElementById('modal-'+name).classList.add('open'); }
+  function closeModal(name) { document.getElementById('modal-'+name).classList.remove('open'); }
+
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 3500);
+  }
+
+  async function loadDashboard() {
+    const userRaw = localStorage.getItem('ts_user');
+    if (!userRaw) { window.location.href = '../index.html'; return; }
+    const user = JSON.parse(userRaw);
+    if (user.role !== 'teacher') { window.location.href = '../index.html'; return; }
+
+    try {
+      // Load all in parallel
+      const [subRes, studRes, classRes, hwRes] = await Promise.all([
+        fetch(W + '/submissions'),
+        fetch(W + '/students'),
+        fetch(W + '/classes'),
+        fetch(W + '/homework')
+      ]);
+
+      allSubmissions = await subRes.json();
+      allStudents = await studRes.json();
+      allClasses = await classRes.json();
+      const allHw = await hwRes.json();
+
+      // Populate class dropdowns
+      ['hwClass','newStudentClass','genHwClass'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Select class…</option>';
+        allClasses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name;
+          sel.appendChild(opt);
+        });
+      });
+
+      // Stats
+      const toReview = allSubmissions.filter(s => s.status === 'submitted' || s.status === 'ai_scored');
+      const reviewed = allSubmissions.filter(s => s.status === 'reviewed' && s.score);
+      const avgScore = reviewed.length ? Math.round(reviewed.reduce((a,b) => a + b.score, 0) / reviewed.length) : '—';
+
+      document.getElementById('tReview').textContent = toReview.length;
+      document.getElementById('tStudents').textContent = allStudents.length;
+      document.getElementById('tAvg').textContent = avgScore;
+      document.getElementById('tHw').textContent = allHw.length;
+
+      if (toReview.length > 0) {
+        document.getElementById('reviewBadge').textContent = toReview.length;
+        document.getElementById('reviewBadge').style.display = '';
+      }
+
+      renderReviewQueue(toReview);
+      renderStudentTable(allStudents);
+      renderAllHomework(allHw);
+      loadTranscripts();
+
+    } catch(e) {
+      document.getElementById('reviewList').innerHTML = `<div class="empty">Could not connect to Worker. Check WORKER URL in index.html.<br><small>${e.message}</small></div>`;
+    }
+  }
+
+  function renderReviewQueue(items) {
+    const list = document.getElementById('reviewList');
+    if (!items.length) {
+      list.innerHTML = '<div class="empty">🎉 All caught up! No pending reviews.</div>';
+      return;
+    }
+    list.innerHTML = items.slice(0,15).map(s => {
+      const isAi = s.status === 'ai_scored';
+      const aiScore = s.ai_score ? ` · AI: ${s.ai_score}/100` : '';
+      return `<div class="review-card" onclick="openReviewModal(${s.id})">
+        <div class="review-student">${(s.student_name||'?').charAt(0).toUpperCase()}</div>
+        <div class="review-info">
+          <div class="review-name">${s.student_name || 'Student'}</div>
+          <div class="review-hw">${s.hw_title || s.instructions?.slice(0,50) || 'Homework'}${aiScore}</div>
+        </div>
+        <div class="review-time">${s.submitted_at ? s.submitted_at.slice(0,10) : ''}</div>
+        <span class="review-chip ${isAi ? 'ai' : ''}">${isAi ? '🤖 AI Scored' : 'Review →'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderStudentTable(students) {
+    const tbody = document.getElementById('studentTableBody');
+    if (!students.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No students yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = students.map(st => {
+      const mySubs = allSubmissions.filter(s => s.student_id === st.id);
+      const graded = mySubs.filter(s => s.score);
+      const avg = graded.length ? Math.round(graded.reduce((a,b)=>a+b.score,0)/graded.length) : '—';
+      const cls = allClasses.find(c => c.id === st.class_id);
+      return `<tr>
+        <td><strong>${st.name || '—'}</strong></td>
+        <td style="color:var(--muted)">${st.username || '—'}</td>
+        <td>${cls?.name || '—'}</td>
+        <td>${mySubs.length}</td>
+        <td style="color:var(--gold);font-weight:700">${avg}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderAllHomework(hw) {
+    const list = document.getElementById('allHwList');
+    if (!hw.length) { list.innerHTML = '<div class="empty">No homework created yet.</div>'; return; }
+    const cls = Object.fromEntries(allClasses.map(c => [c.id, c.name]));
+    list.innerHTML = hw.map(h => {
+      const count = allSubmissions.filter(s => s.homework_id === h.id);
+      const reviewed = count.filter(s => s.status === 'reviewed').length;
+      return `<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">${h.title || h.instructions?.slice(0,60) || 'Homework'}</div>
+          <div style="font-size:13px;color:var(--muted)">${cls[h.class_id] || 'Class'} · ${reviewed}/${count.length} reviewed</div>
+        </div>
+        <span style="font-size:12px;color:var(--muted)">${h.created_at?.slice(0,10) || ''}</span>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadTranscripts() {
+    try {
+      const res = await fetch(W + '/transcripts');
+      const transcripts = await res.json();
+      const list = document.getElementById('transcriptsList');
+
+      if (!transcripts.length) {
+        list.innerHTML = '<div class="empty">No transcripts saved yet. Use Live Subtitles and click "Save Transcript" after class.</div>';
+        return;
+      }
+
+      list.innerHTML = transcripts.map(t => `
+        <div class="transcript-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div>
+              <span style="font-size:13px;font-weight:600">${t.created_at?.slice(0,10) || 'Recent'}</span>
+              ${t.duration_minutes ? `<span style="font-size:12px;color:var(--muted);margin-left:10px">~${t.duration_minutes} min</span>` : ''}
+            </div>
+            <button onclick="generateHwFromTranscript(${t.id}, \`${t.text.slice(0,500).replace(/`/g,"'")}\`)"
+              style="padding:8px 16px;background:linear-gradient(135deg,#1a6090,#12a0c8);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
+              ✨ Generate Homework
+            </button>
+          </div>
+          <div class="transcript-text">${t.text.slice(0,300)}…</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:8px">${t.text.split(' ').length} words</div>
+        </div>`).join('');
+    } catch(e) {}
+  }
+
+  async function generateHwFromTranscript(transcriptId, previewText) {
+    showToast('✨ AI is reading the transcript…');
+    try {
+      const res = await fetch(W + '/ai/generate-homework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript_id: transcriptId })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+
+      pendingGenHw = data.homework;
+      const hw = data.homework;
+      const focusHtml = hw.focus_areas?.length
+        ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${hw.focus_areas.map(f => `<span style="background:var(--cream);padding:4px 12px;border-radius:100px;font-size:12px;color:var(--muted)">${f}</span>`).join('')}</div>`
+        : '';
+
+      document.getElementById('genHwContent').innerHTML = `
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Title</p>
+          <p style="font-size:18px;font-weight:600">${hw.title}</p>
+        </div>
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Instructions</p>
+          <p style="font-size:14px;line-height:1.7;color:var(--ink)">${(hw.instructions||'').replace(/\n/g,'<br>')}</p>
+        </div>
+        ${focusHtml}
+        <div style="padding:12px 16px;background:var(--cream);border-radius:10px;font-size:13px;color:var(--muted);margin-bottom:4px">
+          ⏱ Estimated: ${hw.estimated_minutes || 15} minutes
+        </div>`;
+
+      openModal('gen-hw');
+    } catch(e) {
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  async function deployGeneratedHw() {
+    if (!pendingGenHw) return;
+    const classId = document.getElementById('genHwClass').value;
+    if (!classId) { alert('Select a class'); return; }
+
+    const btn = document.querySelector('#modal-gen-hw .btn-ai');
+    btn.textContent = 'Sending…'; btn.disabled = true;
+
+    try {
+      const res = await fetch(W + '/homework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ class_id: classId, title: pendingGenHw.title, instructions: pendingGenHw.instructions })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      showToast(`✓ Homework sent to ${data.submissions_created} student(s)!`);
+      closeModal('gen-hw');
+      setTimeout(() => location.reload(), 1500);
+    } catch(e) {
+      showToast('Error: ' + e.message);
+      btn.textContent = '→ Send to Students'; btn.disabled = false;
+    }
+  }
+
+  function openReviewModal(submissionId) {
+    const sub = allSubmissions.find(s => s.id === submissionId);
+    if (!sub) return;
+    activeReviewId = submissionId;
+
+    let aiHtml = '';
+    if (sub.ai_score || sub.ai_transcript) {
+      let fb = {};
+      try { fb = JSON.parse(sub.ai_feedback || '{}'); } catch {}
+      aiHtml = `<div style="background:#e8f4fb;border:1px solid #b0d4f0;border-radius:12px;padding:16px 20px;margin-bottom:16px">
+        <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1a6090;margin-bottom:10px">🤖 AI Assessment</p>
+        ${sub.ai_score ? `<p style="font-size:24px;font-weight:700;color:#1a6090;margin-bottom:6px">${sub.ai_score}<span style="font-size:14px;color:var(--muted)">/100</span></p>` : ''}
+        ${fb.summary ? `<p style="font-size:14px;margin-bottom:8px">${fb.summary}</p>` : ''}
+        ${fb.teacher_note ? `<p style="font-size:13px;color:var(--muted);font-style:italic">Note: ${fb.teacher_note}</p>` : ''}
+        ${sub.ai_transcript ? `<div style="margin-top:10px;padding:10px 14px;background:#fff;border-radius:8px;font-size:13px;color:var(--muted)"><strong>What student said:</strong> "${sub.ai_transcript}"</div>` : ''}
+      </div>`;
+    }
+
+    let audioHtml = '';
+    if (sub.recording_url) {
+      audioHtml = `<div style="margin-bottom:16px">
+        <p style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px">STUDENT RECORDING</p>
+        <audio controls src="${sub.recording_url}" style="width:100%;border-radius:8px"></audio>
+      </div>`;
+    }
+
+    document.getElementById('reviewModalContent').innerHTML = `
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        <strong>${sub.student_name}</strong> · ${sub.hw_title || 'Homework'} · submitted ${sub.submitted_at?.slice(0,10) || ''}
+      </p>
+      ${audioHtml}${aiHtml}`;
+
+    if (sub.ai_score) document.getElementById('reviewScore').value = sub.ai_score;
+    if (fb?.summary) document.getElementById('reviewFeedback').value = fb?.summary || '';
+
+    openModal('review');
+  }
+
+  async function submitReview() {
+    if (!activeReviewId) return;
+    const score = parseInt(document.getElementById('reviewScore').value);
+    const feedback = document.getElementById('reviewFeedback').value.trim();
+    if (!score && !feedback) { alert('Add a score or feedback'); return; }
+
+    try {
+      await fetch(W + '/submissions/' + activeReviewId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score, feedback })
+      });
+      showToast('✓ Review saved!');
+      closeModal('review');
+      setTimeout(() => location.reload(), 1000);
+    } catch(e) {
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  async function createHomework() {
+    const title = document.getElementById('hwTitle').value.trim();
+    const instr = document.getElementById('hwInstr').value.trim();
+    const classId = document.getElementById('hwClass').value;
+    if (!instr || !classId) { alert('Please fill in instructions and class'); return; }
+    try {
+      const res = await fetch(W + '/homework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ class_id: classId, title, instructions: instr })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      closeModal('hw');
+      showToast(`✓ Homework created for ${data.submissions_created} student(s)!`);
+      setTimeout(() => location.reload(), 1500);
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  async function addStudent() {
+    const name = document.getElementById('newStudentName').value.trim();
+    const username = document.getElementById('newStudentUsername').value.trim().toLowerCase();
+    const pw = document.getElementById('newStudentPw').value.trim();
+    const classId = document.getElementById('newStudentClass').value;
+    if (!name || !username || !pw) { alert('Please fill all fields'); return; }
+    try {
+      const res = await fetch(W + '/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, username, password: pw, class_id: classId || null })
+      });
+      const data = await res.json();
+      if (data.error === 'username taken') { alert('Username already taken'); return; }
+      if (!data.ok) throw new Error(data.error);
+      closeModal('student');
+      showToast(`✓ Student ${name} added! Login: ${username}`);
+      setTimeout(() => location.reload(), 1500);
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  async function saveClassin() {
+    const url = document.getElementById('classinUrl').value.trim();
+    const time = document.getElementById('classinTime').value.trim();
+    const info = document.getElementById('classinInfo').value.trim();
+    try {
+      await fetch(W + '/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classin_url: url, next_class_time: time, next_class_info: info })
+      });
+      closeModal('classin');
+      showToast('✓ ClassIn link saved!');
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  async function savePlan() {
+    const lines = document.getElementById('planText').value.split('\n').filter(l => l.trim());
+    const items = lines.map(l => ({ text: l.replace(/^✓\s*/, '').trim(), done: l.trim().startsWith('✓') }));
+    try {
+      await fetch(W + '/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+      });
+      closeModal('plan');
+      showToast('✓ Study plan updated!');
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>

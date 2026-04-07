@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Subtitles 实时字幕 — Teacher Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1e1e1e;
+      --gold: #c8963e;
+      --gold-light: #e8b96a;
+      --white: #f5f5f5;
+      --muted: #666;
+      --sage: #4a7a41;
+      --red: #c0392b;
+      --border: #2a2a2a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .logo span { color: var(--gold); }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lang-toggle {
+      display: flex;
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 3px;
+      border: 1px solid var(--border);
+    }
+    .lang-opt {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+      border: none;
+      background: none;
+    }
+    .lang-opt.active { background: var(--gold); color: #000; }
+
+    .size-btn {
+      padding: 8px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--white);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .size-btn:hover { background: var(--surface); }
+
+    /* Main record button */
+    .record-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 32px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 14px;
+    }
+
+    .mic-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--white);
+      font-size: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .mic-btn:hover { border-color: var(--gold); }
+    .mic-btn.listening {
+      background: var(--red);
+      border-color: var(--red);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); }
+      50% { box-shadow: 0 0 0 16px rgba(192,57,43,0); }
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.2s;
+    }
+    .status-dot.live { background: var(--red); animation: blink 1s infinite; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Subtitle display — the main area */
+    .subtitle-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Faded history */
+    .subtitle-history {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 20px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .history-item {
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+    .history-item.recent { opacity: 0.6; }
+
+    .history-en {
+      font-size: 18px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .history-zh {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 16px;
+      color: rgba(200,150,62,0.6);
+      line-height: 1.5;
+    }
+
+    /* Live subtitle box */
+    .live-box {
+      background: rgba(20,20,20,0.95);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--gold);
+      border-radius: 16px;
+      padding: 28px 32px;
+      min-height: 120px;
+      position: relative;
+    }
+
+    .live-label {
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--gold);
+      color: #000;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .live-en {
+      font-size: var(--en-size, 26px);
+      color: var(--white);
+      line-height: 1.4;
+      margin-bottom: 12px;
+      min-height: 1.4em;
+      transition: font-size 0.2s;
+    }
+
+    .live-zh {
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: var(--zh-size, 28px);
+      color: var(--gold-light);
+      line-height: 1.6;
+      min-height: 1.6em;
+      transition: font-size 0.2s;
+    }
+
+    .live-en.interim { color: rgba(255,255,255,0.5); }
+
+    /* Placeholder */
+    .placeholder {
+      text-align: center;
+      padding: 48px;
+      color: var(--muted);
+    }
+    .placeholder-icon { font-size: 48px; margin-bottom: 16px; }
+    .placeholder-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.4); }
+    .placeholder-sub { font-size: 14px; line-height: 1.6; }
+    .placeholder-zh { font-family: 'Noto Sans SC', sans-serif; font-size: 14px; margin-top: 8px; color: rgba(200,150,62,0.4); }
+
+    /* Settings panel */
+    .settings-panel {
+      position: fixed;
+      top: 70px; right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      width: 260px;
+      z-index: 50;
+      display: none;
+    }
+    .settings-panel.open { display: block; }
+    .settings-title { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+    .setting-label { color: rgba(255,255,255,0.7); }
+
+    select.setting-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--white);
+      font-size: 13px;
+      padding: 5px 10px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* Toggle */
+    .toggle {
+      width: 40px; height: 22px;
+      background: var(--border);
+      border-radius: 11px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle.on { background: var(--sage); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: left 0.2s;
+    }
+    .toggle.on::after { left: 21px; }
+
+    /* Bottom instructions */
+    .bottom-tips {
+      padding: 12px 32px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 24px;
+      flex-shrink: 0;
+    }
+    .tip { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .tip kbd {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+    }
+
+    /* Not supported */
+    .not-supported {
+      display: none;
+      text-align: center;
+      padding: 60px 32px;
+      color: var(--muted);
+    }
+    .not-supported h2 { color: var(--white); font-size: 22px; margin-bottom: 12px; }
+
+    @media (max-width: 600px) {
+      .live-en { font-size: 20px !important; }
+      .live-zh { font-size: 22px !important; }
+      .record-area { padding: 16px 20px; }
+      .subtitle-area { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Teacher <span>Shain</span> · 实时字幕</div>
+  <div class="controls">
+    <div class="lang-toggle">
+      <button class="lang-opt active" onclick="setMode('en-zh', this)" id="modeEnZh">EN → 中文</button>
+      <button class="lang-opt" onclick="setMode('zh-en', this)" id="modeZhEn">中文 → EN</button>
+      <button class="lang-opt" onclick="setMode('en-only', this)">EN only</button>
+    </div>
+    <button class="size-btn" onclick="adjustSize(-1)">A−</button>
+    <button class="size-btn" onclick="adjustSize(1)">A+</button>
+    <button class="size-btn" onclick="toggleSettings()">⚙</button>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="settings-panel" id="settingsPanel">
+  <p class="settings-title">Settings</p>
+  <div class="setting-row">
+    <span class="setting-label">Translation</span>
+    <div class="toggle on" id="translationToggle" onclick="toggleTranslation(this)"></div>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">Show history</span>
+    <div class="toggle on" id="historyToggle" onclick="toggleHistory(this)"></div>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">Clear history</span>
+    <button class="size-btn" onclick="clearHistory()">Clear</button>
+  </div>
+  <div class="setting-row" style="margin-top:16px">
+    <span class="setting-label" style="font-size:12px;color:var(--muted)">Uses browser's built-in speech recognition + MyMemory free translation API</span>
+  </div>
+</div>
+
+<div class="record-area">
+  <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎙</button>
+  <div class="status-text">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusLabel">Click microphone to start · 点击麦克风开始</span>
+  </div>
+</div>
+
+<div class="subtitle-area">
+  <div class="subtitle-history" id="subtitleHistory"></div>
+
+  <div class="live-box" id="liveBox" style="--en-size:26px;--zh-size:28px">
+    <span class="live-label">LIVE</span>
+
+    <div id="placeholder" class="placeholder">
+      <div class="placeholder-icon">字</div>
+      <div class="placeholder-title">Ready for live subtitles</div>
+      <div class="placeholder-sub">Press the microphone, then speak in English.</div>
+      <div class="placeholder-zh">按下麦克风，然后用英语说话，中文字幕将实时显示在这里。</div>
+    </div>
+
+    <div id="subtitleContent" style="display:none">
+      <div class="live-en" id="liveEn"></div>
+      <div class="live-zh" id="liveZh"></div>
+    </div>
+
+    <div id="notSupported" class="not-supported">
+      <h2>Browser not supported</h2>
+      <p>Live speech recognition requires Chrome or Edge on desktop.<br>Please open this page in Chrome.</p>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-tips">
+  <div class="tip"><kbd>Space</kbd> Start/stop mic</div>
+  <div class="tip">🌐 Auto-translates to Chinese</div>
+  <div class="tip">🆓 100% free, no API key needed</div>
+</div>
+
+
+<div class="bottom-tips">
+  <div class="tip"><kbd>Space</kbd> Start/stop mic</div>
+  <div class="tip">🌐 Auto-translates to Chinese</div>
+  <div class="tip" id="transcriptWordCount" style="color:var(--gold-light)"></div>
+  <button class="size-btn" id="saveTranscriptBtn" style="display:none;background:var(--gold);color:#000;font-weight:600;border:none;padding:8px 16px;border-radius:8px;cursor:pointer" onclick="saveTranscript()">✨ Save Transcript</button>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200"></div>
+
+<!-- AI Homework Modal -->
+<div id="hwModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:150;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1e1e1e;border:1px solid #333;border-radius:20px;padding:36px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto">
+    <h2 style="font-family:'Playfair Display',serif;font-size:24px;color:#fff;margin-bottom:6px">Generated Homework ✨</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Reviewed by AI from today's lesson transcript</p>
+    <div id="hwModalContent"></div>
+    <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
+      <button onclick="closeHwModal()" style="flex:1;padding:12px;background:#333;border:none;border-radius:10px;color:#fff;cursor:pointer;font-size:14px">Close</button>
+      <button onclick="createHwFromModal()" id="createHwBtn" style="flex:2;padding:12px;background:var(--gold);border:none;border-radius:10px;color:#000;font-weight:600;cursor:pointer;font-size:14px">→ Create This Homework</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'REPLACE_WITH_YOUR_WORKER_URL';
+
+  let recognition = null;
+  let isListening = false;
+  let currentMode = 'en-zh';
+  let translationEnabled = true;
+  let showHistory = true;
+  let historyItems = [];
+  let enSize = 26, zhSize = 28;
+  let lastFinalText = '';
+  let translationDebounce = null;
+  let fullTranscript = '';
+  let generatedHw = null;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('notSupported').style.display = 'block';
+    document.getElementById('micBtn').disabled = true;
+    document.getElementById('micBtn').style.opacity = '0.3';
+  } else {
+    setupRecognition();
+  }
+
+  function setupRecognition() {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      isListening = true;
+      document.getElementById('micBtn').classList.add('active');
+      document.getElementById('statusDot').classList.add('active');
+      document.getElementById('statusLabel').textContent = 'Listening… · 聆听中…';
+      document.getElementById('placeholder').style.display = 'none';
+      document.getElementById('subtitleContent').style.display = '';
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      document.getElementById('micBtn').classList.remove('active');
+      document.getElementById('statusDot').classList.remove('active');
+      document.getElementById('statusLabel').textContent = 'Click microphone to start · 点击麦克风开始';
+      document.getElementById('liveEn').textContent = '';
+      document.getElementById('liveZh').textContent = '';
+    };
+
+    recognition.onresult = (event) => {
+      let finalText = '', interimText = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += transcript;
+        else interimText += transcript;
+      }
+
+      if (finalText) {
+        lastFinalText = finalText;
+        fullTranscript += ' ' + finalText.trim();
+        addToHistory(finalText.trim());
+        updateTranscriptCount();
+        if (translationEnabled) translateAndShow(finalText.trim());
+        else { document.getElementById('liveEn').textContent = finalText.trim(); document.getElementById('liveZh').textContent = ''; }
+      } else if (interimText) {
+        document.getElementById('liveEn').textContent = interimText;
+        document.getElementById('liveZh').textContent = '';
+      }
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error === 'not-allowed') {
+        document.getElementById('statusLabel').textContent = 'Microphone access denied';
+      }
+    };
+  }
+
+  function toggleListening() {
+    if (!SpeechRecognition) return;
+    if (isListening) recognition.stop();
+    else {
+      const lang = currentMode === 'en-zh' ? 'en-US' : 'zh-CN';
+      recognition.lang = lang;
+      recognition.start();
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && e.target === document.body) {
+      e.preventDefault(); toggleListening();
+    }
+  });
+
+  async function translateAndShow(text) {
+    document.getElementById('liveEn').textContent = text;
+    document.getElementById('liveZh').textContent = '…';
+    clearTimeout(translationDebounce);
+    translationDebounce = setTimeout(async () => {
+      try {
+        const target = currentMode === 'en-zh' ? 'zh' : 'en';
+        const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${target}`);
+        const d = await r.json();
+        document.getElementById('liveZh').textContent = d.responseData?.translatedText || '';
+      } catch { document.getElementById('liveZh').textContent = ''; }
+    }, 400);
+  }
+
+  function addToHistory(text) {
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    historyItems.push({ text, time });
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const el = document.getElementById('subtitleHistory');
+    if (!showHistory || historyItems.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = historyItems.slice(-20).reverse().map(item =>
+      `<div class="history-item"><span class="history-time">${item.time}</span><span>${item.text}</span></div>`
+    ).join('');
+  }
+
+  function updateTranscriptCount() {
+    const words = fullTranscript.trim().split(/\s+/).filter(Boolean).length;
+    const el = document.getElementById('transcriptWordCount');
+    const btn = document.getElementById('saveTranscriptBtn');
+    if (words > 0) {
+      el.textContent = `📝 ${words} words captured`;
+      btn.style.display = '';
+    }
+  }
+
+  async function saveTranscript() {
+    const text = fullTranscript.trim();
+    if (!text) return;
+    const btn = document.getElementById('saveTranscriptBtn');
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    try {
+      const words = text.split(/\s+/).length;
+      const mins = Math.round(words / 130);
+      const res = await fetch(W + '/transcripts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, language: currentMode, duration_minutes: mins })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+
+      showToast('✓ Transcript saved! Generating homework…');
+      btn.textContent = '✨ Generating Homework…';
+
+      // Auto-generate homework from transcript
+      const hwRes = await fetch(W + '/ai/generate-homework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript_text: text })
+      });
+      const hwData = await hwRes.json();
+
+      if (hwData.ok && hwData.homework) {
+        generatedHw = hwData.homework;
+        showHwModal(hwData.homework);
+      }
+
+      btn.textContent = '✓ Saved';
+      setTimeout(() => { btn.textContent = '✨ Save Transcript'; btn.disabled = false; }, 3000);
+    } catch(e) {
+      showToast('Error: ' + e.message);
+      btn.textContent = '✨ Save Transcript';
+      btn.disabled = false;
+    }
+  }
+
+  function showHwModal(hw) {
+    const focusHtml = hw.focus_areas?.length
+      ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">${hw.focus_areas.map(f => `<span style="background:#333;color:var(--gold);padding:4px 12px;border-radius:100px;font-size:12px">${f}</span>`).join('')}</div>`
+      : '';
+    document.getElementById('hwModalContent').innerHTML = `
+      <div style="margin-bottom:16px">
+        <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Title</p>
+        <p style="color:#fff;font-size:18px;font-weight:600">${hw.title}</p>
+      </div>
+      <div style="margin-bottom:16px">
+        <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Instructions</p>
+        <p style="color:rgba(255,255,255,0.8);font-size:14px;line-height:1.7">${(hw.instructions||'').replace(/\n/g,'<br>')}</p>
+      </div>
+      ${focusHtml}
+      <div style="margin-top:14px;padding:12px 16px;background:#333;border-radius:10px;font-size:13px;color:var(--muted)">
+        ⏱ Estimated: ${hw.estimated_minutes || 15} minutes
+      </div>`;
+    document.getElementById('hwModal').style.display = 'flex';
+  }
+
+  function closeHwModal() {
+    document.getElementById('hwModal').style.display = 'none';
+  }
+
+  async function createHwFromModal() {
+    if (!generatedHw) return;
+    const btn = document.getElementById('createHwBtn');
+    btn.textContent = 'Creating…';
+    btn.disabled = true;
+
+    // Load classes to pick one
+    try {
+      const res = await fetch(W + '/classes');
+      const classes = await res.json();
+      if (!classes.length) {
+        showToast('No classes found — create a class first in teacher dashboard');
+        btn.textContent = '→ Create This Homework'; btn.disabled = false;
+        return;
+      }
+      // Use first class or prompt
+      const classId = classes[0].id;
+      const hwRes = await fetch(W + '/homework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ class_id: classId, title: generatedHw.title, instructions: generatedHw.instructions })
+      });
+      const hwData = await hwRes.json();
+      if (!hwData.ok) throw new Error(hwData.error);
+      showToast(`✓ Homework created for ${hwData.submissions_created} student(s)!`);
+      closeHwModal();
+    } catch(e) {
+      showToast('Error: ' + e.message);
+    }
+    btn.textContent = '→ Create This Homework'; btn.disabled = false;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 3500);
+  }
+
+  function clearHistory() {
+    historyItems = [];
+    renderHistory();
+  }
+
+  function setLang(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.lang-opt').forEach(el => el.classList.toggle('active', el.dataset.mode === mode));
+    if (isListening) { recognition.stop(); setTimeout(toggleListening, 300); }
+  }
+
+  function toggleTranslation(el) {
+    translationEnabled = !translationEnabled;
+    el.classList.toggle('on', translationEnabled);
+    el.classList.toggle('off', !translationEnabled);
+  }
+
+  function toggleHistory(el) {
+    showHistory = !showHistory;
+    el.classList.toggle('on', showHistory);
+    el.classList.toggle('off', !showHistory);
+    renderHistory();
+  }
+
+  function changeSize(type, delta) {
+    if (type === 'en') enSize = Math.max(16, Math.min(60, enSize + delta));
+    else zhSize = Math.max(16, Math.min(72, zhSize + delta));
+    document.getElementById('liveBox').style.setProperty('--en-size', enSize + 'px');
+    document.getElementById('liveBox').style.setProperty('--zh-size', zhSize + 'px');
+  }
+
+  function toggleSettings() {
+    document.getElementById('settingsPanel').classList.toggle('open');
+  }
+</script>
+</body>
+</html>
