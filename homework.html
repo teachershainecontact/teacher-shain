@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homework — Teacher Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c; --paper: #faf8f4; --cream: #f2ede4;
+      --gold: #c8963e; --gold-light: #e8b96a; --red: #c0392b;
+      --sage: #4a6741; --muted: #8a8070; --border: #ddd8ce;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+    .topbar {
+      background: var(--ink); padding: 16px 40px; display: flex;
+      align-items: center; gap: 16px;
+    }
+    .back-link {
+      color: rgba(255,255,255,0.5); text-decoration: none; font-size: 14px;
+      display: flex; align-items: center; gap: 8px; transition: color 0.2s;
+    }
+    .back-link:hover { color: #fff; }
+    .topbar-title { font-family: 'Playfair Display', serif; font-size: 18px; color: #fff; font-weight: 700; }
+    .topbar-title span { color: var(--gold); }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 48px 24px; }
+
+    .hw-header {
+      background: var(--ink); border-radius: 20px; padding: 36px 40px;
+      margin-bottom: 28px; position: relative; overflow: hidden;
+    }
+    .hw-header::before {
+      content: '英'; position: absolute; right: 30px; bottom: -20px;
+      font-size: 160px; font-weight: 900; color: rgba(255,255,255,0.03);
+      font-family: serif; line-height: 1;
+    }
+    .hw-class-tag {
+      display: inline-block; font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 14px;
+    }
+    .hw-title-main { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .hw-due { font-size: 14px; color: rgba(255,255,255,0.45); }
+    .hw-score-badge {
+      position: absolute; top: 36px; right: 40px;
+      font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 700;
+      color: var(--gold); line-height: 1;
+    }
+    .hw-score-badge span { font-size: 18px; color: rgba(255,255,255,0.4); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+
+    .card {
+      background: #fff; border: 1px solid var(--border); border-radius: 16px;
+      padding: 28px 32px; margin-bottom: 20px;
+    }
+    .card-title { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+    .instructions { font-size: 16px; line-height: 1.7; color: var(--ink); }
+
+    /* Teacher audio */
+    .audio-player {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--cream); border-radius: 12px; padding: 16px 20px;
+    }
+    .play-btn {
+      width: 44px; height: 44px; border-radius: 50%; background: var(--ink);
+      border: none; color: #fff; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.2s;
+    }
+    .play-btn:hover { background: var(--gold); }
+    .audio-label { font-size: 14px; font-weight: 500; }
+    .audio-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .audio-progress {
+      flex: 1; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer;
+    }
+    .audio-progress-fill { height: 100%; background: var(--gold); border-radius: 2px; width: 0%; transition: width 0.1s; }
+
+    /* Recording */
+    .record-section { text-align: center; padding: 10px 0; }
+
+    .record-btn {
+      width: 100px; height: 100px; border-radius: 50%;
+      background: var(--ink); border: 3px solid var(--border);
+      color: #fff; font-size: 36px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; transition: all 0.2s; position: relative;
+    }
+    .record-btn:hover { border-color: var(--gold); }
+    .record-btn.recording {
+      background: var(--red); border-color: var(--red);
+      animation: pulse-rec 1s infinite;
+    }
+    @keyframes pulse-rec {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); }
+      50% { box-shadow: 0 0 0 20px rgba(192,57,43,0); }
+    }
+
+    .record-hint { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+    .record-timer { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--red); display: none; }
+
+    .recording-controls { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+
+    .btn {
+      padding: 12px 22px; border-radius: 10px; font-size: 14px;
+      font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s; border: none;
+    }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--ink); }
+    .btn-outline:hover { background: var(--cream); }
+    .btn-gold { background: var(--gold); color: var(--ink); }
+    .btn-gold:hover { background: var(--gold-light); }
+    .btn-dark { background: var(--ink); color: #fff; }
+    .btn-dark:hover { opacity: 0.8; }
+    .btn-sage { background: var(--sage); color: #fff; }
+    .btn-sage:hover { opacity: 0.85; }
+
+    /* Playback */
+    .playback-section { display: none; }
+    .my-recording-player {
+      display: flex; align-items: center; gap: 14px;
+      background: #e8f4ea; border: 1px solid #b0d8b4; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;
+    }
+
+    /* Feedback */
+    .feedback-card { background: #fffbf2; border: 1px solid #f0d080; }
+    .feedback-score {
+      font-family: 'Playfair Display', serif; font-size: 56px;
+      font-weight: 700; color: var(--gold); margin-bottom: 8px;
+    }
+    .feedback-score span { font-size: 20px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+    .feedback-text { font-size: 15px; line-height: 1.7; color: var(--ink); margin-top: 16px; }
+
+    .status-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .status-pending { background: #fff8e6; color: #b07800; border: 1px solid #f0d080; }
+    .status-submitted { background: #eef7f0; color: var(--sage); border: 1px solid #b0d8b4; }
+    .status-graded { background: var(--ink); color: #fff; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-link" href="student-dashboard.html">← Back</a>
+  <span style="color:rgba(255,255,255,0.2)">|</span>
+  <span class="topbar-title">Teacher <span>Shain</span></span>
+</div>
+
+<div class="container">
+
+  <div id="loadingState" class="card" style="text-align:center;padding:60px">
+    Loading homework…
+  </div>
+
+  <div id="hwContent" style="display:none">
+
+    <div class="hw-header" id="hwHeaderEl">
+      <span class="hw-class-tag" id="hwClassTag">Class</span>
+      <h1 class="hw-title-main" id="hwTitleEl">Homework</h1>
+      <p class="hw-due" id="hwDueEl">Due: —</p>
+      <div class="hw-score-badge" id="hwScoreBadge" style="display:none">
+        <span id="hwScoreNum">—</span><span>/100</span>
+      </div>
+    </div>
+
+    <div id="statusBarEl" class="status-bar status-pending" style="display:none"></div>
+
+    <!-- Instructions -->
+    <div class="card">
+      <p class="card-title">Instructions</p>
+      <p class="instructions" id="hwInstructions">—</p>
+    </div>
+
+    <!-- Teacher demo audio (if any) -->
+    <div class="card" id="teacherAudioCard" style="display:none">
+      <p class="card-title">Teacher's Demo 示范</p>
+      <div class="audio-player">
+        <button class="play-btn" id="teacherPlayBtn" onclick="playTeacherAudio()">▶</button>
+        <div style="flex:1">
+          <div class="audio-label">Listen first, then record your version</div>
+          <div class="audio-sub">先听老师示范，然后录制你的版本</div>
+          <div class="audio-progress" onclick="seekTeacherAudio(event)">
+            <div class="audio-progress-fill" id="teacherProgress"></div>
+          </div>
+        </div>
+      </div>
+      <audio id="teacherAudio"></audio>
+    </div>
+
+    <!-- Recording (shown when pending/re-recording) -->
+    <div class="card" id="recordingCard">
+      <p class="card-title">Your Recording</p>
+      <div class="record-section">
+        <button class="record-btn" id="recordBtn" onclick="toggleRecord()">🎙</button>
+        <p class="record-hint" id="recordHint">Press to start recording</p>
+        <p class="record-hint" style="font-size:12px;color:var(--border);margin-top:4px">(Allow microphone when asked)</p>
+        <p class="record-timer" id="recordTimer">0:00</p>
+      </div>
+
+      <div class="playback-section" id="playbackSection">
+        <div class="my-recording-player">
+          <button class="play-btn" style="background:var(--sage)" onclick="playMyRecording()">▶</button>
+          <div style="flex:1">
+            <div class="audio-label">Your recording</div>
+            <div class="audio-progress">
+              <div class="audio-progress-fill" id="myProgress"></div>
+            </div>
+          </div>
+        </div>
+        <audio id="myAudio"></audio>
+        <div class="recording-controls">
+          <button class="btn btn-outline" onclick="reRecord()">🔄 Re-record</button>
+          <button class="btn btn-sage" onclick="submitRecording()">Submit Recording →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submitted state -->
+    <div class="card" id="submittedCard" style="display:none">
+      <p class="card-title">Your Submission</p>
+      <div class="my-recording-player">
+        <button class="play-btn" style="background:var(--sage)" onclick="playSubmittedAudio()">▶</button>
+        <div>
+          <div class="audio-label">Submitted recording</div>
+          <div class="audio-sub">Waiting for teacher review…</div>
+        </div>
+      </div>
+      <audio id="submittedAudio"></audio>
+    </div>
+
+    <!-- Feedback (graded) -->
+    <div class="card feedback-card" id="feedbackCard" style="display:none">
+      <p class="card-title">Teacher Feedback 老师点评</p>
+      <div class="feedback-score"><span id="feedbackScore">—</span><span>/100</span></div>
+      <p class="feedback-text" id="feedbackText"></p>
+      <div id="feedbackAudioSection" style="margin-top:20px;display:none">
+        <div class="audio-player" style="background:var(--cream)">
+          <button class="play-btn" onclick="playFeedbackAudio()">▶</button>
+          <div><div class="audio-label">Audio feedback from Shain 老师</div></div>
+        </div>
+        <audio id="feedbackAudio"></audio>
+      </div>
+
+    <!-- AI Feedback (ai_scored state) -->
+    <div class="card" id="aiFeedbackCard" style="display:none;background:#f0f9ff;border-color:#b0d4f0">
+      <p class="card-title" style="color:#1a6090">🤖 AI Pronunciation Feedback</p>
+      <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px">
+        <div style="text-align:center">
+          <div class="feedback-score" style="color:#1a6090"><span id="aiScoreNum">—</span><span>/100</span></div>
+          <div style="font-size:12px;color:var(--muted)">Overall</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;flex:1;min-width:180px">
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Fluency</div>
+            <div style="height:8px;background:var(--border);border-radius:4px"><div id="aiFluencyBar" style="height:100%;background:#1a6090;border-radius:4px;width:0%;transition:width 0.8s"></div></div>
+            <div id="aiFluencyVal" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Accuracy</div>
+            <div style="height:8px;background:var(--border);border-radius:4px"><div id="aiAccuracyBar" style="height:100%;background:var(--sage);border-radius:4px;width:0%;transition:width 0.8s 0.2s"></div></div>
+            <div id="aiAccuracyVal" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+          </div>
+        </div>
+      </div>
+      <p class="feedback-text" id="aiSummaryText" style="margin-bottom:14px"></p>
+      <div id="aiStrengths" style="margin-bottom:10px"></div>
+      <div id="aiImprovements"></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:16px;font-style:italic">Your teacher will review this AI feedback and may add their own notes.</p>
+    </div>
+
+    <!-- Submitted: AI Processing -->
+    <div class="card" id="aiProcessingCard" style="display:none;text-align:center;padding:32px">
+      <div style="font-size:36px;margin-bottom:12px">🤖</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:8px">AI is scoring your recording…</div>
+      <div style="font-size:13px;color:var(--muted)">Whisper is transcribing your audio, then scoring pronunciation. This takes about 10 seconds.</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100"></div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'REPLACE_WITH_YOUR_WORKER_URL';
+
+  let mediaRecorder, audioChunks = [], recordingBlob = null;
+  let timerInterval, seconds = 0;
+  let currentSubmission = null;
+
+  const params = new URLSearchParams(location.search);
+  const submissionId = params.get('id');
+
+  async function init() {
+    const userRaw = localStorage.getItem('ts_user');
+    if (!userRaw) { window.location.href = '../index.html'; return; }
+    const user = JSON.parse(userRaw);
+
+    if (!submissionId) {
+      document.getElementById('loadingState').textContent = 'No homework ID found.';
+      return;
+    }
+
+    try {
+      // Fetch all student homework and find this submission
+      const res = await fetch(W + '/homework?student_id=' + user.id);
+      const allHw = await res.json();
+      const sub = allHw.find(h => String(h.submission_id) === String(submissionId));
+
+      if (!sub) {
+        document.getElementById('loadingState').textContent = 'Homework not found.';
+        return;
+      }
+      currentSubmission = sub;
+
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('hwContent').style.display = '';
+
+      document.getElementById('hwTitleEl').textContent = sub.title || 'Homework';
+      document.getElementById('hwClassTag').textContent = sub.class_id ? 'Class ' + sub.class_id : 'Homework';
+      document.getElementById('hwDueEl').textContent = sub.due_date ? 'Due: ' + sub.due_date : '';
+      document.getElementById('hwInstructions').textContent = sub.instructions || 'Complete the recording assignment.';
+
+      if (sub.audio_url) {
+        document.getElementById('teacherAudio').src = sub.audio_url;
+        document.getElementById('teacherAudioCard').style.display = '';
+      }
+
+      renderStatus(sub);
+    } catch(e) {
+      document.getElementById('loadingState').textContent = 'Could not load: ' + e.message;
+    }
+  }
+
+  function renderStatus(data) {
+    const statusBar = document.getElementById('statusBarEl');
+    statusBar.style.display = 'flex';
+    const status = data.status;
+
+    if (status === 'pending') {
+      statusBar.className = 'status-bar status-pending';
+      statusBar.textContent = '⏳ Pending — record and submit your homework';
+    } else if (status === 'submitted') {
+      statusBar.className = 'status-bar status-submitted';
+      statusBar.textContent = '✓ Submitted — AI is processing your recording…';
+      document.getElementById('recordingCard').style.display = 'none';
+      document.getElementById('aiProcessingCard').style.display = '';
+      if (data.recording_url) document.getElementById('submittedAudio').src = data.recording_url;
+    } else if (status === 'ai_scored') {
+      statusBar.className = 'status-bar status-submitted';
+      statusBar.textContent = '🤖 AI scored — awaiting teacher review';
+      document.getElementById('recordingCard').style.display = 'none';
+      document.getElementById('submittedCard').style.display = '';
+      if (data.recording_url) document.getElementById('submittedAudio').src = data.recording_url;
+      showAiFeedback(data);
+    } else if (status === 'reviewed') {
+      statusBar.className = 'status-bar status-graded';
+      statusBar.textContent = '✓ Reviewed by Shain 老师';
+      document.getElementById('recordingCard').style.display = 'none';
+      document.getElementById('feedbackCard').style.display = '';
+      document.getElementById('hwScoreBadge').style.display = '';
+      document.getElementById('hwScoreNum').textContent = data.score;
+      document.getElementById('feedbackScore').textContent = data.score;
+      document.getElementById('feedbackText').textContent = data.feedback || '';
+      if (data.feedback_url) {
+        document.getElementById('feedbackAudio').src = data.feedback_url;
+        document.getElementById('feedbackAudioSection').style.display = '';
+      }
+      // Also show AI feedback if present
+      if (data.ai_score) showAiFeedback(data);
+    }
+  }
+
+  function showAiFeedback(data) {
+    if (!data.ai_score && !data.ai_feedback) return;
+    document.getElementById('aiFeedbackCard').style.display = '';
+    const score = data.ai_score;
+    if (score) {
+      document.getElementById('aiScoreNum').textContent = score;
+      document.getElementById('hwScoreBadge').style.display = '';
+      document.getElementById('hwScoreNum').textContent = data.score || score;
+    }
+
+    let fb = {};
+    try { fb = JSON.parse(data.ai_feedback || '{}'); } catch {}
+
+    if (fb.fluency) {
+      setTimeout(() => { document.getElementById('aiFluencyBar').style.width = fb.fluency + '%'; }, 100);
+      document.getElementById('aiFluencyVal').textContent = fb.fluency + '/100';
+    }
+    if (fb.accuracy) {
+      setTimeout(() => { document.getElementById('aiAccuracyBar').style.width = fb.accuracy + '%'; }, 100);
+      document.getElementById('aiAccuracyVal').textContent = fb.accuracy + '/100';
+    }
+    if (fb.summary) document.getElementById('aiSummaryText').textContent = fb.summary;
+
+    if (fb.strengths?.length) {
+      document.getElementById('aiStrengths').innerHTML =
+        `<p style="font-size:12px;font-weight:600;color:var(--sage);margin-bottom:6px">✓ STRENGTHS</p>` +
+        fb.strengths.map(s => `<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join('');
+    }
+    if (fb.improvements?.length) {
+      document.getElementById('aiImprovements').innerHTML =
+        `<p style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:6px;margin-top:10px">→ WORK ON</p>` +
+        fb.improvements.map(s => `<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join('');
+    }
+  }
+
+  async function toggleRecord() {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') await startRecording();
+    else stopRecording();
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        recordingBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(recordingBlob);
+        document.getElementById('myAudio').src = url;
+        document.getElementById('playbackSection').style.display = '';
+        document.getElementById('recordBtn').style.display = 'none';
+        document.getElementById('recordHint').style.display = 'none';
+        document.getElementById('recordTimer').style.display = 'none';
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      document.getElementById('recordBtn').classList.add('recording');
+      document.getElementById('recordBtn').textContent = '⏹';
+      document.getElementById('recordHint').textContent = 'Recording… tap to stop';
+      document.getElementById('recordTimer').style.display = '';
+      seconds = 0;
+      timerInterval = setInterval(() => {
+        seconds++;
+        const m = Math.floor(seconds/60), s = seconds%60;
+        document.getElementById('recordTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      }, 1000);
+    } catch(e) {
+      alert('Microphone access denied. Please allow microphone and try again.');
+    }
+  }
+
+  function stopRecording() {
+    clearInterval(timerInterval);
+    mediaRecorder.stop();
+    document.getElementById('recordBtn').classList.remove('recording');
+  }
+
+  function reRecord() {
+    recordingBlob = null;
+    document.getElementById('playbackSection').style.display = 'none';
+    document.getElementById('recordBtn').style.display = '';
+    document.getElementById('recordBtn').textContent = '🎙';
+    document.getElementById('recordHint').style.display = '';
+    document.getElementById('recordHint').textContent = 'Press to start recording';
+    document.getElementById('recordTimer').textContent = '0:00';
+  }
+
+  async function submitRecording() {
+    if (!recordingBlob) { alert('Please record something first'); return; }
+    const btn = document.querySelector('#recordingCard .btn-sage');
+    btn.textContent = 'Submitting…';
+    btn.disabled = true;
+
+    try {
+      // We store the audio as a base64 data URL (no Firebase Storage)
+      const reader = new FileReader();
+      const base64 = await new Promise((res, rej) => {
+        reader.onload = () => res(reader.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(recordingBlob);
+      });
+
+      // Save recording_url as base64 data URL
+      await fetch(W + '/submissions/' + submissionId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recording_url: base64 })
+      });
+
+      showToast('✓ Submitted! Running AI analysis…');
+      document.getElementById('recordingCard').style.display = 'none';
+      document.getElementById('aiProcessingCard').style.display = '';
+
+      // Send to Whisper for transcription
+      const formData = new FormData();
+      formData.append('audio', recordingBlob, 'recording.webm');
+      const transcribeRes = await fetch(W + '/ai/transcribe', { method: 'POST', body: formData });
+      const transcribeData = await transcribeRes.json();
+
+      if (!transcribeData.ok) throw new Error('Transcription failed');
+
+      const studentTranscript = transcribeData.transcript;
+
+      // Score pronunciation
+      const scoreRes = await fetch(W + '/ai/score-pronunciation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_transcript: studentTranscript,
+          instructions: currentSubmission?.instructions || ''
+        })
+      });
+      const scoreData = await scoreRes.json();
+      const scoring = scoreData.scoring || {};
+
+      // Save AI results
+      await fetch(W + '/submissions/' + submissionId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ai_transcript: studentTranscript,
+          ai_score: scoring.score || null,
+          ai_feedback: JSON.stringify(scoring)
+        })
+      });
+
+      showToast('🤖 AI analysis complete!');
+      setTimeout(() => location.reload(), 1500);
+    } catch(e) {
+      showToast('Error: ' + e.message);
+      btn.textContent = 'Submit Recording →';
+      btn.disabled = false;
+      document.getElementById('recordingCard').style.display = '';
+      document.getElementById('aiProcessingCard').style.display = 'none';
+    }
+  }
+
+  function playTeacherAudio() {
+    const a = document.getElementById('teacherAudio');
+    if (a.paused) { a.play(); document.getElementById('teacherPlayBtn').textContent = '⏸'; }
+    else { a.pause(); document.getElementById('teacherPlayBtn').textContent = '▶'; }
+    a.ontimeupdate = () => {
+      if (a.duration) document.getElementById('teacherProgress').style.width = (a.currentTime/a.duration*100)+'%';
+    };
+    a.onended = () => { document.getElementById('teacherPlayBtn').textContent = '▶'; };
+  }
+
+  function seekTeacherAudio(e) {
+    const a = document.getElementById('teacherAudio');
+    const rect = e.currentTarget.getBoundingClientRect();
+    a.currentTime = ((e.clientX - rect.left) / rect.width) * a.duration;
+  }
+
+  function playMyRecording() {
+    const a = document.getElementById('myAudio');
+    if (a.paused) a.play(); else a.pause();
+  }
+
+  function playSubmittedAudio() {
+    const a = document.getElementById('submittedAudio');
+    if (a.paused) a.play(); else a.pause();
+  }
+
+  function playFeedbackAudio() {
+    const a = document.getElementById('feedbackAudio');
+    if (a.paused) a.play(); else a.pause();
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 3500);
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard — Teacher Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c;
+      --paper: #faf8f4;
+      --cream: #f2ede4;
+      --gold: #c8963e;
+      --gold-light: #e8b96a;
+      --red: #c0392b;
+      --sage: #4a6741;
+      --muted: #8a8070;
+      --border: #ddd8ce;
+      --pending: #e8a020;
+      --done: #4a6741;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); }
+
+    /* Layout */
+    .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--ink);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .sidebar-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 40px;
+    }
+    .sidebar-logo span { color: var(--gold); }
+
+    .nav-section-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 10px;
+      margin-top: 24px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 9px;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      margin-bottom: 3px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: var(--gold); color: var(--ink); }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 100px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 20px;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 36px; height: 36px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 500; }
+    .logout-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.3);
+      cursor: pointer;
+      font-size: 18px;
+      transition: color 0.2s;
+    }
+    .logout-btn:hover { color: rgba(255,255,255,0.7); }
+
+    /* Main content */
+    .main { padding: 40px 48px; }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 40px;
+    }
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .page-title span { font-style: italic; color: var(--gold); }
+    .page-date { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .classin-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      background: var(--sage);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.2s;
+    }
+    .classin-btn:hover { opacity: 0.85; }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+    }
+    .stat-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.sage { color: var(--sage); }
+    .stat-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    /* Content grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .see-all {
+      font-size: 12px;
+      color: var(--gold);
+      text-decoration: none;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+    }
+
+    /* Homework cards */
+    .hw-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .hw-card:hover {
+      border-color: var(--gold);
+      box-shadow: 0 4px 20px rgba(200,150,62,0.1);
+    }
+
+    .hw-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .hw-meta { font-size: 13px; color: var(--muted); }
+
+    .hw-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .hw-status.pending { background: #fff8e6; color: var(--pending); border: 1px solid #f0d080; }
+    .hw-status.submitted { background: #eef7f0; color: var(--sage); border: 1px solid #b0d8b4; }
+    .hw-status.graded {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .hw-score {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gold);
+      text-align: right;
+    }
+    .hw-score span { font-size: 13px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+
+    /* Sidebar panel */
+    .side-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .panel-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+    }
+
+    .next-class {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+    .next-class .section-title { color: rgba(255,255,255,0.45); }
+    .next-class-time {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .next-class-info { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+
+    .join-btn {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      background: var(--gold);
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s;
+    }
+    .join-btn:hover { background: var(--gold-light); }
+
+    .subtitle-quick {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--cream);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 14px;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+    .subtitle-quick:hover { background: var(--border); }
+    .subtitle-icon-sm {
+      width: 32px; height: 32px;
+      background: var(--sage);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Plan items */
+    .plan-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--cream);
+      font-size: 14px;
+    }
+    .plan-item:last-child { border-bottom: none; }
+    .plan-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+    .plan-check.done { background: var(--sage); border-color: var(--sage); color: #fff; }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--cream) 25%, var(--border) 50%, var(--cream) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+      height: 16px;
+      margin-bottom: 8px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    @media (max-width: 1100px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Teacher <span>Shain</span></div>
+
+    <p class="nav-section-label">Menu</p>
+    <button class="nav-item active" onclick="showSection('homework')">
+      <span class="icon">📝</span> Homework
+      <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showSection('plans')">
+      <span class="icon">📅</span> Study Plans
+    </button>
+    <button class="nav-item" onclick="showSection('classes')">
+      <span class="icon">🏫</span> My Classes
+    </button>
+
+    <p class="nav-section-label">Tools</p>
+    <a class="nav-item" href="subtitles.html" target="_blank">
+      <span class="icon">字</span> Live Subtitles
+    </a>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="avatar" id="avatarInitial">?</div>
+        <span class="user-name" id="sidebarName">Loading…</span>
+        <button class="logout-btn" onclick="doLogout()" title="Sign out">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Homework section -->
+    <div id="section-homework">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Good <span id="timeGreeting">morning</span>,<br><span id="studentName">Student</span></h1>
+          <p class="page-date" id="todayDate"></p>
+        </div>
+        <a href="#" class="classin-btn" id="classinBtn" target="_blank">
+          🎓 Join Class on ClassIn
+        </a>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <p class="stat-label">Pending</p>
+          <p class="stat-value" id="statPending">—</p>
+          <p class="stat-sub">assignments due</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Submitted</p>
+          <p class="stat-value sage" id="statSubmitted">—</p>
+          <p class="stat-sub">awaiting review</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Average Score</p>
+          <p class="stat-value gold" id="statAvg">—</p>
+          <p class="stat-sub">out of 100</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Total Done</p>
+          <p class="stat-value" id="statTotal">—</p>
+          <p class="stat-sub">assignments</p>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <div>
+          <div class="section-title">
+            My Homework
+            <a href="#" class="see-all">See all</a>
+          </div>
+          <div id="homeworkList">
+            <div class="hw-card"><div><div class="skeleton" style="width:60%"></div><div class="skeleton" style="width:40%"></div></div></div>
+            <div class="hw-card"><div><div class="skeleton" style="width:55%"></div><div class="skeleton" style="width:35%"></div></div></div>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <div class="panel-card next-class">
+            <p class="section-title">Next Class</p>
+            <p class="next-class-time" id="nextClassTime">—</p>
+            <p class="next-class-info" id="nextClassInfo">Check your schedule</p>
+            <a href="#" class="join-btn" id="joinClassBtn" target="_blank">Join on ClassIn →</a>
+            <a href="subtitles.html" target="_blank" class="subtitle-quick">
+              <span class="subtitle-icon-sm">字</span>
+              Open live subtitles
+            </a>
+          </div>
+
+          <div class="panel-card">
+            <p class="section-title">This Week's Plan</p>
+            <div id="planList">
+              <div class="skeleton"></div>
+              <div class="skeleton" style="width:80%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plans section (hidden by default) -->
+    <div id="section-plans" style="display:none">
+      <h1 class="page-title" style="margin-bottom:32px">Study <span style="font-style:italic;color:var(--gold)">Plans</span></h1>
+      <div id="plansFull" class="panel-card" style="max-width:640px"></div>
+    </div>
+
+    <!-- Classes section (hidden by default) -->
+    <div id="section-classes" style="display:none">
+      <h1 class="page-title" style="margin-bottom:32px">My <span style="font-style:italic;color:var(--gold)">Classes</span></h1>
+      <div id="classesList"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'REPLACE_WITH_YOUR_WORKER_URL';
+
+  function showSection(name) {
+    ['homework','plans','classes'].forEach(s => {
+      document.getElementById('section-'+s).style.display = s === name ? '' : 'none';
+    });
+    document.querySelectorAll('.nav-item').forEach((el, i) => {
+      el.classList.toggle('active', ['homework','plans','classes'][i] === name);
+    });
+  }
+
+  function doLogout() {
+    localStorage.removeItem('ts_user');
+    window.location.href = '../index.html';
+  }
+
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return 'morning';
+    if (h < 17) return 'afternoon';
+    return 'evening';
+  }
+
+  async function init() {
+    const userRaw = localStorage.getItem('ts_user');
+    if (!userRaw) { window.location.href = '../index.html'; return; }
+    const user = JSON.parse(userRaw);
+    if (user.role !== 'student') { window.location.href = '../index.html'; return; }
+
+    document.getElementById('timeGreeting').textContent = getGreeting();
+    document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    const firstName = user.name || user.username || 'Student';
+    document.getElementById('studentName').textContent = firstName;
+    document.getElementById('sidebarName').textContent = firstName;
+    document.getElementById('avatarInitial').textContent = firstName.charAt(0).toUpperCase();
+
+    // ClassIn settings
+    try {
+      const res = await fetch(W + '/settings');
+      const s = await res.json();
+      if (s.classin_url) {
+        document.getElementById('classinBtn').href = s.classin_url;
+        if (document.getElementById('joinClassBtn')) document.getElementById('joinClassBtn').href = s.classin_url;
+      }
+      if (s.next_class_time) document.getElementById('nextClassTime').textContent = s.next_class_time;
+      if (s.next_class_info) document.getElementById('nextClassInfo').textContent = s.next_class_info;
+    } catch(e) {}
+
+    // Homework
+    try {
+      const res = await fetch(W + '/homework?student_id=' + user.id);
+      const subs = await res.json();
+
+      let pending = 0, submitted = 0, graded = 0, scoreTotal = 0, scoreCount = 0;
+      subs.forEach(s => {
+        const st = s.status;
+        if (st === 'pending') pending++;
+        else if (st === 'submitted' || st === 'ai_scored') submitted++;
+        else if (st === 'reviewed') {
+          graded++;
+          if (s.score) { scoreTotal += s.score; scoreCount++; }
+        }
+      });
+
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statSubmitted').textContent = submitted;
+      document.getElementById('statAvg').textContent = scoreCount ? Math.round(scoreTotal/scoreCount) : '—';
+      document.getElementById('statTotal').textContent = subs.length;
+
+      if (pending > 0) {
+        document.getElementById('pendingBadge').textContent = pending;
+        document.getElementById('pendingBadge').style.display = '';
+      }
+
+      renderHomework(subs);
+    } catch(e) {
+      document.getElementById('homeworkList').innerHTML = '<div class="empty">Could not load homework.</div>';
+    }
+
+    // Study plan
+    try {
+      const res = await fetch(W + '/plan');
+      const data = await res.json();
+      if (data.items?.length) renderPlans(data.items);
+    } catch(e) {}
+  }
+
+  function renderHomework(subs) {
+    const list = document.getElementById('homeworkList');
+    if (!subs.length) {
+      list.innerHTML = '<div class="empty">🎉 No homework right now!</div>';
+      return;
+    }
+    subs.sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+    list.innerHTML = subs.slice(0,8).map(s => {
+      const status = s.status;
+      let statusHtml = '';
+      if (status === 'pending') statusHtml = '<span class="hw-status pending">● Due</span>';
+      else if (status === 'submitted') statusHtml = '<span class="hw-status submitted">✓ Submitted</span>';
+      else if (status === 'ai_scored') {
+        const aiScore = s.ai_score;
+        statusHtml = aiScore
+          ? `<div style="text-align:right"><div class="hw-score">${aiScore}<span style="font-size:14px;color:var(--muted)">/100</span></div><div style="font-size:10px;color:var(--muted)">AI scored</div></div>`
+          : '<span class="hw-status submitted">🤖 AI Scored</span>';
+      }
+      else if (status === 'reviewed') {
+        statusHtml = s.score
+          ? `<div style="text-align:right"><div class="hw-score">${s.score}<span style="font-size:14px;color:var(--muted)">/100</span></div></div>`
+          : '<span class="hw-status submitted">✓ Reviewed</span>';
+      }
+
+      return `<a class="hw-card" href="homework.html?id=${s.submission_id}">
+        <div>
+          <div class="hw-title">${s.title || s.instructions?.slice(0,50) || 'Homework'}</div>
+          <div class="hw-meta">${s.due_date ? 'Due: ' + s.due_date : 'No due date'}</div>
+        </div>
+        ${statusHtml}
+      </a>`;
+    }).join('');
+  }
+
+  function renderPlans(items) {
+    const list = document.getElementById('planList');
+    const full = document.getElementById('plansFull');
+    if (!items.length) {
+      list.innerHTML = '<div class="empty" style="padding:0;font-size:13px">No plan set yet</div>';
+      return;
+    }
+    const html = items.map(item => `
+      <div class="plan-item">
+        <div class="plan-check ${item.done ? 'done' : ''}">${item.done ? '✓' : ''}</div>
+        <span style="${item.done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${item.text}</span>
+      </div>`).join('');
+    list.innerHTML = html;
+    if (full) full.innerHTML = `<p class="section-title" style="margin-bottom:16px">Weekly Plan</p>` + html;
+  }
+
+  init();
+</script>
+</body>
+</html>
