@@ -286,7 +286,7 @@
 <div id="toast" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100"></div>
 
 <script>
-  const W = localStorage.getItem('ts_worker') || 'REPLACE_WITH_YOUR_WORKER_URL';
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
 
   let mediaRecorder, audioChunks = [], recordingBlob = null;
   let timerInterval, seconds = 0;
