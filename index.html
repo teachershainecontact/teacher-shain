@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Shain — English Learning Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c;
+      --paper: #faf8f4;
+      --cream: #f2ede4;
+      --gold: #c8963e;
+      --gold-light: #e8b96a;
+      --red: #c0392b;
+      --sage: #4a6741;
+      --muted: #8a8070;
+      --border: #ddd8ce;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background texture ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(200,150,62,0.06) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(74,103,65,0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .logo span { color: var(--gold); }
+
+    .header-nav a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 28px;
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: var(--ink); }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      gap: 0;
+      min-height: calc(100vh - 73px);
+    }
+
+    .hero-left {
+      padding: 80px 48px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(48px, 5vw, 72px);
+      line-height: 1.05;
+      font-weight: 900;
+      margin-bottom: 28px;
+      letter-spacing: -1px;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 480px;
+      margin-bottom: 48px;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .pill-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    /* ── Login panel ── */
+    .hero-right {
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 48px;
+    }
+
+    .login-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 32px;
+    }
+
+    .login-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .login-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 40px;
+    }
+
+    .role-tabs {
+      display: flex;
+      gap: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 32px;
+    }
+
+    .role-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: none;
+    }
+
+    .role-tab.active {
+      background: var(--gold);
+      color: var(--ink);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      font-size: 15px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s, background 0.2s;
+      outline: none;
+    }
+
+    .form-group input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .form-group input:focus {
+      border-color: var(--gold);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--gold);
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+
+    .login-btn:hover { background: var(--gold-light); }
+    .login-btn:active { transform: scale(0.99); }
+
+    .login-error {
+      color: #e87070;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: rgba(255,255,255,0.2);
+      font-size: 12px;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .subtitle-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .subtitle-link:hover {
+      border-color: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+
+    .subtitle-icon {
+      width: 20px; height: 20px;
+      background: var(--sage);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    /* ── Chinese character decoration ── */
+    .han-deco {
+      position: absolute;
+      font-family: serif;
+      font-size: 200px;
+      font-weight: 900;
+      color: rgba(200,150,62,0.04);
+      right: 500px;
+      bottom: 40px;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-left { border-right: none; border-bottom: 1px solid var(--border); padding: 48px 24px; }
+      .hero-right { padding: 48px 24px; }
+      header { padding: 20px 24px; }
+      .han-deco { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Teacher <span>Shain</span></div>
+  <nav class="header-nav">
+    <a href="pages/subtitles.html" target="_blank">🎙 Live Subtitles</a>
+    <a href="#about">About</a>
+  </nav>
+</header>
+
+<main class="hero">
+  <div class="hero-left">
+    <p class="eyebrow">English Learning Platform</p>
+    <h1>Learn English<br>with <em>Shain</em><br>老师</h1>
+    <p class="hero-desc">
+      Record your pronunciation, get audio feedback, track your progress —
+      all in one place. Your classroom, homework, and scores in a single platform.
+    </p>
+    <div class="feature-pills">
+      <span class="pill"><span class="pill-dot"></span> Pronunciation recording</span>
+      <span class="pill"><span class="pill-dot"></span> Teacher audio feedback</span>
+      <span class="pill"><span class="pill-dot"></span> Live class subtitles</span>
+      <span class="pill"><span class="pill-dot"></span> Score tracking</span>
+      <span class="pill"><span class="pill-dot"></span> Study plans</span>
+    </div>
+    <div class="han-deco">英</div>
+  </div>
+
+  <div class="hero-right">
+    <p class="login-label">Sign In</p>
+    <h2 class="login-title">Welcome back</h2>
+    <p class="login-sub">Enter your username and password to continue</p>
+
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="setRole('student', this)">Student 学生</button>
+      <button class="role-tab" onclick="setRole('teacher', this)">Teacher 老师</button>
+    </div>
+
+    <div class="form-group">
+      <label>USERNAME</label>
+      <input type="text" id="username" placeholder="your username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>PASSWORD</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <p class="login-error" id="loginError">Incorrect username or password</p>
+
+    <div class="login-divider">or</div>
+
+    <a href="pages/subtitles.html" target="_blank" class="subtitle-link">
+      <span class="subtitle-icon">字</span>
+      Open Live Subtitle Page (during class)
+    </a>
+  </div>
+</main>
+
+<script>
+  // ── PASTE YOUR CLOUDFLARE WORKER URL HERE ──
+  const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
+  // e.g. 'https://teacher-shain.your-name.workers.dev'
+
+  let currentRole = 'student';
+
+  function setRole(role, el) {
+    currentRole = role;
+    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  async function doLogin() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+
+    if (!username || !password) {
+      errEl.textContent = 'Please enter your username and password';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.querySelector('.login-btn');
+    btn.textContent = 'Signing in…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(WORKER + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error('invalid');
+
+      const { role, name, id } = data.user;
+
+      // Store session in localStorage
+      localStorage.setItem('role', role);
+      localStorage.setItem('username', username);
+      localStorage.setItem('userName', name);
+      localStorage.setItem('userId', id);
+      localStorage.setItem('ts_worker', WORKER);
+
+      if (role === 'teacher') {
+        window.location.href = 'pages/teacher-dashboard.html';
+      } else {
+        window.location.href = 'pages/student-dashboard.html';
+      }
+
+    } catch (e) {
+      errEl.textContent = 'Incorrect username or password';
+      errEl.style.display = 'block';
+      btn.textContent = 'Sign In →';
+      btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>
