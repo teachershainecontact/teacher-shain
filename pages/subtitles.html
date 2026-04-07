@@ -328,12 +328,12 @@
   <div class="logo">Teacher <span>Shain</span> · 实时字幕</div>
   <div class="controls">
     <div class="lang-toggle">
-      <button class="lang-opt active" onclick="setMode('en-zh', this)" id="modeEnZh">EN → 中文</button>
-      <button class="lang-opt" onclick="setMode('zh-en', this)" id="modeZhEn">中文 → EN</button>
-      <button class="lang-opt" onclick="setMode('en-only', this)">EN only</button>
+      <button class="lang-opt active" data-mode="en-zh" onclick="setMode('en-zh', this)" id="modeEnZh">EN → 中文</button>
+      <button class="lang-opt" data-mode="zh-en" onclick="setMode('zh-en', this)" id="modeZhEn">中文 → EN</button>
+      <button class="lang-opt" data-mode="en-only" onclick="setMode('en-only', this)">EN only</button>
     </div>
-    <button class="size-btn" onclick="adjustSize(-1)">A−</button>
-    <button class="size-btn" onclick="adjustSize(1)">A+</button>
+    <button class="size-btn" onclick="changeSize('en', -1); changeSize('zh', -1)">A−</button>
+    <button class="size-btn" onclick="changeSize('en', 1); changeSize('zh', 1)">A+</button>
     <button class="size-btn" onclick="toggleSettings()">⚙</button>
   </div>
 </div>
@@ -394,13 +394,6 @@
 <div class="bottom-tips">
   <div class="tip"><kbd>Space</kbd> Start/stop mic</div>
   <div class="tip">🌐 Auto-translates to Chinese</div>
-  <div class="tip">🆓 100% free, no API key needed</div>
-</div>
-
-
-<div class="bottom-tips">
-  <div class="tip"><kbd>Space</kbd> Start/stop mic</div>
-  <div class="tip">🌐 Auto-translates to Chinese</div>
   <div class="tip" id="transcriptWordCount" style="color:var(--gold-light)"></div>
   <button class="size-btn" id="saveTranscriptBtn" style="display:none;background:var(--gold);color:#000;font-weight:600;border:none;padding:8px 16px;border-radius:8px;cursor:pointer" onclick="saveTranscript()">✨ Save Transcript</button>
 </div>
@@ -422,7 +415,7 @@
 </div>
 
 <script>
-  const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
+  const W = 'https://teacher-shain.teachershainecontact.workers.dev';
 
   let recognition = null;
   let isListening = false;
@@ -455,8 +448,8 @@
 
     recognition.onstart = () => {
       isListening = true;
-      document.getElementById('micBtn').classList.add('active');
-      document.getElementById('statusDot').classList.add('active');
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('statusDot').classList.add('live');
       document.getElementById('statusLabel').textContent = 'Listening… · 聆听中…';
       document.getElementById('placeholder').style.display = 'none';
       document.getElementById('subtitleContent').style.display = '';
@@ -464,8 +457,8 @@
 
     recognition.onend = () => {
       isListening = false;
-      document.getElementById('micBtn').classList.remove('active');
-      document.getElementById('statusDot').classList.remove('active');
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('statusDot').classList.remove('live');
       document.getElementById('statusLabel').textContent = 'Click microphone to start · 点击麦克风开始';
       document.getElementById('liveEn').textContent = '';
       document.getElementById('liveZh').textContent = '';
