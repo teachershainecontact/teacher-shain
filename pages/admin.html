@@ -331,7 +331,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'teacher', password })
       });
-      const data = await res.json();
+      const data = await (async () => { const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/admin non-JSON: " + _t.slice(0,120)); } })();
       if (!res.ok || data.error) { errEl.textContent = 'Wrong password or Worker URL not reachable.'; return; }
 
       WORKER = workerUrl;
@@ -370,7 +370,7 @@
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(WORKER + path, opts);
-    return res.json();
+      const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("admin-api non-JSON: " + _t.slice(0,120)); }
   }
 
   // ── Students ──────────────────────────────────────────────────────────

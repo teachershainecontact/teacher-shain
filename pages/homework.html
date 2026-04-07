@@ -308,7 +308,7 @@
     try {
       // Fetch all student homework and find this submission
       const res = await fetch(W + '/homework?student_id=' + user.id);
-      const allHw = await res.json();
+      const allHw = await (async () => { const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/homework non-JSON: " + _t.slice(0,120)); } })();
       const sub = allHw.find(h => String(h.submission_id) === String(submissionId));
 
       if (!sub) {
@@ -493,7 +493,7 @@
       const formData = new FormData();
       formData.append('audio', recordingBlob, 'recording.webm');
       const transcribeRes = await fetch(W + '/ai/transcribe', { method: 'POST', body: formData });
-      const transcribeData = await transcribeRes.json();
+      const transcribeData = await (async () => { const _t = await transcribeRes.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/transcribe non-JSON: " + _t.slice(0,120)); } })();
 
       if (!transcribeData.ok) throw new Error('Transcription failed');
 
@@ -508,7 +508,7 @@
           instructions: currentSubmission?.instructions || ''
         })
       });
-      const scoreData = await scoreRes.json();
+      const scoreData = await (async () => { const _t = await scoreRes.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/score non-JSON: " + _t.slice(0,120)); } })();
       const scoring = scoreData.scoring || {};
 
       // Save AI results

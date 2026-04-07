@@ -505,7 +505,7 @@
 </div>
 
 <script>
- const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
 
   function showSection(name) {
     ['homework','plans','classes'].forEach(s => {
@@ -545,7 +545,7 @@
     // ClassIn settings
     try {
       const res = await fetch(W + '/settings');
-      const s = await res.json();
+      const s = await (async () => { const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/student-info non-JSON: " + _t.slice(0,120)); } })();
       if (s.classin_url) {
         document.getElementById('classinBtn').href = s.classin_url;
         if (document.getElementById('joinClassBtn')) document.getElementById('joinClassBtn').href = s.classin_url;
@@ -557,7 +557,7 @@
     // Homework
     try {
       const res = await fetch(W + '/homework?student_id=' + user.id);
-      const subs = await res.json();
+      const subs = await (async () => { const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/submissions non-JSON: " + _t.slice(0,120)); } })();
 
       let pending = 0, submitted = 0, graded = 0, scoreTotal = 0, scoreCount = 0;
       subs.forEach(s => {
@@ -588,7 +588,7 @@
     // Study plan
     try {
       const res = await fetch(W + '/plan');
-      const data = await res.json();
+      const data = await (async () => { const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/student-post non-JSON: " + _t.slice(0,120)); } })();
       if (data.items?.length) renderPlans(data.items);
     } catch(e) {}
   }

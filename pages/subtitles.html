@@ -422,7 +422,7 @@
 </div>
 
 <script>
-  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
 
   let recognition = null;
   let isListening = false;
@@ -523,7 +523,7 @@
       try {
         const target = currentMode === 'en-zh' ? 'zh' : 'en';
         const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${target}`);
-        const d = await r.json();
+        const _t1 = await r.text(); let d; try { d = JSON.parse(_t1); } catch(e) { throw new Error('subtitles-ai non-JSON: ' + _t1.slice(0,120)); }
         document.getElementById('liveZh').textContent = d.responseData?.translatedText || '';
       } catch { document.getElementById('liveZh').textContent = ''; }
     }, 400);
@@ -568,7 +568,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, language: currentMode, duration_minutes: mins })
       });
-      const data = await res.json();
+      const _t2 = await res.text(); let data; try { data = JSON.parse(_t2); } catch(e) { throw new Error('subtitles-save non-JSON: ' + _t2.slice(0,120)); }
       if (!data.ok) throw new Error(data.error);
 
       showToast('✓ Transcript saved! Generating homework…');
@@ -580,7 +580,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript_text: text })
       });
-      const hwData = await hwRes.json();
+      const _t3 = await hwRes.text(); let hwData; try { hwData = JSON.parse(_t3); } catch(e) { throw new Error('/homework non-JSON: ' + _t3.slice(0,120)); }
 
       if (hwData.ok && hwData.homework) {
         generatedHw = hwData.homework;
@@ -629,7 +629,7 @@
     // Load classes to pick one
     try {
       const res = await fetch(W + '/classes');
-      const classes = await res.json();
+      const _t4 = await res.text(); let classes; try { classes = JSON.parse(_t4); } catch(e) { throw new Error('/classes non-JSON: ' + _t4.slice(0,120)); }
       if (!classes.length) {
         showToast('No classes found — create a class first in teacher dashboard');
         btn.textContent = '→ Create This Homework'; btn.disabled = false;
@@ -642,7 +642,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ class_id: classId, title: generatedHw.title, instructions: generatedHw.instructions })
       });
-      const hwData = await hwRes.json();
+      const _hwt = await hwRes.text(); let hwData; try { hwData = JSON.parse(_hwt); } catch(e) { throw new Error('/homework non-JSON: ' + _hwt.slice(0,120)); }
       if (!hwData.ok) throw new Error(hwData.error);
       showToast(`✓ Homework created for ${hwData.submissions_created} student(s)!`);
       closeHwModal();
