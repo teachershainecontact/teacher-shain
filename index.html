@@ -367,27 +367,7 @@
       <span class="pill"><span class="pill-dot"></span> Study plans</span>
     </div>
 
-    <div style="margin-top:40px">
-      <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:14px">Quick Access</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <a href="pages/student-dashboard.html" class="page-btn">
-          <span class="page-btn-icon">🎓</span>
-          <div><div class="page-btn-title">Student Dashboard</div><div class="page-btn-sub">View homework & scores</div></div>
-        </a>
-        <a href="pages/teacher-dashboard.html" class="page-btn">
-          <span class="page-btn-icon">👩‍🏫</span>
-          <div><div class="page-btn-title">Teacher Dashboard</div><div class="page-btn-sub">Manage classes & review</div></div>
-        </a>
-        <a href="pages/subtitles.html" target="_blank" class="page-btn">
-          <span class="page-btn-icon">🎙</span>
-          <div><div class="page-btn-title">Live Subtitles</div><div class="page-btn-sub">Real-time class captions</div></div>
-        </a>
-        <a href="pages/admin.html" class="page-btn">
-          <span class="page-btn-icon">⚙️</span>
-          <div><div class="page-btn-title">Admin Panel</div><div class="page-btn-sub">System settings</div></div>
-        </a>
-      </div>
-    </div>
+
 
     <div class="han-deco">英</div>
   </div>
@@ -427,9 +407,7 @@
 <script>
   // ── PASTE YOUR CLOUDFLARE WORKER URL HERE ──
   const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
-  // ── PASTE YOUR GOOGLE APPS SCRIPT URL HERE ──
-  const DRIVE_SCRIPT = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
-  // e.g. 'https://teacher-shain.your-name.workers.dev'
+  const DRIVE_SCRIPT = 'https://script.google.com/macros/s/AKfycbxr0xsR33_BByEG_fEoeuG4lZgMRwVDujbCxpjtuhIile2co8biG4EbM0GHzl9bgAw/exec';
 
   let currentRole = 'student';
 
