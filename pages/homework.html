@@ -479,32 +479,39 @@
   async function submitRecording() {
     if (!recordingBlob) { alert('Please record something first'); return; }
     const btn = document.querySelector('#recordingCard .btn-sage');
-    btn.textContent = 'Submitting…';
+    btn.textContent = 'Uploading…';
     btn.disabled = true;
 
     try {
-      // We store the audio as a base64 data URL (no Firebase Storage)
-      const reader = new FileReader();
-      const base64 = await new Promise((res, rej) => {
-        reader.onload = () => res(reader.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(recordingBlob);
-      });
+      const user = JSON.parse(localStorage.getItem('ts_user') || '{}');
+      const ext = recordingBlob.type.includes('mp4') ? 'm4a' : 'webm';
 
-      // Save recording_url as base64 data URL
+      // Step 1: Upload audio to Google Drive via Worker proxy
+      const uploadForm = new FormData();
+      uploadForm.append('audio', recordingBlob, `recording.${ext}`);
+      uploadForm.append('studentId', user.id || 'unknown');
+      uploadForm.append('submissionId', submissionId);
+      uploadForm.append('type', 'student');
+
+      const uploadRes = await fetch(W + '/upload-audio', { method: 'POST', body: uploadForm });
+      const uploadData = await uploadRes.json();
+      if (!uploadData.ok) throw new Error('Upload failed: ' + (uploadData.error || 'unknown'));
+
+      const audioUrl = uploadData.url; // Google Drive URL
+
+      // Step 2: Save the Drive URL to D1
       await fetch(W + '/submissions/' + submissionId, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recording_url: base64 })
+        body: JSON.stringify({ recording_url: audioUrl })
       });
 
       showToast('✓ Submitted! Running AI analysis…');
       document.getElementById('recordingCard').style.display = 'none';
       document.getElementById('aiProcessingCard').style.display = '';
 
-      // Send to Whisper for transcription
+      // Step 3: Send same blob to Whisper for transcription
       const formData = new FormData();
-      const ext = recordingBlob.type.includes('mp4') ? 'mp4' : 'webm';
       formData.append('audio', recordingBlob, `recording.${ext}`);
       const transcribeRes = await fetch(W + '/ai/transcribe', { method: 'POST', body: formData });
       const transcribeData = await (async () => { const _t = await transcribeRes.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/transcribe non-JSON: " + _t.slice(0,120)); } })();
