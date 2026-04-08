@@ -245,6 +245,7 @@
         </div>
         <audio id="feedbackAudio"></audio>
       </div>
+    </div><!-- end feedbackCard -->
 
     <!-- AI Feedback (ai_scored state) -->
     <div class="card" id="aiFeedbackCard" style="display:none;background:#f0f9ff;border-color:#b0d4f0">
@@ -297,8 +298,14 @@
 
   async function init() {
     const userRaw = localStorage.getItem('ts_user');
-    if (!userRaw) { window.location.href = '../index.html'; return; }
-    const user = JSON.parse(userRaw);
+    const user = userRaw ? JSON.parse(userRaw) : (() => {
+      const role = localStorage.getItem('role');
+      const id   = localStorage.getItem('userId');
+      const name = localStorage.getItem('userName');
+      if (!role || !id) return null;
+      return { role, id, name };
+    })();
+    if (!user) { window.location.href = '../index.html'; return; }
 
     if (!submissionId) {
       document.getElementById('loadingState').textContent = 'No homework ID found.';
@@ -419,10 +426,16 @@
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunks = [];
-      mediaRecorder = new MediaRecorder(stream);
+      // iOS Safari only supports audio/mp4 — detect at runtime
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+                     : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+                     : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4'
+                     : '';
+      mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
       mediaRecorder.onstop = () => {
-        recordingBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const blobType = mimeType || 'audio/webm';
+        recordingBlob = new Blob(audioChunks, { type: blobType });
         const url = URL.createObjectURL(recordingBlob);
         document.getElementById('myAudio').src = url;
         document.getElementById('playbackSection').style.display = '';
@@ -491,7 +504,8 @@
 
       // Send to Whisper for transcription
       const formData = new FormData();
-      formData.append('audio', recordingBlob, 'recording.webm');
+      const ext = recordingBlob.type.includes('mp4') ? 'mp4' : 'webm';
+      formData.append('audio', recordingBlob, `recording.${ext}`);
       const transcribeRes = await fetch(W + '/ai/transcribe', { method: 'POST', body: formData });
       const transcribeData = await (async () => { const _t = await transcribeRes.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/transcribe non-JSON: " + _t.slice(0,120)); } })();
 

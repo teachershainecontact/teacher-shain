@@ -315,9 +315,12 @@
 
   async function loadDashboard() {
     const userRaw = localStorage.getItem('ts_user');
-    if (!userRaw) { window.location.href = '../index.html'; return; }
-    const user = JSON.parse(userRaw);
-    if (user.role !== 'teacher') { window.location.href = '../index.html'; return; }
+    const user = userRaw ? JSON.parse(userRaw) : (() => {
+      const role = localStorage.getItem('role');
+      if (!role) return null;
+      return { role, name: localStorage.getItem('userName'), id: localStorage.getItem('userId') };
+    })();
+    if (!user || user.role !== 'teacher') { window.location.href = '../index.html'; return; }
 
     try {
       // Load all in parallel

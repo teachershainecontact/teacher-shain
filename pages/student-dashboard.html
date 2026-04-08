@@ -530,9 +530,12 @@
 
   async function init() {
     const userRaw = localStorage.getItem('ts_user');
-    if (!userRaw) { window.location.href = '../index.html'; return; }
-    const user = JSON.parse(userRaw);
-    if (user.role !== 'student') { window.location.href = '../index.html'; return; }
+    const user = userRaw ? JSON.parse(userRaw) : (() => {
+      const role = localStorage.getItem('role');
+      if (!role) return null;
+      return { role, name: localStorage.getItem('userName'), id: localStorage.getItem('userId') };
+    })();
+    if (!user || user.role !== 'student') { window.location.href = '../index.html'; return; }
 
     document.getElementById('timeGreeting').textContent = getGreeting();
     document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
