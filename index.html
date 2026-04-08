@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Shain — English Learning Platform</title>
+  <title>Teacher Shen — English Learning Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
@@ -427,6 +427,8 @@
 <script>
   // ── PASTE YOUR CLOUDFLARE WORKER URL HERE ──
   const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
+  // ── PASTE YOUR GOOGLE APPS SCRIPT URL HERE ──
+  const DRIVE_SCRIPT = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
   // e.g. 'https://teacher-shain.your-name.workers.dev'
 
   let currentRole = 'student';
@@ -470,6 +472,7 @@
       localStorage.setItem('userName', name);
       localStorage.setItem('userId', id);
       localStorage.setItem('ts_worker', WORKER);
+      localStorage.setItem('ts_script', DRIVE_SCRIPT);
       localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id }));
 
       if (role === 'teacher') {
