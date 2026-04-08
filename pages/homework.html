@@ -117,8 +117,7 @@
     .btn-sage { background: var(--sage); color: #fff; }
     .btn-sage:hover { opacity: 0.85; }
 
-    /* Playback */
-    .playback-section { display: none; }
+    /* Playback — controlled via inline style, not class */
     .my-recording-player {
       display: flex; align-items: center; gap: 14px;
       background: #e8f4ea; border: 1px solid #b0d8b4; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;
@@ -202,7 +201,7 @@
         <p class="record-timer" id="recordTimer">0:00</p>
       </div>
 
-      <div class="playback-section" id="playbackSection">
+      <div class="playback-section" id="playbackSection" style="display:none">
         <div class="my-recording-player">
           <button class="play-btn" style="background:var(--sage)" onclick="playMyRecording()">▶</button>
           <div style="flex:1">
@@ -479,23 +478,29 @@
   async function submitRecording() {
     if (!recordingBlob) { alert('Please record something first'); return; }
     const btn = document.querySelector('#recordingCard .btn-sage');
-    btn.textContent = 'Submitting…';
+    btn.textContent = 'Uploading…';
     btn.disabled = true;
 
     try {
-      // We store the audio as a base64 data URL (no Firebase Storage)
-      const reader = new FileReader();
-      const base64 = await new Promise((res, rej) => {
-        reader.onload = () => res(reader.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(recordingBlob);
-      });
+      const user = JSON.parse(localStorage.getItem('ts_user') || '{}');
+      const ext = recordingBlob.type.includes('mp4') ? 'm4a' : 'webm';
 
-      // Save recording_url as base64 data URL
+      // Step 1: Upload audio to Google Drive via Worker proxy
+      const uploadForm = new FormData();
+      uploadForm.append('audio', recordingBlob, `recording.${ext}`);
+      uploadForm.append('studentId', user.id || 'unknown');
+      uploadForm.append('submissionId', submissionId);
+      uploadForm.append('type', 'student');
+
+      const uploadRes = await fetch(W + '/upload-audio', { method: 'POST', body: uploadForm });
+      const uploadData = await uploadRes.json();
+      if (!uploadData.ok) throw new Error('Upload failed: ' + (uploadData.error || 'unknown'));
+
+      // Step 2: Save Drive URL to D1
       await fetch(W + '/submissions/' + submissionId, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recording_url: base64 })
+        body: JSON.stringify({ recording_url: uploadData.url })
       });
 
       showToast('✓ Submitted! Running AI analysis…');
