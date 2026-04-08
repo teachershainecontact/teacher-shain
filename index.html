@@ -436,6 +436,7 @@
       localStorage.setItem('userId', id);
       localStorage.setItem('ts_worker', WORKER);
       localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id }));
+      localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id }));
 
       if (role === 'teacher') {
         window.location.href = 'pages/teacher-dashboard.html';
