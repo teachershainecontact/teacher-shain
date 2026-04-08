@@ -301,13 +301,9 @@
 
     } else if (status==='submitted'||status==='ai_scored') {
       statusBar.className='status-bar status-submitted';
-      statusBar.textContent= status==='ai_scored'?'🤖 AI scored — Teacher Shen is reviewing':'✓ Submitted — Teacher Shen will review soon';
+      statusBar.textContent='✓ Submitted — Waiting for Teacher Shen to review…';
       document.getElementById('submittedCard').style.display='';
       buildSubmittedContent(data);
-      if (status==='ai_scored') {
-        if (data.ai_score) showAiFeedback(data);
-        if (data.ai_writing) showAiWritingFeedback(data.ai_writing);
-      }
 
     } else if (status==='reviewed') {
       statusBar.className='status-bar status-graded';
@@ -323,8 +319,6 @@
       document.getElementById('feedbackStars').textContent='⭐'.repeat(Math.min(score,10));
       document.getElementById('feedbackText').textContent=data.feedback||'';
       if (data.feedback_url){document.getElementById('feedbackAudio').src=data.feedback_url;document.getElementById('feedbackAudioSection').style.display='';}
-      if (data.ai_score) showAiFeedback(data);
-      if (data.ai_writing) showAiWritingFeedback(data.ai_writing);
     }
   }
 
@@ -436,8 +430,9 @@
       // Upload to Google Drive via Apps Script
       const reader=new FileReader();
       const base64Audio=await new Promise((res,rej)=>{reader.onload=()=>res(reader.result.split(',')[1]);reader.onerror=rej;reader.readAsDataURL(recordingBlob);});
+      const meta=JSON.stringify({mimeType:recordingBlob.type||'audio/webm',filename:`student_${user.id||'x'}_sub_${submissionId}.${fileExt}`});
       const uploadRes=await fetch(DRIVE_SCRIPT,{method:'POST',headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({audio:base64Audio,fileName:`student_${user.id||'x'}_sub_${submissionId}.${fileExt}`})});
+        body:meta+','+base64Audio});
       const uploadData=await uploadRes.json();
       if (!uploadData.success) throw new Error('Upload failed: '+(uploadData.error||'unknown'));
 
