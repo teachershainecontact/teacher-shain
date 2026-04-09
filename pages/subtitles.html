@@ -657,11 +657,13 @@
     renderHistory();
   }
 
-  function setLang(mode) {
+  function setMode(mode) {
     currentMode = mode;
     document.querySelectorAll('.lang-opt').forEach(el => el.classList.toggle('active', el.dataset.mode === mode));
     if (isListening) { recognition.stop(); setTimeout(toggleListening, 300); }
   }
+
+  function setLang(mode) { setMode(mode); }
 
   function toggleTranslation(el) {
     translationEnabled = !translationEnabled;
