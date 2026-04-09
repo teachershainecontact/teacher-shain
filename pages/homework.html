@@ -79,7 +79,6 @@
     .correction-fixed{color:var(--sage);font-weight:600;margin-bottom:4px;}
     .correction-why{color:var(--muted);font-size:12px;}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 <div class="topbar">
@@ -129,9 +128,6 @@
     <!-- AUDIO RECORDING CARD -->
     <div class="card" id="recordingCard" style="display:none">
       <p class="card-title">🎙️ Your Recording</p>
-
-      <!-- OPTION 1: Record with mic -->
-      <p style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Option 1 — Record directly</p>
       <div class="record-section">
         <button class="record-btn" id="recordBtn" onclick="toggleRecord()">🎙</button>
         <p class="record-hint" id="recordHint">Press to start recording</p>
@@ -152,38 +148,6 @@
           <button class="btn btn-sage" id="submitAudioBtn" onclick="submitRecording()">Submit Recording →</button>
         </div>
       </div>
-
-      <!-- DIVIDER -->
-      <div style="display:flex;align-items:center;gap:12px;margin:24px 0">
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-        <span style="font-size:12px;color:var(--muted);font-weight:500">OR</span>
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-      </div>
-
-      <!-- OPTION 2: Upload a file -->
-      <p style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Option 2 — Upload a file</p>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Record on any app (Voice Memos, WhatsApp, etc.) then upload here. Accepted: MP3, M4A, WAV, OGG, WebM, MP4.</p>
-      <label id="uploadDropZone" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:2px dashed var(--border);border-radius:14px;padding:32px 20px;cursor:pointer;transition:border-color .2s;background:var(--cream)">
-        <span style="font-size:36px">📎</span>
-        <span style="font-size:15px;font-weight:600">Tap to choose audio file</span>
-        <span style="font-size:12px;color:var(--muted)">MP3 · M4A · WAV · OGG · WebM · MP4</span>
-        <input type="file" id="audioFileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm,.mp4,.aac,.opus" style="display:none" onchange="handleFileUpload(event)">
-      </label>
-      <div id="filePreview" style="display:none;margin-top:16px">
-        <div class="my-recording-player">
-          <button class="play-btn" style="background:var(--sage)" onclick="playUploadedFile()">▶</button>
-          <div style="flex:1">
-            <div class="audio-label" id="filePreviewName">audio file</div>
-            <div class="audio-sub" id="filePreviewSize"></div>
-            <div class="audio-progress"><div class="audio-progress-fill" id="fileProgress"></div></div>
-          </div>
-        </div>
-        <audio id="uploadedAudio"></audio>
-        <div class="recording-controls" style="margin-top:12px">
-          <button class="btn btn-outline" onclick="clearFileUpload()">✕ Remove</button>
-          <button class="btn btn-sage" id="submitFileBtn" onclick="submitUploadedFile()">Submit Recording →</button>
-        </div>
-      </div>
     </div>
 
     <!-- WRITTEN ANSWER CARD -->
@@ -192,11 +156,9 @@
       <textarea class="written-area" id="writtenAnswer" placeholder="Type your answer here…" oninput="updateWordCount()"></textarea>
       <div class="word-count" id="wordCount">0 words</div>
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
-        <button class="ai-check-btn" onclick="checkWritingWithAI()">🤖 Check with AI first</button>
         <button class="btn btn-sage" id="submitWrittenBtn" onclick="submitWritten()">Submit Answer →</button>
       </div>
       <!-- AI writing feedback inline -->
-      <div id="aiWritingInline" style="display:none;margin-top:20px"></div>
     </div>
 
     <!-- SUBMITTED (waiting review) -->
@@ -208,9 +170,9 @@
 
     <!-- AI PROCESSING -->
     <div class="card" id="aiProcessingCard" style="display:none;text-align:center;padding:32px">
-      <div style="font-size:36px;margin-bottom:12px">🤖</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:8px">AI is analysing your submission…</div>
-      <div style="font-size:13px;color:var(--muted)">This takes about 10 seconds. Please wait.</div>
+      <div style="font-size:36px;margin-bottom:12px">⏳</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:8px">Submitting your work…</div>
+      <div style="font-size:13px;color:var(--muted)">Please wait a moment.</div>
     </div>
 
     <!-- TEACHER FEEDBACK (reviewed) -->
@@ -268,11 +230,11 @@
 
 <script>
   const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
-  const DRIVE_SCRIPT = localStorage.getItem('ts_script') || 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
+  const DRIVE_SCRIPT = localStorage.getItem('ts_script') || 'https://script.google.com/macros/s/AKfycbxr0xsR33_BByEG_fEoeuG4lZgMRwVDujbCxpjtuhIile2co8biG4EbM0GHzl9bgAw/exec';
 
   let mediaRecorder, audioChunks=[], recordingBlob=null;
   let timerInterval, seconds=0;
-  let currentSubmission=null, currentData=null;
+  let currentSubmission=null;
   const params = new URLSearchParams(location.search);
   const submissionId = params.get('id');
 
@@ -299,7 +261,6 @@
       try { const p=JSON.parse(instructions); if(p.instructions) instructions=p.instructions; } catch{}
 
       currentSubmission = {...sub, instructions};
-      currentData = currentSubmission;
       const hwType = sub.hw_type || 'audio';
 
       document.getElementById('loadingState').style.display='none';
@@ -307,7 +268,7 @@
       document.getElementById('hwTitleEl').textContent = sub.hw_title||'Homework';
       document.getElementById('hwClassTag').textContent = sub.hw_title||'Homework';
       document.getElementById('hwDueEl').textContent = sub.due_date?'Due: '+sub.due_date:'';
-      document.getElementById('hwInstructions').innerHTML = marked.parse(instructions||'');
+      document.getElementById('hwInstructions').textContent = instructions;
 
       // Type badge
       const typeBadge = document.getElementById('hwTypeBadge');
@@ -354,7 +315,7 @@
       document.getElementById('hwStarsRow').textContent='⭐'.repeat(Math.min(score,10));
       document.getElementById('feedbackScore').textContent=score;
       document.getElementById('feedbackStars').textContent='⭐'.repeat(Math.min(score,10));
-      document.getElementById('feedbackText').innerHTML = marked.parse(data.feedback||'');
+      document.getElementById('feedbackText').textContent=data.feedback||'';
       if (data.feedback_url){document.getElementById('feedbackAudio').src=data.feedback_url;document.getElementById('feedbackAudioSection').style.display='';}
     }
   }
@@ -378,37 +339,11 @@
   }
 
   function showAiFeedback(data) {
-    if (!data.ai_score&&!data.ai_feedback) return;
-    document.getElementById('aiFeedbackCard').style.display='';
-    if (data.ai_score) document.getElementById('aiScoreNum').textContent=data.ai_score;
-    let fb={}; try{fb=JSON.parse(data.ai_feedback||'{}');}catch{}
-    if (fb.fluency){setTimeout(()=>document.getElementById('aiFluencyBar').style.width=fb.fluency+'%',100);document.getElementById('aiFluencyVal').textContent=fb.fluency+'/100';}
-    if (fb.accuracy){setTimeout(()=>document.getElementById('aiAccuracyBar').style.width=fb.accuracy+'%',200);document.getElementById('aiAccuracyVal').textContent=fb.accuracy+'/100';}
-    if (fb.summary) document.getElementById('aiSummaryText').textContent=fb.summary;
-    if (fb.strengths?.length) document.getElementById('aiStrengths').innerHTML=`<p style="font-size:12px;font-weight:600;color:var(--sage);margin-bottom:6px">✓ STRENGTHS</p>`+fb.strengths.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join('');
-    if (fb.improvements?.length) document.getElementById('aiImprovements').innerHTML=`<p style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:6px;margin-top:10px">→ WORK ON</p>`+fb.improvements.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join('');
+    // AI data stored in D1 — not shown to student, teacher sees it in review modal
   }
 
   function showAiWritingFeedback(aiWritingStr, inline=false) {
-    let aw={}; try{aw=JSON.parse(aiWritingStr);}catch{return;}
-    const corrHtml=aw.corrections?.length?aw.corrections.map(c=>`<div class="correction-box">
-      <div class="correction-original">✗ ${c.original}</div>
-      <div class="correction-fixed">✓ ${c.corrected}</div>
-      <div class="correction-why">${c.explanation}</div>
-    </div>`).join(''):'';
-    const html=`
-      ${aw.score?`<div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--sage);margin-bottom:8px">${aw.score}<span style="font-size:16px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400">/100</span></div>`:''}
-      ${aw.summary?`<p style="font-size:15px;line-height:1.7;margin-bottom:14px">${aw.summary}</p>`:''}
-      ${corrHtml}
-      ${aw.strengths?.length?`<p style="font-size:12px;font-weight:600;color:var(--sage);margin-top:10px;margin-bottom:6px">✓ STRENGTHS</p>`+aw.strengths.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join(''):''}
-      ${aw.improvements?.length?`<p style="font-size:12px;font-weight:600;color:var(--gold);margin-top:10px;margin-bottom:6px">→ WORK ON</p>`+aw.improvements.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join(''):''}`;
-    if (inline) {
-      const el=document.getElementById('aiWritingInline');
-      el.innerHTML=html; el.style.display='';
-    } else {
-      document.getElementById('aiWritingCard').style.display='';
-      document.getElementById('aiWritingContent').innerHTML=html;
-    }
+    // AI data stored in D1 — not shown to student, teacher sees it in review modal
   }
 
   // ── AUDIO RECORDING ───────────────────────────────────────
@@ -456,87 +391,6 @@
     document.getElementById('recordTimer').textContent='0:00';
   }
 
-  // ── FILE UPLOAD ──────────────────────────────────────────
-  let uploadedFile = null;
-
-  function handleFileUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const maxMB = 50;
-    if (file.size > maxMB * 1024 * 1024) { alert(`File too large. Max ${maxMB}MB.`); return; }
-    uploadedFile = file;
-    const url = URL.createObjectURL(file);
-    const audio = document.getElementById('uploadedAudio');
-    audio.src = url;
-    audio.ontimeupdate = () => {
-      if (audio.duration) document.getElementById('fileProgress').style.width = (audio.currentTime/audio.duration*100)+'%';
-    };
-    document.getElementById('filePreviewName').textContent = file.name;
-    document.getElementById('filePreviewSize').textContent = (file.size/1024/1024).toFixed(2)+' MB';
-    document.getElementById('filePreview').style.display = '';
-    document.getElementById('uploadDropZone').style.borderColor = 'var(--sage)';
-  }
-
-  function playUploadedFile() {
-    const a = document.getElementById('uploadedAudio');
-    if (a.paused) a.play(); else a.pause();
-  }
-
-  function clearFileUpload() {
-    uploadedFile = null;
-    document.getElementById('audioFileInput').value = '';
-    document.getElementById('uploadedAudio').src = '';
-    document.getElementById('filePreview').style.display = 'none';
-    document.getElementById('uploadDropZone').style.borderColor = '';
-  }
-
-  async function submitUploadedFile() {
-    if (!uploadedFile) { alert('Please choose a file first'); return; }
-    const btn = document.getElementById('submitFileBtn');
-    btn.textContent = 'Uploading…'; btn.disabled = true;
-    try {
-      const reader = new FileReader();
-      const base64Audio = await new Promise((res,rej)=>{reader.onload=()=>res(reader.result.split(',')[1]);reader.onerror=rej;reader.readAsDataURL(uploadedFile);});
-      const ext = uploadedFile.name.split('.').pop() || 'mp3';
-      const uploadRes = await fetch(DRIVE_SCRIPT, {
-        method: 'POST', headers: {'Content-Type':'text/plain'},
-        body: JSON.stringify({audio:base64Audio, mimeType:uploadedFile.type||'audio/mpeg', filename:`student_${user.id||'x'}_sub_${submissionId}.${ext}`})
-      });
-      let uploadData; try { uploadData=await uploadRes.json(); } catch { throw new Error('Drive Script returned non-JSON. Check Apps Script URL.'); }
-      if (!uploadData.success) throw new Error('Upload failed: '+(uploadData.error||'unknown'));
-
-      await fetch(W+'/submissions/'+submissionId, {method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({recording_url: uploadData.url})});
-
-      showToast('✓ Submitted! AI is analysing…');
-      document.getElementById('recordingCard').style.display='none';
-      document.getElementById('writtenCard').style.display='none';
-      document.getElementById('aiProcessingCard').style.display='';
-
-      // Whisper transcription
-      const formData = new FormData();
-      formData.append('audio', uploadedFile, uploadedFile.name);
-      const transcribeRes = await fetch(W+'/ai/transcribe', {method:'POST', body:formData});
-      const transcribeData = await transcribeRes.json();
-
-      if (transcribeData.transcript) {
-        const scoreRes = await fetch(W+'/ai/score-pronunciation', {method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({student_transcript: transcribeData.transcript, instructions: currentData?.instructions||''})});
-        const scoreData = await scoreRes.json();
-        const scoring = scoreData.scoring || {};
-        await fetch(W+'/submissions/'+submissionId, {method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ai_transcript:transcribeData.transcript, ai_score:scoring.score||null, ai_feedback:JSON.stringify(scoring)})});
-      }
-
-      document.getElementById('aiProcessingCard').style.display='none';
-      showToast('✓ Done! Teacher Shen will review soon.');
-      setTimeout(()=>location.reload(), 1500);
-    } catch(e) {
-      showToast('Error: '+e.message);
-      btn.textContent='Submit Recording →'; btn.disabled=false;
-    }
-  }
-
   async function submitRecording() {
     if (!recordingBlob){alert('Please record something first');return;}
     const btn=document.getElementById('submitAudioBtn');
@@ -550,14 +404,14 @@
       const base64Audio=await new Promise((res,rej)=>{reader.onload=()=>res(reader.result.split(',')[1]);reader.onerror=rej;reader.readAsDataURL(recordingBlob);});
       const uploadRes=await fetch(DRIVE_SCRIPT,{method:'POST',headers:{'Content-Type':'text/plain'},
         body:JSON.stringify({audio:base64Audio,mimeType:recordingBlob.type||'audio/webm',filename:`student_${user.id||'x'}_sub_${submissionId}.${fileExt}`})});
-      let uploadData; try { uploadData=await uploadRes.json(); } catch(je) { throw new Error('Drive Script returned non-JSON. Check your Apps Script URL.'); }
+      let uploadData; try{uploadData=await uploadRes.json();}catch{throw new Error('Drive Script returned non-JSON. Check Apps Script URL.');}
       if (!uploadData.success) throw new Error('Upload failed: '+(uploadData.error||'unknown'));
 
       // Save URL to D1
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({recording_url:uploadData.url})});
 
-      showToast('✓ Submitted! AI is analysing…');
+      showToast('✓ Submitted! Waiting for Teacher Shen to review.');
       document.getElementById('recordingCard').style.display='none';
       document.getElementById('writtenCard').style.display='none';
       document.getElementById('aiProcessingCard').style.display='';
@@ -579,7 +433,7 @@
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ai_transcript:transcribeData.transcript,ai_score:scoring.score||null,ai_feedback:JSON.stringify(scoring)})});
 
-      showToast('🤖 AI analysis complete!');
+      showToast('✓ Done! Teacher Shen will review soon.');
       setTimeout(()=>location.reload(),1500);
     } catch(e){
       showToast('Error: '+e.message);
@@ -599,17 +453,16 @@
   async function checkWritingWithAI() {
     const text=document.getElementById('writtenAnswer').value.trim();
     if (!text){alert('Please write something first');return;}
-    const btn=document.querySelector('.ai-check-btn');
-    btn.textContent='🤖 Checking…'; btn.disabled=true;
+
     try {
       const res=await fetch(W+'/ai/check-writing',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({written_answer:text,instructions:currentSubmission?.instructions||''})});
       const data=await res.json();
       if (!data.ok) throw new Error(data.error);
       showAiWritingFeedback(JSON.stringify(data.analysis), true);
-      showToast('🤖 AI checked your writing! Review the feedback below.');
+
     } catch(e){showToast('AI check failed: '+e.message);}
-    btn.textContent='🤖 Check with AI again'; btn.disabled=false;
+
   }
 
   async function submitWritten() {
@@ -624,7 +477,7 @@
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({written_answer:text})});
 
-      showToast('✓ Submitted! AI is checking your writing…');
+      showToast('✓ Submitted! Waiting for Teacher Shen to review.');
       document.getElementById('writtenCard').style.display='none';
       document.getElementById('recordingCard').style.display='none';
       document.getElementById('aiProcessingCard').style.display='';
@@ -639,7 +492,7 @@
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ai_writing:JSON.stringify(analysis)})});
 
-      showToast('🤖 AI writing check complete!');
+      showToast('✓ Submitted! Teacher Shen will review soon.');
       setTimeout(()=>location.reload(),1500);
     } catch(e){
       showToast('Error: '+e.message);

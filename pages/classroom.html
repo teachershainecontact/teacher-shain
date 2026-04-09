@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classroom — Teacher Shen</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c;
+      --gold: #c8963e;
+      --gold-light: #e8b96a;
+      --sage: #4a6741;
+      --red: #c0392b;
+      --border: #2a2a2a;
+      --surface: #1a1a1a;
+      --muted: #888;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #111;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 10;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .logo { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .logo span { color: var(--gold); }
+    .room-badge {
+      font-size: 11px; padding: 4px 10px;
+      background: rgba(200,150,62,0.15);
+      border: 1px solid rgba(200,150,62,0.3);
+      border-radius: 100px; color: var(--gold);
+      white-space: nowrap;
+    }
+    .rec-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--red);
+      animation: blink 1.2s infinite;
+      display: none;
+    }
+    .rec-dot.active { display: inline-block; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .btn {
+      padding: 8px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-ghost { background: var(--surface); color: #fff; border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--gold); }
+    .btn-gold { background: var(--gold); color: #000; }
+    .btn-gold:hover { background: var(--gold-light); }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover { opacity: 0.85; }
+    .btn-sage { background: var(--sage); color: #fff; }
+
+    /* MAIN LAYOUT */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* JITSI FRAME */
+    #jitsiFrame {
+      width: 100%;
+      flex: 1;
+      border: none;
+      display: block;
+    }
+
+    /* SUBTITLES OVERLAY */
+    #subtitleOverlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      padding: 20px 24px 16px;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #subtitleOverlay.hidden { opacity: 0; }
+    .subtitle-live {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.4;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      margin-bottom: 6px;
+      min-height: 1.4em;
+    }
+    .subtitle-interim {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+      min-height: 1.4em;
+    }
+
+    /* TRANSCRIPT PANEL (hidden by default) */
+    #transcriptPanel {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 280px;
+      background: rgba(10,10,10,0.92);
+      border-left: 1px solid var(--border);
+      display: none;
+      flex-direction: column;
+      z-index: 5;
+    }
+    #transcriptPanel.open { display: flex; }
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #transcriptLog {
+      flex: 1; overflow-y: auto;
+      padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .transcript-line {
+      font-size: 13px; line-height: 1.6;
+      color: rgba(255,255,255,0.75);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .transcript-line .time {
+      font-size: 10px; color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    /* SETUP SCREEN */
+    #setupScreen {
+      position: absolute;
+      inset: 0;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 24px;
+    }
+    .setup-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      max-width: 440px;
+      width: 100%;
+    }
+    .setup-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px; font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .setup-title span { color: var(--gold); }
+    .setup-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .setup-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px; display: block;
+    }
+    .setup-input {
+      width: 100%; padding: 12px 16px;
+      background: #111; border: 1px solid var(--border);
+      border-radius: 10px; color: #fff; font-size: 15px;
+      font-family: 'DM Sans', sans-serif; outline: none;
+      transition: border-color 0.2s; margin-bottom: 20px;
+    }
+    .setup-input:focus { border-color: var(--gold); }
+    .setup-note {
+      font-size: 12px; color: var(--muted);
+      margin-bottom: 24px; line-height: 1.6;
+      padding: 12px 14px;
+      background: rgba(200,150,62,0.08);
+      border-radius: 8px; border-left: 3px solid var(--gold);
+    }
+
+    /* END CLASS MODAL */
+    #endModal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #endModal.open { display: flex; }
+    .end-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 480px; width: 100%;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .end-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; margin-bottom: 6px;
+    }
+    .end-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+    .analysis-section {
+      background: #111; border-radius: 12px;
+      padding: 16px; margin-bottom: 16px;
+    }
+    .analysis-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 10px;
+    }
+    .analysis-text { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.8); }
+    .hw-preview {
+      background: rgba(74,103,65,0.15);
+      border: 1px solid rgba(74,103,65,0.3);
+      border-radius: 12px; padding: 16px; margin-bottom: 16px;
+    }
+    .hw-preview-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .hw-preview-instr { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+    .end-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .end-actions .btn { flex: 1; padding: 12px; font-size: 14px; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%);
+      background: #222; color: #fff;
+      padding: 12px 22px; border-radius: 10px;
+      font-size: 14px; opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none; z-index: 200;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Teacher <span>Shain</span></div>
+    <div class="room-badge" id="roomBadge">No room set</div>
+    <div class="rec-dot" id="recDot"></div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" id="subtitleToggleBtn" onclick="toggleSubtitles()">CC Off</button>
+    <button class="btn btn-ghost" id="transcriptToggleBtn" onclick="toggleTranscriptPanel()">📝 Transcript</button>
+    <button class="btn btn-gold" id="startMicBtn" onclick="startMic()">🎙 Start Recording</button>
+    <button class="btn btn-red" onclick="endClass()">End Class</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SETUP SCREEN -->
+  <div id="setupScreen">
+    <div class="setup-card">
+      <h1 class="setup-title">Start <span>Classroom</span></h1>
+      <p class="setup-sub">Set your Jitsi room name to begin the class</p>
+      <label class="setup-label">Room Name</label>
+      <input class="setup-input" id="roomInput" placeholder="e.g. teachershain-monday" 
+             onkeydown="if(event.key==='Enter') startClass()">
+      <div class="setup-note">
+        💡 Use the same room name every time for the same class group. Students join using this name from their dashboard. Keep it simple — no spaces, use hyphens.
+      </div>
+      <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px" onclick="startClass()">
+        Start Class →
+      </button>
+    </div>
+  </div>
+
+  <!-- JITSI + SUBTITLES -->
+  <iframe id="jitsiFrame" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
+
+  <!-- SUBTITLE OVERLAY -->
+  <div id="subtitleOverlay" class="hidden">
+    <div class="subtitle-live" id="subtitleLive"></div>
+    <div class="subtitle-interim" id="subtitleInterim"></div>
+  </div>
+
+  <!-- TRANSCRIPT PANEL -->
+  <div id="transcriptPanel">
+    <div class="panel-header">
+      <span>Live Transcript</span>
+      <span id="wordCountBadge" style="color:var(--gold)">0 words</span>
+    </div>
+    <div id="transcriptLog"></div>
+  </div>
+
+</div>
+
+<!-- END CLASS MODAL -->
+<div id="endModal">
+  <div class="end-card">
+    <h2 class="end-title">Class Ended 🎓</h2>
+    <p class="end-sub" id="endSub">Saving transcript and generating AI analysis…</p>
+    <div id="endContent"></div>
+    <div class="end-actions" id="endActions" style="display:none">
+      <button class="btn btn-ghost" onclick="closeEndModal()">Close</button>
+      <button class="btn btn-sage" id="assignHwBtn" onclick="assignHomework()">Assign Homework →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+
+  let recognition = null;
+  let isListening = false;
+  let fullTranscript = '';
+  let subtitlesVisible = false;
+  let roomName = '';
+  let generatedHw = null;
+  let sessionStartTime = null;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  // ── INIT ─────────────────────────────────────────────────
+  window.onload = async () => {
+    // Check if room name saved
+    const savedRoom = localStorage.getItem('ts_classroom_room');
+    if (savedRoom) {
+      document.getElementById('roomInput').value = savedRoom;
+    }
+    // Load from settings
+    try {
+      const res = await fetch(W + '/settings');
+      const s = await res.json();
+      if (s.classin_url) {
+        const room = s.classin_url.replace(/\s+/g, '-').toLowerCase();
+        document.getElementById('roomInput').value = room;
+      }
+    } catch(e) {}
+  };
+
+  // ── START CLASS ───────────────────────────────────────────
+  function startClass() {
+    const input = document.getElementById('roomInput').value.trim();
+    if (!input) { alert('Please enter a room name'); return; }
+    roomName = input.replace(/\s+/g, '-').toLowerCase();
+    localStorage.setItem('ts_classroom_room', roomName);
+
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('roomBadge').textContent = roomName;
+
+    // Load Jitsi
+    const frame = document.getElementById('jitsiFrame');
+    frame.src = `https://meet.jit.si/${roomName}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.prejoinPageEnabled=false&config.disableDeepLinking=true&config.toolbarButtons=["microphone","camera","chat","raisehand","tileview","hangup","reactions"]`;
+
+    sessionStartTime = new Date();
+    showToast('Class started! Click 🎙 Start Recording to begin transcription.');
+  }
+
+  // ── MIC / SPEECH RECOGNITION ─────────────────────────────
+  function startMic() {
+    if (!SpeechRecognition) {
+      alert('Speech recognition not supported in this browser. Please use Chrome.');
+      return;
+    }
+    if (isListening) {
+      stopMic();
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      isListening = true;
+      document.getElementById('recDot').classList.add('active');
+      document.getElementById('startMicBtn').textContent = '⏹ Stop Recording';
+      document.getElementById('startMicBtn').className = 'btn btn-red';
+      showToast('Recording started — AI transcription running in background');
+    };
+
+    recognition.onend = () => {
+      // Auto-restart if still supposed to be listening
+      if (isListening) {
+        setTimeout(() => { try { recognition.start(); } catch(e) {} }, 300);
+      }
+    };
+
+    recognition.onresult = (event) => {
+      let finalText = '', interimText = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += t;
+        else interimText += t;
+      }
+
+      if (finalText.trim()) {
+        fullTranscript += ' ' + finalText.trim();
+        addToTranscriptLog(finalText.trim());
+        updateWordCount();
+        if (subtitlesVisible) {
+          document.getElementById('subtitleLive').textContent = finalText.trim();
+          document.getElementById('subtitleInterim').textContent = '';
+        }
+      }
+      if (interimText && subtitlesVisible) {
+        document.getElementById('subtitleInterim').textContent = interimText;
+      }
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error === 'not-allowed') {
+        showToast('Microphone access denied');
+        isListening = false;
+      }
+    };
+
+    recognition.start();
+  }
+
+  function stopMic() {
+    isListening = false;
+    if (recognition) recognition.stop();
+    document.getElementById('recDot').classList.remove('active');
+    document.getElementById('startMicBtn').textContent = '🎙 Start Recording';
+    document.getElementById('startMicBtn').className = 'btn btn-gold';
+  }
+
+  // ── SUBTITLES TOGGLE ─────────────────────────────────────
+  function toggleSubtitles() {
+    subtitlesVisible = !subtitlesVisible;
+    const overlay = document.getElementById('subtitleOverlay');
+    const btn = document.getElementById('subtitleToggleBtn');
+    if (subtitlesVisible) {
+      overlay.classList.remove('hidden');
+      btn.textContent = 'CC On';
+      btn.className = 'btn btn-sage';
+    } else {
+      overlay.classList.add('hidden');
+      btn.textContent = 'CC Off';
+      btn.className = 'btn btn-ghost';
+    }
+    // NOTE: Recording never stops when toggling CC
+  }
+
+  // ── TRANSCRIPT PANEL ─────────────────────────────────────
+  function toggleTranscriptPanel() {
+    document.getElementById('transcriptPanel').classList.toggle('open');
+  }
+
+  function addToTranscriptLog(text) {
+    const log = document.getElementById('transcriptLog');
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const div = document.createElement('div');
+    div.className = 'transcript-line';
+    div.innerHTML = `<div class="time">${time}</div>${text}`;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function updateWordCount() {
+    const words = fullTranscript.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('wordCountBadge').textContent = words + ' words';
+  }
+
+  // ── END CLASS ─────────────────────────────────────────────
+  async function endClass() {
+    if (!fullTranscript.trim()) {
+      if (!confirm('No transcript recorded. End class anyway?')) return;
+      closeEndModal();
+      return;
+    }
+    if (!confirm('End class and save transcript?')) return;
+
+    stopMic();
+    document.getElementById('endModal').classList.add('open');
+    document.getElementById('endSub').textContent = 'Saving transcript…';
+    document.getElementById('endContent').innerHTML = '';
+    document.getElementById('endActions').style.display = 'none';
+
+    try {
+      // Save transcript
+      const words = fullTranscript.trim().split(/\s+/).length;
+      const mins = sessionStartTime ? Math.round((new Date() - sessionStartTime) / 60000) : Math.round(words / 130);
+      const saveRes = await fetch(W + '/transcripts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: fullTranscript.trim(), language: 'en', duration_minutes: mins })
+      });
+      const saveData = await saveRes.json();
+      if (!saveData.ok) throw new Error(saveData.error);
+
+      document.getElementById('endSub').textContent = 'Transcript saved. AI is analysing the lesson…';
+
+      // AI generate homework
+      const hwRes = await fetch(W + '/ai/generate-homework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript_text: fullTranscript.trim() })
+      });
+      const hwData = await hwRes.json();
+
+      if (hwData.ok && hwData.homework) {
+        generatedHw = hwData.homework;
+        document.getElementById('endSub').textContent = 'AI analysis complete. Review the suggested homework below.';
+        document.getElementById('endContent').innerHTML = `
+          <div class="analysis-section">
+            <div class="analysis-label">📚 Lesson Summary</div>
+            <div class="analysis-text">${generatedHw.instructions?.slice(0, 200) || 'Class transcript saved successfully.'}…</div>
+          </div>
+          <div class="hw-preview">
+            <div class="analysis-label">✨ Suggested Homework</div>
+            <div class="hw-preview-title">${generatedHw.title || 'Practice Assignment'}</div>
+            <div class="hw-preview-instr">${(generatedHw.instructions || '').slice(0, 300)}…</div>
+            ${generatedHw.focus_areas?.length ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${generatedHw.focus_areas.map(f=>`<span style="background:#333;color:var(--gold);padding:3px 10px;border-radius:100px;font-size:11px">${f}</span>`).join('')}</div>` : ''}
+          </div>`;
+        document.getElementById('endActions').style.display = 'flex';
+      }
+
+    } catch(e) {
+      document.getElementById('endSub').textContent = 'Error: ' + e.message;
+      document.getElementById('endActions').style.display = 'flex';
+      document.getElementById('assignHwBtn').style.display = 'none';
+    }
+  }
+
+  async function assignHomework() {
+    if (!generatedHw) return;
+    // Redirect to teacher dashboard with homework pre-filled
+    localStorage.setItem('ts_pending_hw', JSON.stringify(generatedHw));
+    window.location.href = 'teacher-dashboard.html#homework';
+  }
+
+  function closeEndModal() {
+    document.getElementById('endModal').classList.remove('open');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 3500);
+  }
+</script>
+</body>
+</html>

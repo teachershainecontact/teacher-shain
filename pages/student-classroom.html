@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class — Teacher Shen</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #111;
+      border-bottom: 1px solid #2a2a2a;
+      flex-shrink: 0;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px; font-weight: 700;
+    }
+    .logo span { color: #c8963e; }
+    .back-link {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      font-size: 13px;
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #fff; }
+    #jitsiFrame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      display: block;
+    }
+    /* Setup screen */
+    #setupScreen {
+      position: absolute;
+      inset: 0;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 24px;
+    }
+    .setup-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 20px;
+      padding: 36px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+    .setup-icon { font-size: 48px; margin-bottom: 16px; }
+    .setup-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px; margin-bottom: 8px;
+    }
+    .setup-title span { color: #c8963e; }
+    .setup-sub { font-size: 14px; color: #888; margin-bottom: 28px; line-height: 1.6; }
+    .join-btn {
+      width: 100%; padding: 16px;
+      background: #c8963e; border: none;
+      border-radius: 12px; font-size: 16px;
+      font-weight: 700; color: #000;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s;
+    }
+    .join-btn:hover { background: #e8b96a; }
+    .no-class {
+      font-size: 13px; color: #666;
+      margin-top: 16px; line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-link" href="student-dashboard.html">← Back</a>
+  <div class="logo">Teacher <span>Shain</span></div>
+  <div style="width:60px"></div>
+</div>
+
+<div style="position:relative;flex:1;display:flex;flex-direction:column">
+
+  <!-- SETUP SCREEN -->
+  <div id="setupScreen">
+    <div class="setup-card">
+      <div class="setup-icon">📹</div>
+      <h1 class="setup-title">Join <span>Class</span></h1>
+      <p class="setup-sub" id="setupSub">Loading class info…</p>
+      <button class="join-btn" id="joinBtn" onclick="joinClass()" style="display:none">
+        Join Class Now →
+      </button>
+      <p class="no-class" id="noClassMsg" style="display:none">
+        No class is currently scheduled.<br>Check with Teacher Shen for the class link.
+      </p>
+    </div>
+  </div>
+
+  <!-- JITSI -->
+  <iframe id="jitsiFrame" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
+
+</div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  let roomName = '';
+
+  async function init() {
+    // Check saved room name
+    const savedRoom = localStorage.getItem('ts_classroom_room');
+
+    try {
+      const res = await fetch(W + '/settings');
+      const s = await res.json();
+      if (s.classin_url) {
+        roomName = s.classin_url.replace(/\s+/g, '-').toLowerCase();
+      } else if (savedRoom) {
+        roomName = savedRoom;
+      }
+    } catch(e) {
+      if (savedRoom) roomName = savedRoom;
+    }
+
+    if (roomName) {
+      document.getElementById('setupSub').textContent = `Teacher Shen's class is ready. Tap below to join.`;
+      document.getElementById('joinBtn').style.display = '';
+      document.getElementById('noClassMsg').style.display = 'none';
+    } else {
+      document.getElementById('setupSub').textContent = 'No class scheduled right now.';
+      document.getElementById('noClassMsg').style.display = '';
+      document.getElementById('joinBtn').style.display = 'none';
+    }
+  }
+
+  function joinClass() {
+    if (!roomName) return;
+    document.getElementById('setupScreen').style.display = 'none';
+    const frame = document.getElementById('jitsiFrame');
+    frame.src = `https://meet.jit.si/${roomName}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.prejoinPageEnabled=false&config.disableDeepLinking=true&config.toolbarButtons=["microphone","camera","chat","raisehand","tileview","hangup","reactions"]`;
+  }
+
+  init();
+</script>
+</body>
+</html>
