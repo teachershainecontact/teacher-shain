@@ -367,12 +367,25 @@
       <span class="pill"><span class="pill-dot"></span> Study plans</span>
     </div>
 
-
-
     <div style="margin-top:40px">
-      <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:14px">⭐ Student Achievements</p>
-      <div id="leaderboard" style="display:flex;flex-direction:column;gap:8px">
-        <div style="font-size:13px;color:var(--muted);font-style:italic">Loading…</div>
+      <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:14px">Quick Access</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <a href="pages/student-dashboard.html" class="page-btn">
+          <span class="page-btn-icon">🎓</span>
+          <div><div class="page-btn-title">Student Dashboard</div><div class="page-btn-sub">View homework & scores</div></div>
+        </a>
+        <a href="pages/teacher-dashboard.html" class="page-btn">
+          <span class="page-btn-icon">👩‍🏫</span>
+          <div><div class="page-btn-title">Teacher Dashboard</div><div class="page-btn-sub">Manage classes & review</div></div>
+        </a>
+        <a href="pages/subtitles.html" target="_blank" class="page-btn">
+          <span class="page-btn-icon">🎙</span>
+          <div><div class="page-btn-title">Live Subtitles</div><div class="page-btn-sub">Real-time class captions</div></div>
+        </a>
+        <a href="pages/admin.html" class="page-btn">
+          <span class="page-btn-icon">⚙️</span>
+          <div><div class="page-btn-title">Admin Panel</div><div class="page-btn-sub">System settings</div></div>
+        </a>
       </div>
     </div>
 
@@ -414,32 +427,9 @@
 <script>
   // ── PASTE YOUR CLOUDFLARE WORKER URL HERE ──
   const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
-  const DRIVE_SCRIPT = 'https://script.google.com/macros/s/AKfycbxr0xsR33_BByEG_fEoeuG4lZgMRwVDujbCxpjtuhIile2co8biG4EbM0GHzl9bgAw/exec';
-
-  // Load leaderboard on page load
-  (async function loadLeaderboard() {
-    try {
-      const res = await fetch(WORKER + '/leaderboard');
-      const data = await res.json();
-      const el = document.getElementById('leaderboard');
-      if (!data.length) { el.innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">No scores yet — be the first! 🌟</div>'; return; }
-      const medals = ['🥇','🥈','🥉'];
-      el.innerHTML = data.map((s,i) => `
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:10px">
-          <span style="font-size:18px;width:24px;text-align:center">${medals[i]||'⭐'}</span>
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:600">${s.name}</div>
-            <div style="font-size:11px;color:var(--muted)">${s.reviewed_count} assignment${s.reviewed_count!==1?'s':''} reviewed</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:16px;font-weight:700;color:var(--gold)">${s.avg_score||'—'}</div>
-            <div style="font-size:10px;color:var(--muted)">avg ⭐</div>
-          </div>
-        </div>`).join('');
-    } catch(e) {
-      document.getElementById('leaderboard').innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">Scores unavailable</div>';
-    }
-  })();
+  // ── PASTE YOUR GOOGLE APPS SCRIPT URL HERE ──
+  const DRIVE_SCRIPT = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
+  // e.g. 'https://teacher-shain.your-name.workers.dev'
 
   let currentRole = 'student';
 
