@@ -163,7 +163,6 @@
         <div>
           <div class="panel-card">
             <p class="section-title">Quick Actions</p>
-            <a class="action-btn" href="classroom.html"><span class="action-icon">📹</span> Start Classroom</a>
             <button class="action-btn" onclick="openModal('hw')"><span class="action-icon">📝</span> Create homework</button>
             <button class="action-btn" onclick="openModal('student')"><span class="action-icon">👩‍🎓</span> Add student</button>
             <a class="action-btn" href="subtitles.html" target="_blank"><span class="action-icon">字</span> Open live subtitles</a>
@@ -237,33 +236,7 @@
     </div>
     <div class="form-group"><label>TITLE</label><input type="text" id="hwTitle" placeholder="e.g. Unit 3 Pronunciation"></div>
     <div class="form-group"><label>INSTRUCTIONS</label><textarea id="hwInstr" style="min-height:120px" placeholder="What should students do? Be specific — students will see exactly this."></textarea></div>
-
-    <!-- ASSIGN TO -->
-    <div class="form-group">
-      <label>ASSIGN TO</label>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button type="button" id="assignTabClass" onclick="switchAssignTab('class')"
-          style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">
-          🏫 Whole Class
-        </button>
-        <button type="button" id="assignTabStudents" onclick="switchAssignTab('students')"
-          style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">
-          👤 Specific Students
-        </button>
-      </div>
-      <!-- Class selector -->
-      <div id="assignClassPanel">
-        <select id="hwClass"><option value="">Select class…</option></select>
-      </div>
-      <!-- Student selector -->
-      <div id="assignStudentsPanel" style="display:none">
-        <div id="studentCheckboxList" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px">
-          <p style="font-size:13px;color:var(--muted)">Loading students…</p>
-        </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:6px" id="selectedCount">0 students selected</p>
-      </div>
-    </div>
-
+    <div class="form-group"><label>CLASS</label><select id="hwClass"><option value="">Select class…</option></select></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('hw')">Cancel</button>
       <button class="btn-save" onclick="createHomework()">Create & Send to Students</button>
@@ -372,10 +345,7 @@
   }
 
   function doLogout() { localStorage.removeItem('ts_user'); window.location.href='../index.html'; }
-  function openModal(n) {
-    document.getElementById('modal-'+n).classList.add('open');
-    if (n === 'hw') { assignMode='class'; switchAssignTab('class'); }
-  }
+  function openModal(n) { document.getElementById('modal-'+n).classList.add('open'); }
   function closeModal(n) { document.getElementById('modal-'+n).classList.remove('open'); }
   document.querySelectorAll('.modal-overlay').forEach(el =>
     el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); }));
@@ -677,65 +647,16 @@
     } catch(e) { showToast('Error: '+e.message); btn.textContent='→ Send to Students'; btn.disabled=false; }
   }
 
-  // ── ASSIGN TAB ────────────────────────────────────────────
-  let assignMode = 'class';
-
-  function switchAssignTab(mode) {
-    assignMode = mode;
-    const classBtn = document.getElementById('assignTabClass');
-    const studentsBtn = document.getElementById('assignTabStudents');
-    const classPanel = document.getElementById('assignClassPanel');
-    const studentsPanel = document.getElementById('assignStudentsPanel');
-    if (mode === 'class') {
-      classBtn.style.background='var(--gold)'; classBtn.style.borderColor='var(--gold)';
-      studentsBtn.style.background='#fff'; studentsBtn.style.borderColor='var(--border)';
-      classPanel.style.display=''; studentsPanel.style.display='none';
-    } else {
-      studentsBtn.style.background='var(--gold)'; studentsBtn.style.borderColor='var(--gold)';
-      classBtn.style.background='#fff'; classBtn.style.borderColor='var(--border)';
-      classPanel.style.display='none'; studentsPanel.style.display='';
-      populateStudentCheckboxes();
-    }
-  }
-
-  function populateStudentCheckboxes() {
-    const list = document.getElementById('studentCheckboxList');
-    if (!allStudents.length) { list.innerHTML='<p style="font-size:13px;color:var(--muted)">No students found.</p>'; return; }
-    list.innerHTML = allStudents.map(s => `
-      <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding:4px 0">
-        <input type="checkbox" value="${s.id}" onchange="updateSelectedCount()" style="width:16px;height:16px;cursor:pointer">
-        <span>${s.name}</span>
-        <span style="font-size:12px;color:var(--muted)">${allClasses.find(c=>c.id===s.class_id)?.name||'No class'}</span>
-      </label>`).join('');
-  }
-
-  function updateSelectedCount() {
-    const checked = document.querySelectorAll('#studentCheckboxList input:checked').length;
-    document.getElementById('selectedCount').textContent = checked+' student'+(checked!==1?'s':'')+' selected';
-  }
-
   // ── CREATE HOMEWORK ───────────────────────────────────────
   async function createHomework() {
     const title = document.getElementById('hwTitle').value.trim();
     const instr = document.getElementById('hwInstr').value.trim();
+    const classId = document.getElementById('hwClass').value;
     const hwType = document.getElementById('hwType').value;
-    if (!instr) { alert('Please fill in instructions'); return; }
-
-    let body = { title, instructions: instr, hw_type: hwType };
-
-    if (assignMode === 'class') {
-      const classId = document.getElementById('hwClass').value;
-      if (!classId) { alert('Please select a class'); return; }
-      body.class_id = classId;
-    } else {
-      const checked = [...document.querySelectorAll('#studentCheckboxList input:checked')].map(el => parseInt(el.value));
-      if (!checked.length) { alert('Please select at least one student'); return; }
-      body.student_ids = checked;
-    }
-
+    if (!instr||!classId) { alert('Please fill in instructions and select a class'); return; }
     try {
       const res = await fetch(W+'/homework',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(body)});
+        body:JSON.stringify({class_id:classId,title,instructions:instr,hw_type:hwType})});
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       closeModal('hw');

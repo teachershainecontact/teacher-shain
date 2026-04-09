@@ -156,9 +156,11 @@
       <textarea class="written-area" id="writtenAnswer" placeholder="Type your answer here…" oninput="updateWordCount()"></textarea>
       <div class="word-count" id="wordCount">0 words</div>
       <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+        <button class="ai-check-btn" onclick="checkWritingWithAI()">🤖 Check with AI first</button>
         <button class="btn btn-sage" id="submitWrittenBtn" onclick="submitWritten()">Submit Answer →</button>
       </div>
       <!-- AI writing feedback inline -->
+      <div id="aiWritingInline" style="display:none;margin-top:20px"></div>
     </div>
 
     <!-- SUBMITTED (waiting review) -->
@@ -170,9 +172,9 @@
 
     <!-- AI PROCESSING -->
     <div class="card" id="aiProcessingCard" style="display:none;text-align:center;padding:32px">
-      <div style="font-size:36px;margin-bottom:12px">⏳</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:8px">Submitting your work…</div>
-      <div style="font-size:13px;color:var(--muted)">Please wait a moment.</div>
+      <div style="font-size:36px;margin-bottom:12px">🤖</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:8px">AI is analysing your submission…</div>
+      <div style="font-size:13px;color:var(--muted)">This takes about 10 seconds. Please wait.</div>
     </div>
 
     <!-- TEACHER FEEDBACK (reviewed) -->
@@ -230,7 +232,7 @@
 
 <script>
   const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
-  const DRIVE_SCRIPT = localStorage.getItem('ts_script') || 'https://script.google.com/macros/s/AKfycbxr0xsR33_BByEG_fEoeuG4lZgMRwVDujbCxpjtuhIile2co8biG4EbM0GHzl9bgAw/exec';
+  const DRIVE_SCRIPT = localStorage.getItem('ts_script') || 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
 
   let mediaRecorder, audioChunks=[], recordingBlob=null;
   let timerInterval, seconds=0;
@@ -299,9 +301,13 @@
 
     } else if (status==='submitted'||status==='ai_scored') {
       statusBar.className='status-bar status-submitted';
-      statusBar.textContent='✓ Submitted — Waiting for Teacher Shen to review…';
+      statusBar.textContent= status==='ai_scored'?'🤖 AI scored — Teacher Shen is reviewing':'✓ Submitted — Teacher Shen will review soon';
       document.getElementById('submittedCard').style.display='';
       buildSubmittedContent(data);
+      if (status==='ai_scored') {
+        if (data.ai_score) showAiFeedback(data);
+        if (data.ai_writing) showAiWritingFeedback(data.ai_writing);
+      }
 
     } else if (status==='reviewed') {
       statusBar.className='status-bar status-graded';
@@ -317,6 +323,8 @@
       document.getElementById('feedbackStars').textContent='⭐'.repeat(Math.min(score,10));
       document.getElementById('feedbackText').textContent=data.feedback||'';
       if (data.feedback_url){document.getElementById('feedbackAudio').src=data.feedback_url;document.getElementById('feedbackAudioSection').style.display='';}
+      if (data.ai_score) showAiFeedback(data);
+      if (data.ai_writing) showAiWritingFeedback(data.ai_writing);
     }
   }
 
@@ -339,11 +347,37 @@
   }
 
   function showAiFeedback(data) {
-    // AI data stored in D1 — not shown to student, teacher sees it in review modal
+    if (!data.ai_score&&!data.ai_feedback) return;
+    document.getElementById('aiFeedbackCard').style.display='';
+    if (data.ai_score) document.getElementById('aiScoreNum').textContent=data.ai_score;
+    let fb={}; try{fb=JSON.parse(data.ai_feedback||'{}');}catch{}
+    if (fb.fluency){setTimeout(()=>document.getElementById('aiFluencyBar').style.width=fb.fluency+'%',100);document.getElementById('aiFluencyVal').textContent=fb.fluency+'/100';}
+    if (fb.accuracy){setTimeout(()=>document.getElementById('aiAccuracyBar').style.width=fb.accuracy+'%',200);document.getElementById('aiAccuracyVal').textContent=fb.accuracy+'/100';}
+    if (fb.summary) document.getElementById('aiSummaryText').textContent=fb.summary;
+    if (fb.strengths?.length) document.getElementById('aiStrengths').innerHTML=`<p style="font-size:12px;font-weight:600;color:var(--sage);margin-bottom:6px">✓ STRENGTHS</p>`+fb.strengths.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join('');
+    if (fb.improvements?.length) document.getElementById('aiImprovements').innerHTML=`<p style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:6px;margin-top:10px">→ WORK ON</p>`+fb.improvements.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join('');
   }
 
   function showAiWritingFeedback(aiWritingStr, inline=false) {
-    // AI data stored in D1 — not shown to student, teacher sees it in review modal
+    let aw={}; try{aw=JSON.parse(aiWritingStr);}catch{return;}
+    const corrHtml=aw.corrections?.length?aw.corrections.map(c=>`<div class="correction-box">
+      <div class="correction-original">✗ ${c.original}</div>
+      <div class="correction-fixed">✓ ${c.corrected}</div>
+      <div class="correction-why">${c.explanation}</div>
+    </div>`).join(''):'';
+    const html=`
+      ${aw.score?`<div style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--sage);margin-bottom:8px">${aw.score}<span style="font-size:16px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400">/100</span></div>`:''}
+      ${aw.summary?`<p style="font-size:15px;line-height:1.7;margin-bottom:14px">${aw.summary}</p>`:''}
+      ${corrHtml}
+      ${aw.strengths?.length?`<p style="font-size:12px;font-weight:600;color:var(--sage);margin-top:10px;margin-bottom:6px">✓ STRENGTHS</p>`+aw.strengths.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join(''):''}
+      ${aw.improvements?.length?`<p style="font-size:12px;font-weight:600;color:var(--gold);margin-top:10px;margin-bottom:6px">→ WORK ON</p>`+aw.improvements.map(s=>`<p style="font-size:14px;margin-bottom:4px">• ${s}</p>`).join(''):''}`;
+    if (inline) {
+      const el=document.getElementById('aiWritingInline');
+      el.innerHTML=html; el.style.display='';
+    } else {
+      document.getElementById('aiWritingCard').style.display='';
+      document.getElementById('aiWritingContent').innerHTML=html;
+    }
   }
 
   // ── AUDIO RECORDING ───────────────────────────────────────
@@ -403,15 +437,15 @@
       const reader=new FileReader();
       const base64Audio=await new Promise((res,rej)=>{reader.onload=()=>res(reader.result.split(',')[1]);reader.onerror=rej;reader.readAsDataURL(recordingBlob);});
       const uploadRes=await fetch(DRIVE_SCRIPT,{method:'POST',headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({audio:base64Audio,mimeType:recordingBlob.type||'audio/webm',filename:`student_${user.id||'x'}_sub_${submissionId}.${fileExt}`})});
-      let uploadData; try{uploadData=await uploadRes.json();}catch{throw new Error('Drive Script returned non-JSON. Check Apps Script URL.');}
+        body:JSON.stringify({audio:base64Audio,fileName:`student_${user.id||'x'}_sub_${submissionId}.${fileExt}`})});
+      const uploadData=await uploadRes.json();
       if (!uploadData.success) throw new Error('Upload failed: '+(uploadData.error||'unknown'));
 
       // Save URL to D1
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({recording_url:uploadData.url})});
 
-      showToast('✓ Submitted! Waiting for Teacher Shen to review.');
+      showToast('✓ Submitted! AI is analysing…');
       document.getElementById('recordingCard').style.display='none';
       document.getElementById('writtenCard').style.display='none';
       document.getElementById('aiProcessingCard').style.display='';
@@ -433,7 +467,7 @@
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ai_transcript:transcribeData.transcript,ai_score:scoring.score||null,ai_feedback:JSON.stringify(scoring)})});
 
-      showToast('✓ Done! Teacher Shen will review soon.');
+      showToast('🤖 AI analysis complete!');
       setTimeout(()=>location.reload(),1500);
     } catch(e){
       showToast('Error: '+e.message);
@@ -453,16 +487,17 @@
   async function checkWritingWithAI() {
     const text=document.getElementById('writtenAnswer').value.trim();
     if (!text){alert('Please write something first');return;}
-
+    const btn=document.querySelector('.ai-check-btn');
+    btn.textContent='🤖 Checking…'; btn.disabled=true;
     try {
       const res=await fetch(W+'/ai/check-writing',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({written_answer:text,instructions:currentSubmission?.instructions||''})});
       const data=await res.json();
       if (!data.ok) throw new Error(data.error);
       showAiWritingFeedback(JSON.stringify(data.analysis), true);
-
+      showToast('🤖 AI checked your writing! Review the feedback below.');
     } catch(e){showToast('AI check failed: '+e.message);}
-
+    btn.textContent='🤖 Check with AI again'; btn.disabled=false;
   }
 
   async function submitWritten() {
@@ -477,7 +512,7 @@
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({written_answer:text})});
 
-      showToast('✓ Submitted! Waiting for Teacher Shen to review.');
+      showToast('✓ Submitted! AI is checking your writing…');
       document.getElementById('writtenCard').style.display='none';
       document.getElementById('recordingCard').style.display='none';
       document.getElementById('aiProcessingCard').style.display='';
@@ -492,7 +527,7 @@
       await fetch(W+'/submissions/'+submissionId,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ai_writing:JSON.stringify(analysis)})});
 
-      showToast('✓ Submitted! Teacher Shen will review soon.');
+      showToast('🤖 AI writing check complete!');
       setTimeout(()=>location.reload(),1500);
     } catch(e){
       showToast('Error: '+e.message);
