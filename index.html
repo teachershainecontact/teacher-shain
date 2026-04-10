@@ -366,13 +366,6 @@
       <span class="pill"><span class="pill-dot"></span> Score tracking</span>
       <span class="pill"><span class="pill-dot"></span> Study plans</span>
     </div>
-
-    <div style="margin-top:40px">
-      <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:14px">Quick Access</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <a href="pages/student-dashboard.html" class="page-btn">
-          <span class="page-btn-icon">🎓</span>
-          <div><div class="page-btn-title">Student Dashboard</div><div class="page-btn-sub">View homework & scores</div></div>
         </a>
         <a href="pages/teacher-dashboard.html" class="page-btn">
           <span class="page-btn-icon">👩‍🏫</span>
@@ -428,7 +421,7 @@
   // ── PASTE YOUR CLOUDFLARE WORKER URL HERE ──
   const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
   // ── PASTE YOUR GOOGLE APPS SCRIPT URL HERE ──
-  const DRIVE_SCRIPT = 'https://script.google.com/macros/s/AKfycbyomvtq5dHo_g70UQERUD-t3hZeEC37UKUCC4Wlt-zBKEUCQA_DnflUoctkeTyllsKb/exec';
+  const DRIVE_SCRIPT = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
   // e.g. 'https://teacher-shain.your-name.workers.dev'
 
   let currentRole = 'student';
@@ -464,19 +457,22 @@
       const _lt = await res.text(); let data; try { data = JSON.parse(_lt); } catch(e) { errEl.textContent = 'Server error (non-JSON response). Check Worker URL.'; errEl.style.display='block'; btn.textContent='Sign In →'; btn.disabled=false; return; }
       if (!res.ok || data.error) throw new Error('invalid');
 
-      const { role, name, id } = data.user;
+      const { role, name, id, student_type } = data.user;
 
       // Store session in localStorage
       localStorage.setItem('role', role);
       localStorage.setItem('username', username);
       localStorage.setItem('userName', name);
       localStorage.setItem('userId', id);
+      localStorage.setItem('student_type', student_type || 'english');
       localStorage.setItem('ts_worker', WORKER);
       localStorage.setItem('ts_script', DRIVE_SCRIPT);
-      localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id }));
+      localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id, student_type }));
 
       if (role === 'teacher') {
         window.location.href = 'pages/teacher-dashboard.html';
+      } else if (student_type === 'ielts') {
+        window.location.href = 'pages/ielts-student.html';
       } else {
         window.location.href = 'pages/student-dashboard.html';
       }
