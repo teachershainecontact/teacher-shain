@@ -288,7 +288,7 @@
       <input class="setup-input" id="roomInput" placeholder="e.g. teachershain-monday" 
              onkeydown="if(event.key==='Enter') startClass()">
       <div class="setup-note">
-        💡 Use the same room name every time for the same class group. Students join using this name from their dashboard. Keep it simple — no spaces, use hyphens.
+        💡 Use the same room name every time for the same class group. Students join using this name from their dashboard. Keep it simple — no spaces, use hyphens. Example: teachershain-monday
       </div>
       <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px" onclick="startClass()">
         Start Class →
@@ -371,11 +371,11 @@
     localStorage.setItem('ts_classroom_room', roomName);
 
     document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('roomBadge').textContent = roomName;
+    document.getElementById('roomBadge').textContent = 'sfu.mirotalk.com/join/' + roomName;
 
     // Load Jitsi
     const frame = document.getElementById('jitsiFrame');
-    frame.src = `https://meet.jit.si/${roomName}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.prejoinPageEnabled=false&config.disableDeepLinking=true&config.toolbarButtons=["microphone","camera","chat","raisehand","tileview","hangup","reactions"]`;
+    frame.src = `https://sfu.mirotalk.com/join/${roomName}`;
 
     sessionStartTime = new Date();
     showToast('Class started! Click 🎙 Start Recording to begin transcription.');

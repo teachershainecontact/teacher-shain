@@ -151,7 +151,7 @@
     if (!roomName) return;
     document.getElementById('setupScreen').style.display = 'none';
     const frame = document.getElementById('jitsiFrame');
-    frame.src = `https://meet.jit.si/${roomName}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.prejoinPageEnabled=false&config.disableDeepLinking=true&config.toolbarButtons=["microphone","camera","chat","raisehand","tileview","hangup","reactions"]`;
+    frame.src = `https://sfu.mirotalk.com/join/${roomName}`;
   }
 
   init();
