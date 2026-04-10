@@ -472,6 +472,14 @@
       if (role === 'teacher') {
         window.location.href = 'pages/teacher-dashboard.html';
       } else if (student_type === 'ielts') {
+        // Set the key ielts-student.html expects so it skips its own login screen
+        localStorage.setItem('ielts_student', JSON.stringify({
+          id: data.user.id,
+          username: data.user.username,
+          name: data.user.name,
+          target_band: data.user.target_band || 6.5,
+          exam_type: data.user.exam_type || 'academic'
+        }));
         window.location.href = 'pages/ielts-student.html';
       } else {
         window.location.href = 'pages/student-dashboard.html';
