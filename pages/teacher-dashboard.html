@@ -116,12 +116,14 @@
     <button class="nav-item active" onclick="showSection('review',this)"><span class="icon">🎧</span> Review Queue <span class="nav-badge" id="reviewBadge" style="display:none">0</span></button>
     <button class="nav-item" onclick="showSection('homework',this)"><span class="icon">📝</span> All Homework</button>
     <button class="nav-item" onclick="showSection('students',this)"><span class="icon">👩‍🎓</span> Students</button>
+    <button class="nav-item" onclick="showSection('classes',this)"><span class="icon">🏫</span> Classes</button>
     <button class="nav-item" onclick="showSection('transcripts',this)"><span class="icon">📄</span> Transcripts</button>
     <button class="nav-item" onclick="showSection('ielts',this)"><span class="icon">🎓</span> IELTS</button>
 
     <p class="nav-section-label">Create</p>
     <button class="nav-item" onclick="openModal('hw')"><span class="icon">＋</span> New Homework</button>
     <button class="nav-item" onclick="openModal('student')"><span class="icon">＋</span> Add Student</button>
+    <button class="nav-item" onclick="openAddClass()"><span class="icon">＋</span> Add Class</button>
 
     <p class="nav-section-label">Tools</p>
     <a class="nav-item" href="subtitles.html" target="_blank"><span class="icon">字</span> Live Subtitles</a>
@@ -184,9 +186,20 @@
       </div>
       <div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden">
         <table class="student-table">
-          <thead><tr><th>Name</th><th>Username</th><th>Type</th><th>Submissions</th><th>Avg Stars</th><th>Top Badge</th></tr></thead>
-          <tbody id="studentTableBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">Loading…</td></tr></tbody>
+          <thead><tr><th>Name</th><th>Username</th><th>Type</th><th>Class</th><th>Submissions</th><th>Avg Stars</th><th>Actions</th></tr></thead>
+          <tbody id="studentTableBody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Loading…</td></tr></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- CLASSES SECTION -->
+    <div id="section-classes" style="display:none">
+      <div class="page-header">
+        <h1 class="page-title">My <span>Classes</span></h1>
+        <button class="btn-primary" onclick="openAddClass()">＋ Add Class</button>
+      </div>
+      <div id="classesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+        <div class="empty" style="grid-column:1/-1">Loading…</div>
       </div>
     </div>
 
@@ -341,6 +354,44 @@
   </div>
 </div>
 
+<!-- ADD / EDIT CLASS MODAL -->
+<div class="modal-overlay" id="modal-class">
+  <div class="modal" style="max-width:420px">
+    <h2 class="modal-title" id="classModalTitle">Add Class</h2>
+    <input type="hidden" id="editClassId" value="">
+    <div class="form-group"><label>CLASS NAME</label><input type="text" id="className" placeholder="e.g. Intermediate Group A"></div>
+    <div class="form-group">
+      <label>COLOUR</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px" id="colorPicker">
+        ${['#2D6BE4','#c8963e','#4a6741','#c0392b','#8e44ad','#16a085','#e67e22','#2c3e50'].map(c=>
+          `<div onclick="selectColor('${c}',this)" data-color="${c}" style="width:32px;height:32px;border-radius:50%;background:${c};cursor:pointer;border:3px solid transparent;transition:border .15s"></div>`
+        ).join('')}
+      </div>
+      <input type="hidden" id="classColor" value="#2D6BE4">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('class')">Cancel</button>
+      <button class="btn-save" onclick="saveClass()">Save Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT STUDENT MODAL -->
+<div class="modal-overlay" id="modal-editStudent">
+  <div class="modal" style="max-width:460px">
+    <h2 class="modal-title">Edit Student</h2>
+    <input type="hidden" id="editStudentId" value="">
+    <div class="form-group"><label>FULL NAME</label><input type="text" id="editStudentName"></div>
+    <div class="form-group"><label>USERNAME</label><input type="text" id="editStudentUsername"></div>
+    <div class="form-group"><label>NEW PASSWORD <span style="font-weight:400;color:var(--muted)">(leave blank to keep current)</span></label><input type="text" id="editStudentPw" placeholder="leave blank to keep"></div>
+    <div class="form-group"><label>CLASS</label><select id="editStudentClass"><option value="">No class</option></select></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('editStudent')">Cancel</button>
+      <button class="btn-save" onclick="saveEditStudent()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- CLASSIN MODAL -->
 <div class="modal-overlay" id="modal-classin">
   <div class="modal">
@@ -419,12 +470,13 @@
 
   // ── NAVIGATION ────────────────────────────────────────────
   function showSection(name, btn) {
-    ['review','students','homework','transcripts','ielts'].forEach(s =>
+    ['review','students','classes','homework','transcripts','ielts'].forEach(s =>
       document.getElementById('section-'+s).style.display = s===name ? '' : 'none');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     if (btn) btn.classList.add('active');
     if (name === 'transcripts') loadTranscripts();
     if (name === 'ielts') loadIeltsSection();
+    if (name === 'classes') renderClassesSection();
   }
 
   function doLogout() { localStorage.removeItem('ts_user'); window.location.href='../index.html'; }
@@ -542,22 +594,28 @@
 
   function renderStudentTable(students) {
     const tbody = document.getElementById('studentTableBody');
-    if (!students.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No students yet.</td></tr>'; return; }
+    if (!students.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">No students yet.</td></tr>'; return; }
     tbody.innerHTML = students.map(st => {
       const mySubs = allSubmissions.filter(s=>s.student_id===st.id);
       const graded = mySubs.filter(s=>s.score!=null);
       const avg = graded.length ? (graded.reduce((a,b)=>a+Number(b.score),0)/graded.length).toFixed(1) : '—';
-      const starStr = graded.length ? '⭐'.repeat(Math.min(Math.round(avg),10)) : '—';
       const typeBadge = st.student_type === 'ielts'
         ? '<span style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">IELTS</span>'
         : '<span style="background:#2D6BE4;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">English</span>';
+      const className = allClasses.find(c=>c.id===st.class_id)?.name || '<span style="color:var(--muted)">—</span>';
       return `<tr>
         <td><strong>${st.name||'—'}</strong></td>
         <td style="color:var(--muted)">${st.username||'—'}</td>
         <td>${typeBadge}</td>
+        <td>${className}</td>
         <td>${mySubs.length}</td>
         <td style="color:var(--gold);font-weight:700">${avg}/10</td>
-        <td style="font-size:18px">${starStr}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button onclick="openEditStudent(${st.id})" style="padding:5px 12px;background:var(--cream);border:1px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Edit</button>
+            <button onclick="deleteStudent(${st.id},'${(st.name||'').replace(/'/g,"\\'")}',this)" style="padding:5px 12px;background:#fff0f0;border:1px solid #f0c0c0;border-radius:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--red)">🗑</button>
+          </div>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -1297,6 +1355,159 @@
       showToast('✓ IELTS review saved! Band scores recorded.');
       loadIeltsReview();
     } catch(e) { showToast('Error: '+e.message); }
+  }
+
+  // ── EDIT STUDENT ─────────────────────────────────────────
+  function openEditStudent(id) {
+    const st = allStudents.find(s=>s.id===id);
+    if (!st) return;
+    document.getElementById('editStudentId').value = id;
+    document.getElementById('editStudentName').value = st.name || '';
+    document.getElementById('editStudentUsername').value = st.username || '';
+    document.getElementById('editStudentPw').value = '';
+    // populate class dropdown
+    const sel = document.getElementById('editStudentClass');
+    sel.innerHTML = '<option value="">No class</option>';
+    allClasses.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = c.name;
+      if (c.id === st.class_id) o.selected = true;
+      sel.appendChild(o);
+    });
+    openModal('editStudent');
+  }
+
+  async function saveEditStudent() {
+    const id = document.getElementById('editStudentId').value;
+    const name = document.getElementById('editStudentName').value.trim();
+    const username = document.getElementById('editStudentUsername').value.trim();
+    const pw = document.getElementById('editStudentPw').value.trim();
+    const classId = document.getElementById('editStudentClass').value || null;
+    if (!name || !username) { alert('Name and username are required'); return; }
+    const body = { name, username, class_id: classId };
+    if (pw) body.password = pw;
+    try {
+      const res = await fetch(W+'/students/'+id, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ _method:'PUT', ...body })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error||'failed');
+      closeModal('editStudent');
+      showToast('✓ Student updated!');
+      setTimeout(()=>location.reload(), 1000);
+    } catch(e) { alert('Error: '+e.message); }
+  }
+
+  async function deleteStudent(id, name, btn) {
+    if (!confirm(`Delete ${name}? This will also remove their submissions.`)) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch(W+'/students/'+id, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ _method:'DELETE' })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error||'failed');
+      showToast(`✓ ${name} deleted.`);
+      setTimeout(()=>location.reload(), 1000);
+    } catch(e) { alert('Error: '+e.message); btn.disabled=false; }
+  }
+
+  // ── CLASSES CRUD ─────────────────────────────────────────
+  function selectColor(hex, el) {
+    document.getElementById('classColor').value = hex;
+    document.querySelectorAll('#colorPicker div').forEach(d => d.style.border='3px solid transparent');
+    el.style.border = '3px solid var(--ink)';
+  }
+
+  function openEditClass(id) {
+    const cls = allClasses.find(c=>c.id===id);
+    if (!cls) return;
+    document.getElementById('editClassId').value = id;
+    document.getElementById('className').value = cls.name;
+    document.getElementById('classColor').value = cls.color || '#2D6BE4';
+    document.getElementById('classModalTitle').textContent = 'Edit Class';
+    // highlight current colour
+    document.querySelectorAll('#colorPicker div').forEach(d => {
+      d.style.border = d.dataset.color === cls.color ? '3px solid var(--ink)' : '3px solid transparent';
+    });
+    openModal('class');
+  }
+
+  function openAddClass() {
+    document.getElementById('editClassId').value = '';
+    document.getElementById('className').value = '';
+    document.getElementById('classColor').value = '#2D6BE4';
+    document.getElementById('classModalTitle').textContent = 'Add Class';
+    document.querySelectorAll('#colorPicker div').forEach((d,i) => d.style.border = i===0?'3px solid var(--ink)':'3px solid transparent');
+    openModal('class');
+  }
+
+  async function saveClass() {
+    const id = document.getElementById('editClassId').value;
+    const name = document.getElementById('className').value.trim();
+    const color = document.getElementById('classColor').value;
+    if (!name) { alert('Please enter a class name'); return; }
+    try {
+      if (id) {
+        // Edit existing
+        const res = await fetch(W+'/classes/'+id, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ _method:'PUT', name, color })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error||'failed');
+        showToast('✓ Class updated!');
+      } else {
+        const res = await fetch(W+'/classes', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ name, color })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error||'failed');
+        showToast('✓ Class added!');
+      }
+      closeModal('class');
+      setTimeout(()=>location.reload(), 1000);
+    } catch(e) { alert('Error: '+e.message); }
+  }
+
+  async function deleteClass(id, name, btn) {
+    if (!confirm(`Delete class "${name}"? Students in this class will be unassigned (not deleted).`)) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch(W+'/classes/'+id, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ _method:'DELETE' })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error||'failed');
+      showToast(`✓ Class "${name}" deleted.`);
+      setTimeout(()=>location.reload(), 1000);
+    } catch(e) { alert('Error: '+e.message); btn.disabled=false; }
+  }
+
+  function renderClassesSection() {
+    const el = document.getElementById('classesList');
+    if (!allClasses.length) {
+      el.innerHTML = '<div class="empty" style="grid-column:1/-1">No classes yet. Click "+ Add Class" to create one.</div>';
+      return;
+    }
+    el.innerHTML = allClasses.map(c => {
+      const studentCount = allStudents.filter(s=>s.class_id===c.id).length;
+      return `<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px 22px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div style="width:14px;height:14px;border-radius:50%;background:${c.color||'#2D6BE4'};flex-shrink:0"></div>
+          <div style="font-size:16px;font-weight:700;flex:1">${c.name}</div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">👩‍🎓 ${studentCount} student${studentCount!==1?'s':''}</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="openEditClass(${c.id})" style="flex:1;padding:9px;background:var(--cream);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">✏️ Edit</button>
+          <button onclick="deleteClass(${c.id},'${(c.name||'').replace(/'/g,"\\'")}',this)" style="padding:9px 14px;background:#fff0f0;border:1px solid #f0c0c0;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--red)">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   loadDashboard();
