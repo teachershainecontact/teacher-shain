@@ -1657,7 +1657,7 @@
   }
 
   async function unpublishExam(examId) {
-    if (!confirm('Unpublish this exam? Students won't be able to start it.')) return;
+    if (!confirm('Unpublish this exam? Students will not be able to start it.')) return;
     try {
       await fetch(W+'/ielts/exams/'+examId, {
         method:'POST', headers:{'Content-Type':'application/json'},
