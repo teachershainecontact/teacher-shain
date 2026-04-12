@@ -128,7 +128,7 @@
       const res = await fetch(W + '/settings');
       const s = await res.json();
       if (s.classin_url) {
-        roomName = s.classin_url.replace(/\s+/g, '-').toLowerCase();
+        roomName = s.classin_url;
       } else if (savedRoom) {
         roomName = savedRoom;
       }
@@ -151,7 +151,9 @@
     if (!roomName) return;
     document.getElementById('setupScreen').style.display = 'none';
     const frame = document.getElementById('jitsiFrame');
-    frame.src = `https://sfu.mirotalk.com/join/${roomName}`;
+    const embedUrl = roomName.includes('?') ? roomName + '&embed' : roomName + '?embed';
+    frame.src = embedUrl;
+    frame.allow = 'camera; microphone; fullscreen; speaker-selection';
   }
 
   init();

@@ -283,12 +283,9 @@
   <div id="setupScreen">
     <div class="setup-card">
       <h1 class="setup-title">Start <span>Classroom</span></h1>
-      <p class="setup-sub">Set your Jitsi room name to begin the class</p>
-      <label class="setup-label">Room Name</label>
-      <input class="setup-input" id="roomInput" placeholder="e.g. teachershain-monday" 
-             onkeydown="if(event.key==='Enter') startClass()">
+      <p class="setup-sub">Your Whereby room will load automatically</p>
       <div class="setup-note">
-        💡 Use the same room name every time for the same class group. Students join using this name from their dashboard. Keep it simple — no spaces, use hyphens. Example: teachershain-monday
+        💡 Your classroom is powered by Whereby. Make sure your room URL is saved in your worker settings.
       </div>
       <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px" onclick="startClass()">
         Start Class →
@@ -347,35 +344,32 @@
 
   // ── INIT ─────────────────────────────────────────────────
   window.onload = async () => {
-    // Check if room name saved
-    const savedRoom = localStorage.getItem('ts_classroom_room');
-    if (savedRoom) {
-      document.getElementById('roomInput').value = savedRoom;
-    }
-    // Load from settings
-    try {
-      const res = await fetch(W + '/settings');
-      const s = await res.json();
-      if (s.classin_url) {
-        const room = s.classin_url.replace(/\s+/g, '-').toLowerCase();
-        document.getElementById('roomInput').value = room;
-      }
-    } catch(e) {}
+    // Settings loaded on startClass
   };
 
   // ── START CLASS ───────────────────────────────────────────
-  function startClass() {
-    const input = document.getElementById('roomInput').value.trim();
-    if (!input) { alert('Please enter a room name'); return; }
-    roomName = input.replace(/\s+/g, '-').toLowerCase();
-    localStorage.setItem('ts_classroom_room', roomName);
+  async function startClass() {
+    let wherebyUrl = '';
+    try {
+      const res = await fetch(W + '/settings');
+      const s = await res.json();
+      wherebyUrl = s.classin_url || '';
+    } catch(e) {}
 
+    if (!wherebyUrl) {
+      alert('No classroom URL found. Please save your Whereby URL via the worker settings.');
+      return;
+    }
+
+    roomName = wherebyUrl;
     document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('roomBadge').textContent = 'sfu.mirotalk.com/join/' + roomName;
+    document.getElementById('roomBadge').textContent = 'whereby.com/teacher-shen';
 
-    // Load Jitsi
+    // Load Whereby with ?embed
     const frame = document.getElementById('jitsiFrame');
-    frame.src = `https://sfu.mirotalk.com/join/${roomName}`;
+    const embedUrl = wherebyUrl.includes('?') ? wherebyUrl + '&embed' : wherebyUrl + '?embed';
+    frame.src = embedUrl;
+    frame.allow = 'camera; microphone; fullscreen; speaker-selection';
 
     sessionStartTime = new Date();
     showToast('Class started! Click 🎙 Start Recording to begin transcription.');
