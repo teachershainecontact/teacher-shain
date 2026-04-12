@@ -1,498 +1,792 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Shen — English Learning Platform</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --ink: #0f0e0c;
-      --paper: #faf8f4;
-      --cream: #f2ede4;
-      --gold: #c8963e;
-      --gold-light: #e8b96a;
-      --red: #c0392b;
-      --sage: #4a6741;
-      --muted: #8a8070;
-      --border: #ddd8ce;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Teacher Shen — Learn. Excel. Achieve.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #faf8f4;
+    --cream: #f2ede4;
+    --gold: #c8963e;
+    --gold-light: #e8b96a;
+    --gold-pale: #fdf3e3;
+    --sage: #4a6741;
+    --muted: #8a8070;
+    --border: #ddd8ce;
+    --red: #c0392b;
+  }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--paper);
-      color: var(--ink);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+  html { scroll-behavior: smooth; }
 
-    /* ── Background texture ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 20% 20%, rgba(200,150,62,0.06) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(74,103,65,0.05) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
 
-    /* ── Header ── */
-    header {
-      position: relative;
-      z-index: 10;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 48px;
-      border-bottom: 1px solid var(--border);
-    }
+  /* ── HEADER ──────────────────────────────────────────────── */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 20px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(250,248,244,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
 
-    .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-    .logo span { color: var(--gold); }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .logo em { font-style: italic; color: var(--gold); }
 
-    .header-nav a {
-      font-size: 14px;
-      color: var(--muted);
-      text-decoration: none;
-      margin-left: 28px;
-      transition: color 0.2s;
-    }
-    .header-nav a:hover { color: var(--ink); }
+  .header-cta {
+    padding: 9px 22px;
+    background: var(--ink); color: var(--paper);
+    border: none; border-radius: 100px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .header-cta:hover { background: #2a2825; transform: translateY(-1px); }
 
-    /* ── Hero ── */
-    .hero {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: 1fr 480px;
-      gap: 0;
-      min-height: calc(100vh - 73px);
-    }
+  /* ── HERO ────────────────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
 
-    .hero-left {
-      padding: 80px 48px 60px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      border-right: 1px solid var(--border);
-    }
+  /* Decorative background grid */
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.4;
+    z-index: 0;
+  }
 
-    .eyebrow {
-      font-size: 11px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--gold);
-      font-weight: 500;
-      margin-bottom: 28px;
-    }
+  /* Gold accent blob */
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse, rgba(200,150,62,0.12) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+  }
 
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(48px, 5vw, 72px);
-      line-height: 1.05;
-      font-weight: 900;
-      margin-bottom: 28px;
-      letter-spacing: -1px;
-    }
+  .hero-content { position: relative; z-index: 1; max-width: 720px; }
 
-    h1 em {
-      font-style: italic;
-      color: var(--gold);
-    }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 16px;
+    background: var(--gold-pale);
+    border: 1px solid rgba(200,150,62,0.3);
+    border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    color: #8a6020; letter-spacing: 0.5px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
 
-    .hero-desc {
-      font-size: 17px;
-      line-height: 1.7;
-      color: var(--muted);
-      max-width: 480px;
-      margin-bottom: 48px;
-    }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 6vw, 80px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -1.5px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+  .hero-title em { font-style: italic; color: var(--gold); }
+  .hero-title .line2 { display: block; }
 
-    .feature-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+  .hero-sub {
+    font-size: clamp(15px, 2vw, 18px);
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 480px;
+    margin: 0 auto 40px;
+    font-weight: 300;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background: var(--cream);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      font-size: 13px;
-      color: var(--ink);
-    }
+  .hero-actions {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
 
-    .pill-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--gold);
-    }
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--ink); color: var(--paper);
+    border: none; border-radius: 100px;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-primary:hover { background: #2a2825; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,14,12,0.15); }
 
-    /* ── Login panel ── */
-    .hero-right {
-      background: var(--ink);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 60px 48px;
-    }
+  .btn-outline {
+    padding: 14px 28px;
+    background: none; color: var(--ink);
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    font-size: 15px; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .btn-outline:hover { border-color: var(--ink); transform: translateY(-2px); }
 
-    .login-label {
-      font-size: 11px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--gold);
-      font-weight: 500;
-      margin-bottom: 32px;
-    }
+  /* ── PLATFORM CARDS ──────────────────────────────────────── */
+  .platforms {
+    padding: 80px 24px 100px;
+    max-width: 1100px; margin: 0 auto;
+  }
 
-    .login-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 28px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 8px;
-    }
+  .section-label {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
 
-    .login-sub {
-      font-size: 14px;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 40px;
-    }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700; line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .section-title em { font-style: italic; color: var(--muted); }
 
-    .role-tabs {
-      display: flex;
-      gap: 2px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 10px;
-      padding: 4px;
-      margin-bottom: 32px;
-    }
+  .section-sub {
+    font-size: 15px; color: var(--muted);
+    max-width: 500px; line-height: 1.7;
+    margin-bottom: 48px;
+  }
 
-    .role-tab {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.45);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: none;
-      background: none;
-    }
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
 
-    .role-tab.active {
-      background: var(--gold);
-      color: var(--ink);
-    }
+  .platform-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
 
-    .form-group {
-      margin-bottom: 18px;
-    }
+  .platform-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(15,14,12,0.10);
+    border-color: var(--gold);
+  }
 
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
+  .platform-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--card-accent, var(--gold));
+    border-radius: 16px 16px 0 0;
+  }
 
-    .form-group input {
-      width: 100%;
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      font-size: 15px;
-      color: #fff;
-      font-family: 'DM Sans', sans-serif;
-      transition: border-color 0.2s, background 0.2s;
-      outline: none;
-    }
+  .platform-card.available::after {
+    content: 'Available';
+    position: absolute; top: 16px; right: 16px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 100px;
+    background: #e8f4ea; color: var(--sage);
+    border: 1px solid #b0d8b4;
+  }
 
-    .form-group input::placeholder { color: rgba(255,255,255,0.2); }
+  .platform-card.coming-soon::after {
+    content: 'Coming Soon';
+    position: absolute; top: 16px; right: 16px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 100px;
+    background: var(--cream); color: var(--muted);
+    border: 1px solid var(--border);
+  }
 
-    .form-group input:focus {
-      border-color: var(--gold);
-      background: rgba(255,255,255,0.1);
-    }
+  .platform-card.coming-soon { opacity: 0.7; cursor: default; }
+  .platform-card.coming-soon:hover { transform: none; box-shadow: none; border-color: var(--border); }
 
-    .login-btn {
-      width: 100%;
-      padding: 16px;
-      background: var(--gold);
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--ink);
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      transition: background 0.2s, transform 0.1s;
-      margin-top: 8px;
-    }
+  .card-icon {
+    font-size: 36px; margin-bottom: 16px;
+    display: block;
+  }
 
-    .login-btn:hover { background: var(--gold-light); }
-    .login-btn:active { transform: scale(0.99); }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    margin-bottom: 6px;
+  }
 
-    .login-error {
-      color: #e87070;
-      font-size: 13px;
-      margin-top: 12px;
-      display: none;
-    }
+  .card-desc {
+    font-size: 13px; color: var(--muted);
+    line-height: 1.6; margin-bottom: 20px;
+  }
 
-    .login-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 24px 0;
-      color: rgba(255,255,255,0.2);
-      font-size: 12px;
-    }
+  .card-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
 
-    .login-divider::before,
-    .login-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,0.1);
-    }
+  .tag {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 100px;
+    background: var(--cream); color: var(--muted);
+    border: 1px solid var(--border);
+  }
 
-    .subtitle-link {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      color: rgba(255,255,255,0.6);
-      font-size: 14px;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
+  /* ── LOGIN MODAL ─────────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15,14,12,0.5);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
 
-    .subtitle-link:hover {
-      border-color: rgba(255,255,255,0.25);
-      color: #fff;
-    }
+  .login-modal {
+    background: var(--paper);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 420px; width: 100%;
+    box-shadow: 0 24px 80px rgba(15,14,12,0.2);
+    animation: slideUp 0.3s ease;
+    position: relative;
+  }
 
-    .subtitle-icon {
-      width: 20px; height: 20px;
-      background: var(--sage);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-    }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    background: none; border: none;
+    font-size: 20px; cursor: pointer; color: var(--muted);
+    line-height: 1;
+  }
 
-    /* ── Chinese character decoration ── */
-    .han-deco {
-      position: absolute;
-      font-family: serif;
-      font-size: 200px;
-      font-weight: 900;
-      color: rgba(200,150,62,0.04);
-      right: 500px;
-      bottom: 40px;
-      line-height: 1;
-      pointer-events: none;
-      user-select: none;
-    }
+  .modal-eyebrow {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 8px;
+  }
 
-    .page-btn {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 16px; background: #fff;
-      border: 1px solid var(--border); border-radius: 12px;
-      text-decoration: none; color: var(--ink);
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .page-btn:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(200,150,62,0.12); }
-    .page-btn-icon { font-size: 22px; flex-shrink: 0; }
-    .page-btn-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-    .page-btn-sub { font-size: 11px; color: var(--muted); }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 700;
+    margin-bottom: 6px;
+  }
 
-    @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; }
-      .hero-left { border-right: none; border-bottom: 1px solid var(--border); padding: 48px 24px; }
-      .hero-right { padding: 48px 24px; }
-      header { padding: 20px 24px; }
-      .han-deco { display: none; }
-    }
-  </style>
+  .modal-sub {
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 28px; line-height: 1.6;
+  }
+
+  /* Role tabs */
+  .role-tabs {
+    display: flex; gap: 0;
+    background: var(--cream);
+    border-radius: 10px; padding: 4px;
+    margin-bottom: 24px;
+  }
+
+  .role-tab {
+    flex: 1; padding: 9px;
+    border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    background: none; color: var(--muted);
+    transition: all 0.15s;
+  }
+  .role-tab.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+  /* Platform selector */
+  .platform-select-label {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px; display: block;
+  }
+
+  .platform-pills {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .platform-pill {
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: none; color: var(--muted);
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .platform-pill.selected {
+    border-color: var(--gold);
+    background: var(--gold-pale);
+    color: #8a6020;
+  }
+  .platform-pill.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+
+  /* Form */
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 7px;
+  }
+
+  .form-input {
+    width: 100%; padding: 13px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px; font-family: 'DM Sans', sans-serif;
+    background: #fff; color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--gold); }
+
+  .login-btn {
+    width: 100%; padding: 14px;
+    background: var(--ink); color: var(--paper);
+    border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 4px;
+  }
+  .login-btn:hover { background: #2a2825; }
+  .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .login-error {
+    display: none;
+    margin-top: 12px; padding: 10px 14px;
+    background: #fdf2f2; border: 1px solid #f5c0c0;
+    border-radius: 8px; font-size: 13px; color: var(--red);
+  }
+
+  /* ── STATS BAR ───────────────────────────────────────────── */
+  .stats-bar {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 24px;
+    display: flex; justify-content: center;
+    gap: 0;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 0 48px;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px; font-weight: 900;
+    color: var(--ink); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-num em { font-style: italic; color: var(--gold); }
+
+  .stat-label {
+    font-size: 12px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+  footer {
+    padding: 40px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .footer-logo em { font-style: italic; color: var(--gold); }
+
+  .footer-sub {
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ── ANIMATIONS ──────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── MOBILE ──────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    header { padding: 16px 20px; }
+    .platforms { padding: 60px 20px 80px; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .stats-bar { flex-wrap: wrap; gap: 24px; }
+    .stat { border-right: none; padding: 0 24px; }
+    .login-modal { padding: 32px 24px; }
+  }
+</style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
-  <div class="logo">Teacher <span>Shain</span></div>
-  <nav class="header-nav">
-    <a href="pages/subtitles.html" target="_blank">🎙 Live Subtitles</a>
-    <a href="#about">About</a>
-  </nav>
+  <div class="logo">Teacher <em>Shen</em></div>
+  <button class="header-cta" onclick="openLogin()">Sign In →</button>
 </header>
 
-<main class="hero">
-  <div class="hero-left">
-    <p class="eyebrow">English Learning Platform</p>
-    <h1>Learn English<br>with <em>Shain</em><br>老师</h1>
-    <p class="hero-desc">
-      Record your pronunciation, get audio feedback, track your progress —
-      all in one place. Your classroom, homework, and scores in a single platform.
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">English Learning Platform · Shanghai</div>
+    <h1 class="hero-title">
+      Learn English<br>
+      <em>with Shen</em>
+      <span class="line2">老师</span>
+    </h1>
+    <p class="hero-sub">
+      AI-powered English learning across IELTS, TOEFL, PTE and General English.
+      Your classroom, exams, homework and scores — all in one place.
     </p>
-    <div class="feature-pills">
-      <span class="pill"><span class="pill-dot"></span> Pronunciation recording</span>
-      <span class="pill"><span class="pill-dot"></span> Teacher audio feedback</span>
-      <span class="pill"><span class="pill-dot"></span> Live class subtitles</span>
-      <span class="pill"><span class="pill-dot"></span> Score tracking</span>
-      <span class="pill"><span class="pill-dot"></span> Study plans</span>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="openLogin()">Sign In to Your Platform →</button>
+      <button class="btn-outline" onclick="document.querySelector('.platforms').scrollIntoView({behavior:'smooth'})">Explore Platforms</button>
     </div>
-        </a>
-        <a href="pages/teacher-dashboard.html" class="page-btn">
-          <span class="page-btn-icon">👩‍🏫</span>
-          <div><div class="page-btn-title">Teacher Dashboard</div><div class="page-btn-sub">Manage classes & review</div></div>
-        </a>
-        <a href="pages/subtitles.html" target="_blank" class="page-btn">
-          <span class="page-btn-icon">🎙</span>
-          <div><div class="page-btn-title">Live Subtitles</div><div class="page-btn-sub">Real-time class captions</div></div>
-        </a>
-        <a href="pages/admin.html" class="page-btn">
-          <span class="page-btn-icon">⚙️</span>
-          <div><div class="page-btn-title">Admin Panel</div><div class="page-btn-sub">System settings</div></div>
-        </a>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num"><em>4</em></div>
+    <div class="stat-label">Platforms</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">AI</div>
+    <div class="stat-label">Powered Scoring</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num"><em>9</em></div>
+    <div class="stat-label">Max Band Score</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">24/7</div>
+    <div class="stat-label">Practice Access</div>
+  </div>
+</div>
+
+<!-- PLATFORM CARDS -->
+<section class="platforms" id="platforms">
+  <div class="section-label">Our Platforms</div>
+  <h2 class="section-title">Choose your <em>exam path</em></h2>
+  <p class="section-sub">Each platform is purpose-built for its exam type — dedicated content, scoring criteria and exam format.</p>
+
+  <div class="cards-grid">
+
+    <!-- English -->
+    <div class="platform-card available" style="--card-accent:#c8963e" onclick="openLogin('english')">
+      <span class="card-icon">🗣️</span>
+      <div class="card-name">General English</div>
+      <div class="card-desc">Daily lessons, pronunciation practice, homework and live classroom sessions with Teacher Shen.</div>
+      <div class="card-tags">
+        <span class="tag">Pronunciation</span>
+        <span class="tag">Homework</span>
+        <span class="tag">Live Class</span>
       </div>
     </div>
 
-    <div class="han-deco">英</div>
+    <!-- IELTS -->
+    <div class="platform-card available" style="--card-accent:#1a6090" onclick="openLogin('ielts')">
+      <span class="card-icon">🎓</span>
+      <div class="card-name">IELTS</div>
+      <div class="card-desc">Full mock exams with AI listening audio, timed sections, AI scoring on writing and speaking, band score tracking.</div>
+      <div class="card-tags">
+        <span class="tag">Academic</span>
+        <span class="tag">General Training</span>
+        <span class="tag">Band 4–9</span>
+      </div>
+    </div>
+
+    <!-- TOEFL -->
+    <div class="platform-card coming-soon" style="--card-accent:#4a6741">
+      <span class="card-icon">📘</span>
+      <div class="card-name">TOEFL</div>
+      <div class="card-desc">Reading, Listening, Speaking and Writing sections with integrated tasks and score reporting.</div>
+      <div class="card-tags">
+        <span class="tag">iBT</span>
+        <span class="tag">Integrated Tasks</span>
+        <span class="tag">Score 0–120</span>
+      </div>
+    </div>
+
+    <!-- PTE -->
+    <div class="platform-card coming-soon" style="--card-accent:#8b5e3c">
+      <span class="card-icon">💻</span>
+      <div class="card-name">PTE Academic</div>
+      <div class="card-desc">Computer-based exam practice with AI scoring on spoken and written English responses.</div>
+      <div class="card-tags">
+        <span class="tag">Computer-Based</span>
+        <span class="tag">AI Scored</span>
+        <span class="tag">Score 10–90</span>
+      </div>
+    </div>
+
+    <!-- ESL -->
+    <div class="platform-card coming-soon" style="--card-accent:#6b4c8f">
+      <span class="card-icon">🌏</span>
+      <div class="card-name">ESL</div>
+      <div class="card-desc">English as a Second Language — foundational skills, grammar, vocabulary and everyday conversation.</div>
+      <div class="card-tags">
+        <span class="tag">Beginner</span>
+        <span class="tag">Intermediate</span>
+        <span class="tag">Grammar</span>
+      </div>
+    </div>
+
+    <!-- Live Subtitles -->
+    <div class="platform-card available" style="--card-accent:#c0392b" onclick="window.open('pages/subtitles.html','_blank')">
+      <span class="card-icon">🎙️</span>
+      <div class="card-name">Live Subtitles</div>
+      <div class="card-desc">Real-time speech recognition with Chinese-English translation for live classroom sessions.</div>
+      <div class="card-tags">
+        <span class="tag">Real-time</span>
+        <span class="tag">EN ↔ 中文</span>
+        <span class="tag">Classroom Tool</span>
+      </div>
+    </div>
+
   </div>
+</section>
 
-  <div class="hero-right">
-    <p class="login-label">Sign In</p>
-    <h2 class="login-title">Welcome back</h2>
-    <p class="login-sub">Enter your username and password to continue</p>
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Teacher <em>Shen</em></div>
+  <p class="footer-sub">AI-powered English learning platform · All rights reserved</p>
+</footer>
 
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal">
+  <div class="login-modal">
+    <button class="modal-close" onclick="closeLogin()">✕</button>
+    <div class="modal-eyebrow">Welcome Back</div>
+    <h2 class="modal-title">Sign In</h2>
+    <p class="modal-sub" id="loginSub">Sign in to access your platform.</p>
+
+    <!-- Role tabs -->
     <div class="role-tabs">
-      <button class="role-tab active" onclick="setRole('student', this)">Student 学生</button>
-      <button class="role-tab" onclick="setRole('teacher', this)">Teacher 老师</button>
+      <button class="role-tab active" id="tabStudent" onclick="setRole('student',this)">Student 学生</button>
+      <button class="role-tab" id="tabTeacher" onclick="setRole('teacher',this)">Teacher 老师</button>
     </div>
 
+    <!-- Platform selector (students only) -->
+    <div id="platformSelector">
+      <span class="platform-select-label">Your Platform</span>
+      <div class="platform-pills">
+        <button class="platform-pill selected" id="pill-english" onclick="setPlatform('english',this)">🗣️ English</button>
+        <button class="platform-pill" id="pill-ielts" onclick="setPlatform('ielts',this)">🎓 IELTS</button>
+        <button class="platform-pill disabled">📘 TOEFL</button>
+        <button class="platform-pill disabled">💻 PTE</button>
+        <button class="platform-pill disabled">🌏 ESL</button>
+      </div>
+    </div>
+
+    <!-- Credentials -->
     <div class="form-group">
-      <label>USERNAME</label>
-      <input type="text" id="username" placeholder="your username" autocomplete="username">
+      <label class="form-label">Username</label>
+      <input type="text" id="loginUser" class="form-input" placeholder="Enter your username" autocomplete="username">
     </div>
     <div class="form-group">
-      <label>PASSWORD</label>
-      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"
+      <label class="form-label">Password</label>
+      <input type="password" id="loginPass" class="form-input" placeholder="••••••••" autocomplete="current-password"
              onkeydown="if(event.key==='Enter') doLogin()">
     </div>
 
-    <button class="login-btn" onclick="doLogin()">Sign In →</button>
-    <p class="login-error" id="loginError">Incorrect username or password</p>
-
-    <div class="login-divider">or</div>
-
-    <a href="pages/subtitles.html" target="_blank" class="subtitle-link">
-      <span class="subtitle-icon">字</span>
-      Open Live Subtitle Page (during class)
-    </a>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
+    <div class="login-error" id="loginError"></div>
   </div>
-</main>
+</div>
 
 <script>
-  // ── PASTE YOUR CLOUDFLARE WORKER URL HERE ──
-  const WORKER = 'https://teacher-shain.teachershainecontact.workers.dev';
-  // ── PASTE YOUR GOOGLE APPS SCRIPT URL HERE ──
-  const DRIVE_SCRIPT = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
-  // e.g. 'https://teacher-shain.your-name.workers.dev'
+  const WORKER = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  const DRIVE_SCRIPT = localStorage.getItem('ts_script') || 'https://script.google.com/macros/s/AKfycbxr0xsR33_BByEG_fEoeuG4lZgMRwVDujbCxpjtuhIile2co8biG4EbM0GHzl9bgAw/exec';
 
   let currentRole = 'student';
+  let currentPlatform = 'english';
 
+  // ── MODAL ──────────────────────────────────────────────────
+  function openLogin(platform) {
+    if (platform) setPlatformById(platform);
+    document.getElementById('loginModal').classList.add('open');
+    setTimeout(() => document.getElementById('loginUser').focus(), 100);
+  }
+
+  function closeLogin() {
+    document.getElementById('loginModal').classList.remove('open');
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('loginBtn').textContent = 'Sign In →';
+    document.getElementById('loginBtn').disabled = false;
+  }
+
+  // Close on backdrop click
+  document.getElementById('loginModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('loginModal')) closeLogin();
+  });
+
+  // ── ROLE ───────────────────────────────────────────────────
   function setRole(role, el) {
     currentRole = role;
     document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
+    document.getElementById('platformSelector').style.display = role === 'teacher' ? 'none' : '';
+    document.getElementById('loginSub').textContent = role === 'teacher'
+      ? 'Sign in to your teacher dashboard.'
+      : 'Sign in to access your learning platform.';
   }
 
-  async function doLogin() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const errEl = document.getElementById('loginError');
-    errEl.style.display = 'none';
+  // ── PLATFORM ───────────────────────────────────────────────
+  function setPlatform(platform, el) {
+    currentPlatform = platform;
+    document.querySelectorAll('.platform-pill:not(.disabled)').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+  }
 
+  function setPlatformById(platform) {
+    currentPlatform = platform;
+    document.querySelectorAll('.platform-pill:not(.disabled)').forEach(p => p.classList.remove('selected'));
+    const pill = document.getElementById('pill-' + platform);
+    if (pill) pill.classList.add('selected');
+  }
+
+  // ── LOGIN ──────────────────────────────────────────────────
+  async function doLogin() {
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+
+    errEl.style.display = 'none';
     if (!username || !password) {
-      errEl.textContent = 'Please enter your username and password';
-      errEl.style.display = 'block';
-      return;
+      errEl.textContent = 'Please enter your username and password.';
+      errEl.style.display = 'block'; return;
     }
 
-    const btn = document.querySelector('.login-btn');
-    btn.textContent = 'Signing in…';
-    btn.disabled = true;
+    btn.textContent = 'Signing in…'; btn.disabled = true;
 
     try {
+      // IELTS students use their own auth endpoint
+      if (currentRole === 'student' && currentPlatform === 'ielts') {
+        const res = await fetch(WORKER + '/ielts/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const _t = await res.text(); let data;
+        try { data = JSON.parse(_t); } catch { throw new Error('Server error'); }
+        if (!data.ok) throw new Error('Incorrect username or password');
+        // Save IELTS session
+        localStorage.setItem('ts_worker', WORKER);
+        localStorage.setItem('ts_script', DRIVE_SCRIPT);
+        localStorage.setItem('ielts_student', JSON.stringify(data.student));
+        localStorage.setItem('ielts_login_time', Date.now().toString());
+        window.location.href = 'pages/ielts-student.html';
+        return;
+      }
+
+      // All other logins use main auth
       const res = await fetch(WORKER + '/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const _lt = await res.text(); let data; try { data = JSON.parse(_lt); } catch(e) { errEl.textContent = 'Server error (non-JSON response). Check Worker URL.'; errEl.style.display='block'; btn.textContent='Sign In →'; btn.disabled=false; return; }
-      if (!res.ok || data.error) throw new Error('invalid');
+      const _t = await res.text(); let data;
+      try { data = JSON.parse(_t); } catch { throw new Error('Server error — check Worker URL'); }
+      if (!data.ok) throw new Error('Incorrect username or password');
 
       const { role, name, id, student_type } = data.user;
-
-      // Store session in localStorage
       localStorage.setItem('role', role);
       localStorage.setItem('username', username);
       localStorage.setItem('userName', name);
       localStorage.setItem('userId', id);
-      localStorage.setItem('student_type', student_type || 'english');
+      localStorage.setItem('student_type', student_type || currentPlatform);
       localStorage.setItem('ts_worker', WORKER);
       localStorage.setItem('ts_script', DRIVE_SCRIPT);
-      localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id, student_type }));
+      localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id, student_type: student_type || currentPlatform }));
+      localStorage.setItem('ts_login_time', Date.now().toString());
 
+      // Route to correct platform
       if (role === 'teacher') {
         window.location.href = 'pages/teacher-dashboard.html';
-      } else if (student_type === 'ielts') {
-        // Set the key ielts-student.html expects so it skips its own login screen
+      } else if ((student_type || currentPlatform) === 'ielts') {
         localStorage.setItem('ielts_student', JSON.stringify({
-          id: data.user.id,
-          username: data.user.username,
-          name: data.user.name,
+          id: data.user.id, username: data.user.username, name: data.user.name,
           target_band: data.user.target_band || 6.5,
           exam_type: data.user.exam_type || 'academic'
         }));
+        localStorage.setItem('ielts_login_time', Date.now().toString());
         window.location.href = 'pages/ielts-student.html';
       } else {
         window.location.href = 'pages/student-dashboard.html';
       }
 
-    } catch (e) {
-      errEl.textContent = 'Incorrect username or password';
+    } catch(e) {
+      errEl.textContent = e.message;
       errEl.style.display = 'block';
-      btn.textContent = 'Sign In →';
-      btn.disabled = false;
+      btn.textContent = 'Sign In →'; btn.disabled = false;
     }
   }
-</script>
 
+  // ── CHECK IF ALREADY LOGGED IN ─────────────────────────────
+  window.onload = () => {
+    const user = (() => { try { return JSON.parse(localStorage.getItem('ts_user') || 'null'); } catch { return null; } })();
+    const loginTime = localStorage.getItem('ts_login_time');
+    const TIMEOUT = 8 * 60 * 60 * 1000;
+    if (user && loginTime && Date.now() - parseInt(loginTime) < TIMEOUT) {
+      // Already logged in — redirect
+      if (user.role === 'teacher') {
+        window.location.href = 'pages/teacher-dashboard.html';
+      } else if ((user.student_type || '') === 'ielts') {
+        window.location.href = 'pages/ielts-student.html';
+      } else {
+        window.location.href = 'pages/student-dashboard.html';
+      }
+    }
+  };
+</script>
 </body>
 </html>
