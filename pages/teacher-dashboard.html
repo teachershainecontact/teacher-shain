@@ -354,6 +354,15 @@
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
           <input type="radio" name="newStudentType" value="ielts"> 🎓 IELTS
         </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
+          <input type="radio" name="newStudentType" value="toefl"> 📝 TOEFL
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
+          <input type="radio" name="newStudentType" value="pte"> 🖥️ PTE
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
+          <input type="radio" name="newStudentType" value="esl"> 🌍 ESL
+        </label>
       </div>
     </div>
     <div class="modal-actions">
@@ -632,6 +641,12 @@
       const avg = graded.length ? (graded.reduce((a,b)=>a+Number(b.score),0)/graded.length).toFixed(1) : '—';
       const typeBadge = st.student_type === 'ielts'
         ? '<span style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">IELTS</span>'
+        : st.student_type === 'toefl'
+        ? '<span style="background:#d97706;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">TOEFL</span>'
+        : st.student_type === 'pte'
+        ? '<span style="background:#059669;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">PTE</span>'
+        : st.student_type === 'esl'
+        ? '<span style="background:#0891b2;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">ESL</span>'
         : '<span style="background:#2D6BE4;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">English</span>';
       const className = allClasses.find(c=>c.id===st.class_id)?.name || '<span style="color:var(--muted)">—</span>';
       return `<tr>
