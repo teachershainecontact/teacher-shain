@@ -320,6 +320,26 @@
     window.location.href = '../index.html';
   }
 
+  // ── SESSION TIMEOUT (8h) ──────────────────────────────────────
+  (function() {
+    const TIMEOUT = 28800000;
+    function checkSession() {
+      const loginTime = localStorage.getItem('ts_login_time');
+      const user = localStorage.getItem('ts_user');
+      if (!user || !loginTime) { doLogout(); return; }
+      if (Date.now() - parseInt(loginTime) > TIMEOUT) {
+        alert('Your session has expired. Please sign in again.');
+        doLogout();
+      }
+    }
+    checkSession();
+    setInterval(checkSession, 5 * 60 * 1000);
+    ['click','keydown','touchstart'].forEach(e => document.addEventListener(e, () => {
+      if (localStorage.getItem('ts_user')) localStorage.setItem('ts_login_time', Date.now().toString());
+    }, { passive: true }));
+  })();
+  // ── END SESSION TIMEOUT ───────────────────────────────────────
+
   function getGreeting() {
     const h = new Date().getHours();
     if (h < 12) return 'morning'; if (h < 17) return 'afternoon'; return 'evening';

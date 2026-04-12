@@ -328,9 +328,9 @@
   <div class="logo">Teacher <span>Shain</span> · 实时字幕</div>
   <div class="controls">
     <div class="lang-toggle">
-      <button class="lang-opt active" data-mode="en-zh" onclick="setMode('en-zh', this)" id="modeEnZh">EN → 中文</button>
-      <button class="lang-opt" data-mode="zh-en" onclick="setMode('zh-en', this)" id="modeZhEn">中文 → EN</button>
-      <button class="lang-opt" data-mode="en-only" onclick="setMode('en-only', this)">EN only</button>
+      <button class="lang-opt active" data-mode="en-zh" onclick="setLang('en-zh')" id="modeEnZh">EN → 中文</button>
+      <button class="lang-opt" data-mode="zh-en" onclick="setLang('zh-en')" id="modeZhEn">中文 → EN</button>
+      <button class="lang-opt" data-mode="en-only" onclick="setLang('en-only')">EN only</button>
     </div>
     <button class="size-btn" onclick="changeSize('en', -1); changeSize('zh', -1)">A−</button>
     <button class="size-btn" onclick="changeSize('en', 1); changeSize('zh', 1)">A+</button>
@@ -477,7 +477,7 @@
         fullTranscript += ' ' + finalText.trim();
         addToHistory(finalText.trim());
         updateTranscriptCount();
-        if (translationEnabled) translateAndShow(finalText.trim());
+        if (translationEnabled && currentMode !== 'en-only') translateAndShow(finalText.trim());
         else { document.getElementById('liveEn').textContent = finalText.trim(); document.getElementById('liveZh').textContent = ''; }
       } else if (interimText) {
         document.getElementById('liveEn').textContent = interimText;

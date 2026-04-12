@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Homework — Teacher Shen</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -55,8 +55,10 @@
     .btn-gold:hover{background:var(--gold-light);}
     .my-recording-player{display:flex;align-items:center;gap:14px;background:#e8f4ea;border:1px solid #b0d8b4;border-radius:12px;padding:14px 18px;margin-bottom:16px;}
     /* Written answer */
-    .written-area{width:100%;min-height:160px;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:16px;font-family:'DM Sans',sans-serif;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;}
+    .written-area{width:100%;min-height:160px;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:16px;font-family:'DM Sans',sans-serif;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box;}
     .written-area:focus{border-color:var(--gold);}
+    @media(max-width:768px){.written-area{min-height:120px;} #writtenCard{padding-bottom:120px;}}
+    @supports(-webkit-touch-callout:none){body{min-height:-webkit-fill-available;}}
     .word-count{font-size:12px;color:var(--muted);text-align:right;margin-top:6px;}
     .ai-check-btn{display:flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#1a6090,#12a0c8);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:12px;}
     .ai-check-btn:hover{opacity:.9;}
@@ -79,6 +81,7 @@
     .correction-fixed{color:var(--sage);font-weight:600;margin-bottom:4px;}
     .correction-why{color:var(--muted);font-size:12px;}
   </style>
+  <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
 <div class="topbar">
@@ -125,29 +128,99 @@
       <audio id="teacherAudio"></audio>
     </div>
 
+    <!-- TTS fallback — shown when no teacher audio uploaded -->
+    <div class="card" id="ttsCard" style="display:none">
+      <p class="card-title">🔊 Listen to Instructions</p>
+      <!-- Ready state -->
+      <div id="ttsReadyState">
+        <div class="audio-player" style="flex-direction:column;gap:10px;align-items:flex-start">
+          <p style="font-size:13px;color:var(--muted);margin:0">No audio recorded by teacher — tap to hear instructions read aloud.</p>
+          <button id="ttsPlayBtn" onclick="startHwTTS()" style="padding:10px 24px;background:var(--gold);color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+            🔊 Read Instructions Aloud
+          </button>
+        </div>
+      </div>
+      <!-- Loading state -->
+      <div id="ttsLoadingState" style="display:none;padding:12px 0">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:20px;height:20px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+          <span style="font-size:13px;color:var(--muted)">Preparing audio…</span>
+        </div>
+      </div>
+      <!-- Playing state -->
+      <div id="ttsPlayingState" style="display:none">
+        <div class="audio-player" style="flex-direction:column;gap:8px;align-items:flex-start">
+          <div style="display:flex;align-items:center;gap:10px;width:100%">
+            <span style="font-size:20px;animation:pulse 1.5s infinite">🔊</span>
+            <div style="flex:1">
+              <div class="audio-label" id="ttsPlayLabel">Reading aloud…</div>
+              <div class="audio-progress" style="margin-top:6px">
+                <div class="audio-progress-fill" id="ttsProgressFill" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+          <button onclick="stopHwTTS()" style="font-size:12px;padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--muted);cursor:pointer">■ Stop</button>
+        </div>
+      </div>
+    </div>
+
     <!-- AUDIO RECORDING CARD -->
     <div class="card" id="recordingCard" style="display:none">
       <p class="card-title">🎙️ Your Recording</p>
-      <div class="record-section">
-        <button class="record-btn" id="recordBtn" onclick="toggleRecord()">🎙</button>
-        <p class="record-hint" id="recordHint">Press to start recording</p>
-        <p class="record-hint" style="font-size:12px;color:var(--border);margin-top:4px">(Allow microphone when asked)</p>
-        <p class="record-timer" id="recordTimer">0:00</p>
+
+      <!-- Option tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button id="tabRecord" onclick="switchAudioTab('record')" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--sage);background:var(--sage);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">🎙️ Record</button>
+        <button id="tabUpload" onclick="switchAudioTab('upload')" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--border);background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📁 Upload File</button>
       </div>
-      <div id="playbackSection" style="display:none">
-        <div class="my-recording-player">
-          <button class="play-btn" style="background:var(--sage)" onclick="playMyRecording()">▶</button>
-          <div style="flex:1">
-            <div class="audio-label">Your recording — sounds good?</div>
-            <div class="audio-progress"><div class="audio-progress-fill" id="myProgress"></div></div>
+
+      <!-- Record panel -->
+      <div id="panelRecord">
+        <div class="record-section">
+          <button class="record-btn" id="recordBtn" onclick="toggleRecord()">🎙</button>
+          <p class="record-hint" id="recordHint">Press to start recording</p>
+          <p class="record-hint" style="font-size:12px;color:var(--border);margin-top:4px">(Allow microphone when asked)</p>
+          <p class="record-timer" id="recordTimer">0:00</p>
+        </div>
+        <div id="playbackSection" style="display:none">
+          <div class="my-recording-player">
+            <button class="play-btn" style="background:var(--sage)" onclick="playMyRecording()">▶</button>
+            <div style="flex:1">
+              <div class="audio-label">Your recording — sounds good?</div>
+              <div class="audio-progress"><div class="audio-progress-fill" id="myProgress"></div></div>
+            </div>
+          </div>
+          <audio id="myAudio"></audio>
+          <div class="recording-controls">
+            <button class="btn btn-outline" onclick="reRecord()">🔄 Re-record</button>
+            <button class="btn btn-sage" id="submitAudioBtn" onclick="submitRecording()">Submit Recording →</button>
           </div>
         </div>
-        <audio id="myAudio"></audio>
-        <div class="recording-controls">
-          <button class="btn btn-outline" onclick="reRecord()">🔄 Re-record</button>
-          <button class="btn btn-sage" id="submitAudioBtn" onclick="submitRecording()">Submit Recording →</button>
+      </div>
+
+      <!-- Upload panel -->
+      <div id="panelUpload" style="display:none">
+        <div style="border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">📁</div>
+          <p style="font-size:14px;font-weight:600;margin-bottom:4px">Upload an audio file</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">MP3, M4A, WAV, WEBM — max 25MB</p>
+          <input type="file" id="audioFileInput" accept="audio/*" style="display:none" onchange="handleFileUpload(event)">
+          <button class="btn btn-outline" onclick="document.getElementById('audioFileInput').click()">Choose File</button>
+        </div>
+        <div id="uploadFileInfo" style="display:none;margin-top:12px;padding:12px;background:var(--cream);border-radius:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">🎵</span>
+            <div style="flex:1">
+              <div id="uploadFileName" style="font-size:13px;font-weight:600"></div>
+              <div id="uploadFileSize" style="font-size:11px;color:var(--muted)"></div>
+            </div>
+            <button class="btn btn-outline" style="font-size:12px;padding:4px 10px" onclick="clearUploadedFile()">✕</button>
+          </div>
+          <audio id="uploadPreviewAudio" controls style="width:100%;margin-top:10px;border-radius:8px"></audio>
+          <button class="btn btn-sage" id="submitUploadBtn" onclick="submitUploadedFile()" style="width:100%;margin-top:12px">Submit File →</button>
         </div>
       </div>
+
     </div>
 
     <!-- WRITTEN ANSWER CARD -->
@@ -233,6 +306,64 @@
   const DRIVE_SCRIPT = localStorage.getItem('ts_script') || 'https://script.google.com/macros/s/AKfycbxr0xsR33_BByEG_fEoeuG4lZgMRwVDujbCxpjtuhIile2co8biG4EbM0GHzl9bgAw/exec';
 
   let mediaRecorder, audioChunks=[], recordingBlob=null;
+  let uploadedFile=null;
+
+  function switchAudioTab(tab) {
+    const isRecord = tab === 'record';
+    document.getElementById('panelRecord').style.display = isRecord ? '' : 'none';
+    document.getElementById('panelUpload').style.display = isRecord ? 'none' : '';
+    document.getElementById('tabRecord').style.background = isRecord ? 'var(--sage)' : 'none';
+    document.getElementById('tabRecord').style.color = isRecord ? '#fff' : 'var(--muted)';
+    document.getElementById('tabRecord').style.borderColor = isRecord ? 'var(--sage)' : 'var(--border)';
+    document.getElementById('tabUpload').style.background = isRecord ? 'none' : 'var(--sage)';
+    document.getElementById('tabUpload').style.color = isRecord ? 'var(--muted)' : '#fff';
+    document.getElementById('tabUpload').style.borderColor = isRecord ? 'var(--border)' : 'var(--sage)';
+  }
+
+  function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) { alert('File too large — max 25MB'); return; }
+    uploadedFile = file;
+    document.getElementById('uploadFileName').textContent = file.name;
+    document.getElementById('uploadFileSize').textContent = (file.size / (1024*1024)).toFixed(1) + ' MB';
+    const url = URL.createObjectURL(file);
+    document.getElementById('uploadPreviewAudio').src = url;
+    document.getElementById('uploadFileInfo').style.display = '';
+  }
+
+  function clearUploadedFile() {
+    uploadedFile = null;
+    document.getElementById('audioFileInput').value = '';
+    document.getElementById('uploadPreviewAudio').src = '';
+    document.getElementById('uploadFileInfo').style.display = 'none';
+  }
+
+  async function submitUploadedFile() {
+    if (!uploadedFile) return;
+    const btn = document.getElementById('submitUploadBtn');
+    btn.disabled = true; btn.textContent = 'Uploading…';
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise((res,rej) => { reader.onload=()=>res(reader.result.split(',')[1]); reader.onerror=rej; reader.readAsDataURL(uploadedFile); });
+      const ext = uploadedFile.name.split('.').pop() || 'mp3';
+      const uploadRes = await fetch(DRIVE_SCRIPT, {
+        method: 'POST', headers: {'Content-Type':'text/plain'},
+        body: JSON.stringify({audio: base64, mimeType: uploadedFile.type || 'audio/mpeg', filename: `student_${user.id||'x'}_upload_${submissionId}.${ext}`})
+      });
+      let uploadData; try { uploadData = await uploadRes.json(); } catch { throw new Error('Drive Script returned non-JSON'); }
+      if (!uploadData.success) throw new Error('Upload failed: ' + (uploadData.error||'unknown'));
+      await fetch(W+'/submissions/'+submissionId, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({recording_url: uploadData.url})
+      });
+      btn.textContent = '✓ Submitted!';
+      setTimeout(() => location.reload(), 1000);
+    } catch(e) {
+      alert('Upload error: ' + e.message);
+      btn.disabled = false; btn.textContent = 'Submit File →';
+    }
+  }
   let timerInterval, seconds=0;
   let currentSubmission=null;
   const params = new URLSearchParams(location.search);
@@ -277,6 +408,9 @@
       if (sub.audio_url) {
         document.getElementById('teacherAudio').src=sub.audio_url;
         document.getElementById('teacherAudioCard').style.display='';
+      } else if (hwType === 'audio' || hwType === 'both') {
+        // No teacher audio — show TTS fallback if there are instructions to read
+        document.getElementById('ttsCard').style.display='';
       }
 
       renderStatus(currentSubmission);
@@ -503,6 +637,93 @@
   }
 
   // ── AUDIO PLAYBACK HELPERS ────────────────────────────────
+  // ── HOMEWORK TTS FALLBACK ──────────────────────────────────
+  let hwTtsChunks = [], hwTtsIdx = 0, hwTtsPlaying = false;
+
+  function splitHwChunks(text, maxLen = 2800) {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const chunks = []; let current = '';
+    for (const s of sentences) {
+      if ((current + s).length > maxLen && current) { chunks.push(current.trim()); current = s; }
+      else { current += ' ' + s; }
+    }
+    if (current.trim()) chunks.push(current.trim());
+    return chunks.length ? chunks : [text];
+  }
+
+  async function startHwTTS() {
+    const instructions = currentSubmission?.instructions || '';
+    if (!instructions) return;
+    document.getElementById('ttsReadyState').style.display = 'none';
+    document.getElementById('ttsLoadingState').style.display = 'block';
+
+    const rawChunks = splitHwChunks(instructions);
+    hwTtsChunks = new Array(rawChunks.length).fill(null);
+    let loaded = 0;
+
+    await Promise.all(rawChunks.map(async (text, idx) => {
+      try {
+        if (typeof puter === 'undefined' || !puter?.ai?.txt2speech) throw new Error('no puter');
+        const audio = await puter.ai.txt2speech(text, { voice: 'Joanna', engine: 'neural', language: 'en-US' });
+        hwTtsChunks[idx] = { audio, type: 'puter' };
+      } catch {
+        hwTtsChunks[idx] = { text, type: 'browser' };
+      }
+      loaded++;
+    }));
+
+    hwTtsIdx = 0; hwTtsPlaying = true;
+    document.getElementById('ttsLoadingState').style.display = 'none';
+    document.getElementById('ttsPlayingState').style.display = 'block';
+    playHwChunk();
+  }
+
+  function playHwChunk() {
+    if (!hwTtsPlaying || hwTtsIdx >= hwTtsChunks.length) {
+      // Done
+      hwTtsPlaying = false;
+      document.getElementById('ttsPlayingState').style.display = 'none';
+      document.getElementById('ttsReadyState').style.display = 'block';
+      document.getElementById('ttsPlayBtn').textContent = '🔄 Read Again';
+      document.getElementById('ttsProgressFill').style.width = '100%';
+      return;
+    }
+    const total = hwTtsChunks.length;
+    const pct = Math.round((hwTtsIdx / total) * 100);
+    document.getElementById('ttsProgressFill').style.width = pct + '%';
+    document.getElementById('ttsPlayLabel').textContent =
+      total > 1 ? `Part ${hwTtsIdx + 1} of ${total}…` : 'Reading aloud…';
+
+    const chunk = hwTtsChunks[hwTtsIdx++];
+    if (chunk.type === 'puter') {
+      chunk.audio.onended = () => setTimeout(playHwChunk, 400);
+      chunk.audio.play().catch(() => setTimeout(playHwChunk, 200));
+    } else {
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(chunk.text);
+      utt.lang = 'en-US'; utt.rate = 0.92;
+      const doSpeak = () => {
+        const voices = speechSynthesis.getVoices();
+        const v = voices.find(v => v.lang==='en-US' && !v.localService) || voices.find(v => v.lang==='en-US');
+        if (v) utt.voice = v;
+        utt.onend = () => setTimeout(playHwChunk, 400);
+        utt.onerror = () => setTimeout(playHwChunk, 200);
+        speechSynthesis.speak(utt);
+      };
+      speechSynthesis.getVoices().length ? doSpeak() : (speechSynthesis.onvoiceschanged = doSpeak);
+    }
+  }
+
+  function stopHwTTS() {
+    hwTtsPlaying = false;
+    window.speechSynthesis.cancel();
+    hwTtsChunks.forEach(c => { try { if (c?.audio) { c.audio.pause(); } } catch{} });
+    document.getElementById('ttsPlayingState').style.display = 'none';
+    document.getElementById('ttsReadyState').style.display = 'block';
+    document.getElementById('ttsPlayBtn').textContent = '🔊 Read Instructions Aloud';
+  }
+  // ── END HOMEWORK TTS ───────────────────────────────────────
+
   function playTeacherAudio(){const a=document.getElementById('teacherAudio');if(a.paused){a.play();document.getElementById('teacherPlayBtn').textContent='⏸';}else{a.pause();document.getElementById('teacherPlayBtn').textContent='▶';}a.ontimeupdate=()=>{if(a.duration)document.getElementById('teacherProgress').style.width=(a.currentTime/a.duration*100)+'%';};a.onended=()=>document.getElementById('teacherPlayBtn').textContent='▶';}
   function seekTeacherAudio(e){const a=document.getElementById('teacherAudio');const rect=e.currentTarget.getBoundingClientRect();a.currentTime=((e.clientX-rect.left)/rect.width)*a.duration;}
   function playMyRecording(){const a=document.getElementById('myAudio');if(a.paused)a.play();else a.pause();}

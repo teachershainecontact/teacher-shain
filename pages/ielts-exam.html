@@ -261,15 +261,29 @@
       transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap;
     }
 
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+      to   { transform: translateX(-50%) translateY(0);   opacity: 1; }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.08); opacity: 0.75; }
+    }
     @media (max-width: 500px) {
       .section-overview { grid-template-columns: 1fr; }
       .tfng-group { flex-direction: column; }
     }
   </style>
+  <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
 
 <!-- TOPBAR -->
+<!-- OFFLINE BANNER -->
+<div id="offlineBanner" style="display:none;background:#dc3545;color:#fff;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;position:sticky;top:0;z-index:300">
+  ⚠️ You appear offline — answers are saved locally and will sync when reconnected.
+</div>
+
 <div class="topbar" id="topbar" style="display:none">
   <div class="topbar-left">
     <div class="exam-title-bar" id="topbarTitle">IELTS Mock Exam</div>
@@ -281,6 +295,11 @@
       <div class="timer" id="timerDisplay">—</div>
     </div>
   </div>
+
+<!-- 5-min warning toast -->
+<div id="fiveMinWarning" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#c8963e;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:400;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:slideUp 0.3s ease">
+  ⏰ 5 minutes remaining in this section!
+</div>
 </div>
 
 <!-- SECTION PROGRESS BAR -->
@@ -328,14 +347,54 @@
 <div class="section-screen" id="screen-listening">
   <div class="section-header-box">
     <div class="section-header-title">🎧 Listening</div>
-    <div class="section-header-sub">Read the script carefully and answer the questions below. In a real exam, you would listen to an audio recording.</div>
+    <div class="section-header-sub">Listen to the audio carefully and answer the questions below.</div>
   </div>
-  <div class="passage-box">
-    <div class="passage-title">Listening Script</div>
-    <div id="listeningScript" style="white-space:pre-wrap;line-height:1.8"></div>
+
+  <!-- STATE 1: Pre-loading audio -->
+  <div id="audioLoadingState" style="display:none;text-align:center;padding:40px 20px">
+    <div style="font-size:40px;margin-bottom:16px">⏳</div>
+    <p style="font-size:16px;font-weight:600;margin-bottom:8px">Preparing audio…</p>
+    <div style="background:var(--cream);border-radius:999px;height:8px;overflow:hidden;margin:0 auto 12px;max-width:280px">
+      <div id="loadProgressBar" style="height:100%;background:var(--gold);border-radius:999px;width:0%;transition:width 0.4s"></div>
+    </div>
+    <p id="loadProgressLabel" style="font-size:13px;color:var(--muted)">Loading part 1…</p>
+    <button onclick="showQuestionsEscape()" style="margin-top:20px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--muted);font-size:12px;cursor:pointer">
+      Skip audio — show questions directly
+    </button>
   </div>
-  <div class="questions-box" id="listeningQuestions"></div>
-  <div class="nav-buttons">
+
+  <!-- STATE 2: Ready to play -->
+  <div id="audioReadyState" style="text-align:center;padding:40px 20px">
+    <div style="font-size:48px;margin-bottom:16px">🎧</div>
+    <p style="font-size:16px;font-weight:600;margin-bottom:8px">Audio ready</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Press play to begin. Audio plays once — listen carefully.</p>
+    <button id="playAudioBtn" onclick="startListeningAudio()" style="padding:14px 36px;background:var(--gold);color:#000;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+      ▶ Play Audio
+    </button>
+  </div>
+
+  <!-- STATE 3: Playing -->
+  <div id="audioPlayingState" style="display:none;text-align:center;padding:32px 20px">
+    <div style="font-size:40px;margin-bottom:12px;animation:pulse 1.5s infinite">🎧</div>
+    <p style="font-size:16px;font-weight:600;margin-bottom:6px" id="playingLabel">Playing…</p>
+    <div style="background:var(--cream);border-radius:999px;height:8px;overflow:hidden;margin:0 auto 12px;max-width:280px">
+      <div id="playProgressBar" style="height:100%;background:var(--gold);border-radius:999px;width:0%;transition:width 0.3s"></div>
+    </div>
+    <p id="playProgressLabel" style="font-size:13px;color:var(--muted);margin-bottom:20px">Part 1 of 1</p>
+    <button onclick="stopListeningAudio()" style="padding:8px 20px;border:1px solid var(--red);border-radius:8px;background:none;color:var(--red);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">
+      ■ Stop (emergency only)
+    </button>
+  </div>
+
+  <!-- STATE 4: Done — show questions -->
+  <div id="audioDoneState" style="display:none;padding:16px 0">
+    <div style="background:#f0fff4;border:1px solid #b0d8b4;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--sage)">
+      ✅ Audio complete — answer the questions below.
+    </div>
+    <div class="questions-box" id="listeningQuestions"></div>
+  </div>
+
+  <div class="nav-buttons" id="listeningNavBtn" style="display:none">
     <button class="btn btn-gold" onclick="submitListening()">Save & Continue to Reading →</button>
   </div>
 </div>
@@ -504,6 +563,11 @@
     document.getElementById('introScreen').style.display = 'none';
     document.getElementById('topbar').style.display = 'flex';
     document.getElementById('sectionProgress').style.display = 'flex';
+    // Init all Phase 4 features
+    restoreAnswersFromBackup();
+    initOfflineDetection();
+    startAutoSave();
+    initExamLock();
     showSection('listening');
   }
 
@@ -545,6 +609,7 @@
     timerInterval = setInterval(() => {
       timeLeft--;
       updateTimerDisplay();
+      checkFiveMinWarning();
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         showToast('⏰ Time is up! Moving to next section…');
@@ -571,14 +636,227 @@
   }
 
   // ── LISTENING ──────────────────────────────────────────────
+  // ── LISTENING TTS ──────────────────────────────────────────
+  let ttsChunks = [];       // pre-loaded Audio objects
+  let ttsChunkIdx = 0;
+  let ttsPlaying = false;
+  let listeningScript = '';
+
   function buildListening() {
-    document.getElementById('listeningScript').textContent = exam.listening_script || 'No listening script provided for this exam.';
+    listeningScript = exam.listening_script || '';
+    // Build questions into done state (hidden until audio finishes)
     let questions = [];
     try { questions = JSON.parse(exam.listening_questions || '[]'); } catch{}
     const el = document.getElementById('listeningQuestions');
-    if (!questions.length) { el.innerHTML = '<p style="color:var(--muted)">No listening questions for this exam.</p>'; return; }
-    el.innerHTML = `<div class="question-group-title">Questions 1–${questions.length} — Answer the questions based on the script above</div>` +
-      questions.map(q => buildQuestion(q, 'L')).join('');
+    if (!questions.length) {
+      el.innerHTML = '<p style="color:var(--muted)">No listening questions for this exam.</p>';
+    } else {
+      el.innerHTML = `<div class="question-group-title">Questions 1–${questions.length} — Answer the questions based on what you heard</div>` +
+        questions.map(q => buildQuestion(q, 'L')).join('');
+    }
+
+    if (!listeningScript) {
+      // No script — show questions directly
+      document.getElementById('audioReadyState').style.display = 'none';
+      showQuestionsEscape();
+      return;
+    }
+    // Start pre-loading all chunks
+    preloadListeningAudio();
+  }
+
+  // Split script into chunks at sentence boundaries, max 2800 chars each
+  function splitIntoChunks(text, maxLen = 2800) {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const chunks = [];
+    let current = '';
+    for (const s of sentences) {
+      if ((current + s).length > maxLen && current) {
+        chunks.push(current.trim());
+        current = s;
+      } else {
+        current += ' ' + s;
+      }
+    }
+    if (current.trim()) chunks.push(current.trim());
+    return chunks.length ? chunks : [text];
+  }
+
+  async function preloadListeningAudio() {
+    // Show loading state
+    document.getElementById('audioReadyState').style.display = 'none';
+    document.getElementById('audioLoadingState').style.display = 'block';
+
+    const rawChunks = splitIntoChunks(listeningScript);
+    ttsChunks = new Array(rawChunks.length).fill(null);
+    let loaded = 0;
+
+    const loadChunk = async (text, idx) => {
+      try {
+        // Check puter is available
+        if (typeof puter === 'undefined' || !puter?.ai?.txt2speech) throw new Error('Puter unavailable');
+        const audio = await puter.ai.txt2speech(text, {
+          voice: 'Matthew', engine: 'neural', language: 'en-US'
+        });
+        ttsChunks[idx] = { audio, type: 'puter' };
+      } catch(e) {
+        // Fallback: browser TTS for this chunk
+        console.warn(`Chunk ${idx} Puter failed, using browser TTS:`, e.message);
+        ttsChunks[idx] = { text, type: 'browser' };
+      }
+      loaded++;
+      const pct = Math.round((loaded / rawChunks.length) * 100);
+      document.getElementById('loadProgressBar').style.width = pct + '%';
+      document.getElementById('loadProgressLabel').textContent =
+        loaded < rawChunks.length
+          ? `Loading part ${loaded + 1} of ${rawChunks.length}…`
+          : 'Ready!';
+    };
+
+    // Load all chunks in parallel
+    await Promise.all(rawChunks.map((text, idx) => loadChunk(text, idx)));
+
+    // Check if ALL chunks failed (all browser TTS fallbacks = Puter totally down)
+    const allFailed = ttsChunks.every(c => c.type === 'browser');
+    if (allFailed && ttsChunks.length > 1) {
+      // Try silent swap to backup exam
+      const swapped = await trySwapToBackup();
+      if (swapped) return; // swap handled the rest
+    }
+
+    // All loaded — show play button
+    document.getElementById('audioLoadingState').style.display = 'none';
+    document.getElementById('audioReadyState').style.display = 'block';
+  }
+
+  async function trySwapToBackup() {
+    try {
+      // Get backup exam id from current exam
+      const examRes = await fetch(W + '/ielts/exams/' + exam.id);
+      const examData = await examRes.json();
+      if (!examData.backup_pair_id) return false; // no backup configured
+
+      // Load backup exam silently
+      const backupRes = await fetch(W + '/ielts/exams/' + examData.backup_pair_id);
+      const backupExam = await backupRes.json();
+      if (!backupExam || !backupExam.id) return false;
+
+      // Update submission to record swap
+      if (submissionId) {
+        await fetch(W + '/ielts/submissions/' + submissionId, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            original_exam_id: exam.id,
+            exam_id: backupExam.id,
+            swap_reason: 'audio_fail'
+          })
+        }).catch(() => {}); // don't block on this
+      }
+
+      // Swap exam data and rebuild listening
+      exam = backupExam;
+      listeningScript = backupExam.listening_script || '';
+
+      // Rebuild questions with backup exam
+      let questions = [];
+      try { questions = JSON.parse(backupExam.listening_questions || '[]'); } catch{}
+      const el = document.getElementById('listeningQuestions');
+      if (questions.length) {
+        el.innerHTML = `<div class="question-group-title">Questions 1–${questions.length} — Answer the questions based on what you heard</div>` +
+          questions.map(q => buildQuestion(q, 'L')).join('');
+      }
+
+      // Retry pre-loading with backup exam script
+      if (listeningScript) {
+        await preloadListeningAudio();
+      } else {
+        showQuestionsEscape();
+      }
+      return true;
+    } catch(e) {
+      console.warn('Backup swap failed:', e.message);
+      return false;
+    }
+  }
+
+  function startListeningAudio() {
+    ttsChunkIdx = 0;
+    ttsPlaying = true;
+    document.getElementById('audioReadyState').style.display = 'none';
+    document.getElementById('audioPlayingState').style.display = 'block';
+    playNextChunk();
+  }
+
+  function playNextChunk() {
+    if (!ttsPlaying || ttsChunkIdx >= ttsChunks.length) {
+      // All chunks done
+      onListeningComplete();
+      return;
+    }
+    const total = ttsChunks.length;
+    const current = ttsChunkIdx + 1;
+    document.getElementById('playProgressBar').style.width =
+      Math.round(((ttsChunkIdx) / total) * 100) + '%';
+    document.getElementById('playProgressLabel').textContent =
+      `Part ${current} of ${total}`;
+    document.getElementById('playingLabel').textContent =
+      total > 1 ? `Playing part ${current} of ${total}…` : 'Playing…';
+
+    const chunk = ttsChunks[ttsChunkIdx];
+    ttsChunkIdx++;
+
+    if (chunk.type === 'puter') {
+      chunk.audio.onended = () => setTimeout(playNextChunk, 600); // 0.6s gap between parts
+      chunk.audio.play().catch(() => {
+        // If play fails mid-stream, skip to next chunk
+        setTimeout(playNextChunk, 300);
+      });
+    } else {
+      // Browser TTS fallback
+      browserTTSChunk(chunk.text, () => setTimeout(playNextChunk, 600));
+    }
+  }
+
+  function browserTTSChunk(text, onDone) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.92;
+    // Wait for voices (Safari needs this)
+    const doSpeak = () => {
+      const voices = speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.lang === 'en-US' && !v.localService) ||
+                        voices.find(v => v.lang === 'en-US') || null;
+      if (preferred) utterance.voice = preferred;
+      utterance.onend = onDone;
+      utterance.onerror = onDone;
+      speechSynthesis.speak(utterance);
+    };
+    if (speechSynthesis.getVoices().length) { doSpeak(); }
+    else { speechSynthesis.onvoiceschanged = doSpeak; }
+  }
+
+  function stopListeningAudio() {
+    ttsPlaying = false;
+    window.speechSynthesis.cancel();
+    ttsChunks.forEach(c => { try { if (c?.audio) { c.audio.pause(); c.audio.currentTime = 0; } } catch{} });
+    // Stop pressed = show questions anyway
+    onListeningComplete();
+  }
+
+  function onListeningComplete() {
+    ttsPlaying = false;
+    document.getElementById('audioPlayingState').style.display = 'none';
+    document.getElementById('audioReadyState').style.display = 'none';
+    document.getElementById('audioLoadingState').style.display = 'none';
+    document.getElementById('audioDoneState').style.display = 'block';
+    document.getElementById('listeningNavBtn').style.display = 'block';
+    window.scrollTo({ top: document.getElementById('audioDoneState').offsetTop - 80, behavior: 'smooth' });
+  }
+
+  function showQuestionsEscape() {
+    // Escape hatch — skip audio entirely
+    onListeningComplete();
   }
 
   // ── READING ────────────────────────────────────────────────
@@ -695,7 +973,119 @@
   function saveAnswer(qid, val) {
     if (currentSection === 'listening') answers.listening[qid] = val;
     if (currentSection === 'reading') answers.reading[qid] = val;
+    // Also backup to localStorage immediately
+    localStorage.setItem('ielts_answers_backup', JSON.stringify(answers));
   }
+
+  // ── FEATURE 1: AUTO-SAVE TO D1 EVERY 60s ──────────────────
+  let autoSaveInterval = null;
+  let fiveMinWarned = false;
+
+  function startAutoSave() {
+    clearInterval(autoSaveInterval);
+    fiveMinWarned = false;
+    autoSaveInterval = setInterval(async () => {
+      if (!submissionId) return;
+      // Sync writing answers from DOM
+      const t1 = document.getElementById('writingTask1');
+      const t2 = document.getElementById('writingTask2');
+      if (t1) answers.writing.task1 = t1.value;
+      if (t2) answers.writing.task2 = t2.value;
+      // Save to localStorage as backup
+      localStorage.setItem('ielts_answers_backup', JSON.stringify(answers));
+      // Save to D1
+      try {
+        await fetch(W + '/ielts/submissions/' + submissionId, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            listening_answers: answers.listening,
+            reading_answers: answers.reading,
+            writing_task1_answer: answers.writing.task1,
+            writing_task2_answer: answers.writing.task2
+          })
+        });
+        console.log('Auto-saved at', new Date().toLocaleTimeString());
+      } catch(e) {
+        console.warn('Auto-save failed (offline?):', e.message);
+      }
+    }, 60000); // every 60 seconds
+  }
+
+  function stopAutoSave() { clearInterval(autoSaveInterval); }
+
+  // Restore answers from localStorage if page reloads mid-exam
+  function restoreAnswersFromBackup() {
+    try {
+      const backup = localStorage.getItem('ielts_answers_backup');
+      if (!backup) return;
+      const saved = JSON.parse(backup);
+      if (saved.listening) Object.assign(answers.listening, saved.listening);
+      if (saved.reading) Object.assign(answers.reading, saved.reading);
+      if (saved.writing) {
+        answers.writing.task1 = saved.writing.task1 || '';
+        answers.writing.task2 = saved.writing.task2 || '';
+      }
+    } catch(e) { console.warn('Could not restore backup answers'); }
+  }
+
+  // ── FEATURE 2: OFFLINE DETECTION ──────────────────────────
+  function initOfflineDetection() {
+    const banner = document.getElementById('offlineBanner');
+    const update = () => {
+      banner.style.display = navigator.onLine ? 'none' : 'block';
+    };
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    update(); // check immediately
+  }
+
+  // ── FEATURE 3: 5-MINUTE WARNING ───────────────────────────
+  function checkFiveMinWarning() {
+    if (fiveMinWarned) return;
+    if (timeLeft <= 300 && timeLeft > 290) {
+      fiveMinWarned = true;
+      const el = document.getElementById('fiveMinWarning');
+      el.style.display = 'block';
+      // Play a subtle beep using AudioContext
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+        osc.start(); osc.stop(ctx.currentTime + 0.8);
+      } catch(e) {}
+      // Auto-hide after 6 seconds
+      setTimeout(() => { el.style.display = 'none'; }, 6000);
+    }
+  }
+
+  // ── FEATURE 4: EXAM LOCK (prevent double tab) ──────────────
+  function initExamLock() {
+    const lockKey = 'ielts_exam_lock_' + submissionId;
+    const lockVal = Date.now().toString();
+    localStorage.setItem(lockKey, lockVal);
+
+    // Check every 3 seconds if another tab has taken the lock
+    setInterval(() => {
+      const current = localStorage.getItem(lockKey);
+      if (current && current !== lockVal) {
+        // Another tab opened this exam
+        alert('This exam is already open in another tab or window. This tab will now close.');
+        window.location.href = 'ielts-student.html';
+      }
+    }, 3000);
+
+    // Clear lock when exam is submitted or page closes
+    window.addEventListener('beforeunload', () => {
+      if (localStorage.getItem(lockKey) === lockVal) {
+        localStorage.removeItem(lockKey);
+      }
+    });
+  }
+  // ── END PHASE 4 FEATURES ───────────────────────────────────
 
   // ── WORD COUNT ─────────────────────────────────────────────
   function updateWordCount(textareaId, countId) {
@@ -888,6 +1278,8 @@
       document.getElementById('topbar').style.display = 'none';
       document.getElementById('sectionProgress').style.display = 'none';
       document.getElementById('completeScreen').style.display = 'block';
+      stopAutoSave();
+      localStorage.removeItem('ielts_answers_backup');
       localStorage.removeItem('ielts_submission_id');
       localStorage.removeItem('ielts_exam_id');
 

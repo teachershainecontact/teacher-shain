@@ -374,8 +374,13 @@ export default {
 
       // ── IELTS EXAMS ───────────────────────────────────────
       if (path === '/ielts/exams' && request.method === 'GET') {
+        // Auto-unpublish any expired exams
+        const today = new Date().toISOString().slice(0, 10);
+        await env.DB.prepare(
+          "UPDATE ielts_exams SET status='draft' WHERE status='published' AND expires_at IS NOT NULL AND expires_at < ?"
+        ).bind(today).run().catch(() => {});
         const status = url.searchParams.get('status');
-        let query = 'SELECT id, title, exam_type, status, ai_generated, created_at, published_at FROM ielts_exams';
+        let query = 'SELECT id, title, exam_type, status, ai_generated, created_at, published_at, expires_at FROM ielts_exams';
         if (status) query += ` WHERE status = '${status}'`;
         query += ' ORDER BY created_at DESC';
         const { results } = await env.DB.prepare(query).all();
@@ -431,7 +436,7 @@ export default {
         const values = [];
         const allowed = [
           'title','exam_type','status',
-          'listening_audio_url','listening_script','listening_questions',
+          'listening_audio_url','listening_script','listening_questions','expires_at',
           'reading_passage1','reading_passage2','reading_passage3',
           'reading_questions1','reading_questions2','reading_questions3',
           'writing_task1_prompt','writing_task1_image','writing_task2_prompt',
@@ -458,6 +463,7 @@ export default {
         const { exam_type, topic, difficulty } = await request.json();
         const type = exam_type || 'academic';
         const diff = difficulty || 'band 6-7';
+        const generatePair = true; // Always generate A+B pair
 
         const prompt = `You are an expert IELTS examiner. Generate a complete IELTS ${type} mock exam on the topic: "${topic || 'environment and technology'}". Target level: ${diff}.
 
@@ -514,21 +520,30 @@ Return ONLY a JSON object with NO markdown, NO code blocks, exactly this structu
   ]
 }`;
 
-        const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
-            max_tokens: 4000,
-            messages: [{ role: 'user', content: prompt }]
-          })
-        });
-        const groqData = await groqRes.json();
-        const raw = groqData.choices?.[0]?.message?.content || '{}';
-        let exam;
-        try { exam = JSON.parse(raw.replace(/```json|```/g, '').trim()); }
-        catch { return json({ error: 'AI returned invalid JSON', raw }, 500); }
-        return json({ ok: true, exam });
+        const callAI = async (p) => {
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: 'llama-3.3-70b-versatile', max_tokens: 4000, messages: [{ role: 'user', content: p }] })
+          });
+          const d = await res.json();
+          const raw = d.choices?.[0]?.message?.content || '{}';
+          try { return JSON.parse(raw.replace(/```json|```/g, '').trim()); }
+          catch { throw new Error('AI returned invalid JSON: ' + raw.slice(0, 100)); }
+        };
+
+        // Generate Exam A and Exam B in parallel
+        const promptB = prompt.replace(
+          `on the topic: "${topic || 'environment and technology'}"`,
+          `on the topic: "${topic || 'environment and technology'}" — this is an ALTERNATIVE version with DIFFERENT passages, questions, scripts and prompts to the first exam. Same topic and difficulty but entirely different content.`
+        );
+
+        const [examA, examB] = await Promise.all([
+          callAI(prompt),
+          callAI(promptB)
+        ]).catch(e => { throw new Error('AI generation failed: ' + e.message); });
+
+        return json({ ok: true, examA, examB });
       }
 
       // ── IELTS SUBMISSIONS ─────────────────────────────────

@@ -6,6 +6,7 @@
   <title>Teacher Shen — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <style>
     :root {
       --ink:#0f0e0c;--paper:#faf8f4;--cream:#f2ede4;
@@ -241,6 +242,7 @@
         <button id="ieltsTab-students" onclick="switchIeltsTab('students')" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--ink);color:#fff">👩‍🎓 Students</button>
         <button id="ieltsTab-exams" onclick="switchIeltsTab('exams')" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:none;color:var(--muted)">📋 Mock Exams</button>
         <button id="ieltsTab-review" onclick="switchIeltsTab('review')" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:none;color:var(--muted)">🎧 Review</button>
+        <button id="ieltsTab-analytics" onclick="switchIeltsTab('analytics')" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:none;color:var(--muted)">📊 Analytics</button>
       </div>
 
       <!-- STUDENTS TAB -->
@@ -261,6 +263,13 @@
       <div id="ieltsPanel-review" style="display:none">
         <div id="ieltsReviewList" style="display:flex;flex-direction:column;gap:12px">
           <div class="empty">No submissions to review yet.</div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS PANEL -->
+      <div id="ieltsPanel-analytics" style="display:none">
+        <div id="ieltsAnalyticsContent" style="display:flex;flex-direction:column;gap:16px">
+          <div class="empty">Loading analytics…</div>
         </div>
       </div>
     </div>
@@ -443,6 +452,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('review')">Cancel</button>
+      <button class="btn-cancel" id="rerunAiBtn" onclick="rerunAI()" style="background:#f0f7ff;color:#1a6090;border:1px solid #b0d4f0">🤖 Re-run AI</button>
       <button class="btn-save" onclick="submitReview()">✓ Save Review</button>
     </div>
   </div>
@@ -480,6 +490,27 @@
   }
 
   function doLogout() { localStorage.removeItem('ts_user'); window.location.href='../index.html'; }
+
+  // ── SESSION TIMEOUT (8h) ─────────────────────────────────────
+  (function() {
+    const TIMEOUT = 28800000;
+    function checkSession() {
+      const loginTime = localStorage.getItem('ts_login_time');
+      const user = localStorage.getItem('ts_user');
+      if (!user || !loginTime) { doLogout(); return; }
+      if (Date.now() - parseInt(loginTime) > TIMEOUT) {
+        alert('Your session has expired. Please sign in again.');
+        doLogout();
+      }
+    }
+    checkSession();
+    setInterval(checkSession, 5 * 60 * 1000); // check every 5 mins
+    // Reset timer on user activity
+    ['click','keydown','touchstart'].forEach(e => document.addEventListener(e, () => {
+      if (localStorage.getItem('ts_user')) localStorage.setItem('ts_login_time', Date.now().toString());
+    }, { passive: true }));
+  })();
+  // ── END SESSION TIMEOUT ───────────────────────────────────────
   function openModal(n) {
     document.getElementById('modal-'+n).classList.add('open');
     if (n === 'hw') { assignMode='class'; switchAssignTab('class'); }
@@ -671,11 +702,12 @@
     // AI pronunciation feedback
     if (sub.ai_score || sub.ai_transcript) {
       let fb = {}; try { fb=JSON.parse(sub.ai_feedback||'{}'); } catch {}
+      const md = typeof marked !== 'undefined' ? t => marked.parse(t) : t => t;
       contentHtml += `<div style="background:#e8f4fb;border:1px solid #b0d4f0;border-radius:12px;padding:16px;margin-bottom:16px">
         <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1a6090;margin-bottom:8px">🤖 AI Pronunciation Analysis</p>
         ${sub.ai_score?`<p style="font-size:22px;font-weight:700;color:#1a6090;margin-bottom:6px">${sub.ai_score}<span style="font-size:13px;color:var(--muted)">/100</span></p>`:''}
-        ${fb.summary?`<p style="font-size:14px;margin-bottom:6px">${fb.summary}</p>`:''}
-        ${fb.teacher_note?`<p style="font-size:13px;color:var(--muted);font-style:italic">📌 ${fb.teacher_note}</p>`:''}
+        ${fb.summary?`<div style="font-size:14px;margin-bottom:6px">${md(fb.summary)}</div>`:''}
+        ${fb.teacher_note?`<div style="font-size:13px;color:var(--muted);font-style:italic">📌 ${md(fb.teacher_note)}</div>`:''}
         ${sub.ai_transcript?`<div style="margin-top:10px;padding:10px 14px;background:#fff;border-radius:8px;font-size:13px;color:var(--muted)"><strong>Student said:</strong> "${sub.ai_transcript}"</div>`:''}
       </div>`;
     }
@@ -683,6 +715,7 @@
     // AI writing feedback
     if (sub.ai_writing) {
       let aw = {}; try { aw=JSON.parse(sub.ai_writing); } catch {}
+      const md = typeof marked !== 'undefined' ? t => marked.parse(t) : t => t;
       let corrHtml = '';
       if (aw.corrections?.length) {
         corrHtml = aw.corrections.map(c=>`<div class="correction-box">
@@ -694,9 +727,9 @@
       contentHtml += `<div style="background:#f0fff4;border:1px solid #b0d8b4;border-radius:12px;padding:16px;margin-bottom:16px">
         <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sage);margin-bottom:8px">🤖 AI Writing Analysis</p>
         ${aw.score?`<p style="font-size:22px;font-weight:700;color:var(--sage);margin-bottom:6px">${aw.score}<span style="font-size:13px;color:var(--muted)">/100</span></p>`:''}
-        ${aw.summary?`<p style="font-size:14px;margin-bottom:10px">${aw.summary}</p>`:''}
+        ${aw.summary?`<div style="font-size:14px;margin-bottom:10px">${md(aw.summary)}</div>`:''}
         ${corrHtml}
-        ${aw.teacher_note?`<p style="font-size:13px;color:var(--muted);font-style:italic;margin-top:8px">📌 ${aw.teacher_note}</p>`:''}
+        ${aw.teacher_note?`<div style="font-size:13px;color:var(--muted);font-style:italic;margin-top:8px">📌 ${md(aw.teacher_note)}</div>`:''}
       </div>`;
     }
 
@@ -725,6 +758,51 @@
       closeModal('review');
       setTimeout(()=>location.reload(), 1000);
     } catch(e) { showToast('Error: '+e.message); }
+  }
+
+  async function rerunAI() {
+    if (!activeReviewId) return;
+    const sub = allSubmissions.find(s => s.id === activeReviewId);
+    if (!sub) return;
+    const btn = document.getElementById('rerunAiBtn');
+    btn.disabled = true; btn.textContent = '⏳ Running AI…';
+    try {
+      if (sub.recording_url && (sub.hw_type === 'audio' || sub.hw_type === 'both')) {
+        const tRes = await fetch(W + '/ai/transcribe-url', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: sub.recording_url })
+        });
+        const tData = await tRes.json();
+        if (tData.transcript) {
+          const sRes = await fetch(W + '/ai/score-pronunciation', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transcript: tData.transcript })
+          });
+          const sData = await sRes.json();
+          await fetch(W + '/submissions/' + activeReviewId, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ai_transcript: tData.transcript, ai_score: sData.score, ai_feedback: JSON.stringify(sData) })
+          });
+        }
+      }
+      if (sub.written_answer && (sub.hw_type === 'written' || sub.hw_type === 'both')) {
+        const wRes = await fetch(W + '/ai/score-writing', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answer: sub.written_answer, instructions: sub.instructions || '' })
+        });
+        const wData = await wRes.json();
+        await fetch(W + '/submissions/' + activeReviewId, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ai_writing: JSON.stringify(wData) })
+        });
+      }
+      showToast('✓ AI re-scored! Refreshing…');
+      closeModal('review');
+      setTimeout(() => { loadReviewSection(); openReviewModal(activeReviewId); }, 1200);
+    } catch(e) {
+      showToast('AI error: ' + e.message);
+      btn.disabled = false; btn.textContent = '🤖 Re-run AI';
+    }
   }
 
   // ── TRANSCRIPTS ───────────────────────────────────────────
@@ -912,12 +990,12 @@
 
   function switchIeltsTab(tab) {
     currentIeltsTab = tab;
-    ['students','exams','review'].forEach(t => {
+    ['students','exams','review','analytics'].forEach(t => {
       document.getElementById('ieltsPanel-'+t).style.display = t===tab ? '' : 'none';
       const btn = document.getElementById('ieltsTab-'+t);
-      btn.style.background = t===tab ? 'var(--ink)' : 'none';
-      btn.style.color = t===tab ? '#fff' : 'var(--muted)';
+      if (btn) { btn.style.background = t===tab ? 'var(--ink)' : 'none'; btn.style.color = t===tab ? '#fff' : 'var(--muted)'; }
     });
+    if (tab === 'analytics') loadIeltsAnalytics();
   }
 
   // ── IELTS STUDENTS ────────────────────────────────────────
@@ -999,31 +1077,98 @@
     try {
       const res = await fetch(W+'/ielts/progress/'+studentId);
       const history = await res.json();
+
+      // Build SVG line chart for overall band scores
+      const buildChart = (data) => {
+        if (data.length < 2) return '<p style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0">Need at least 2 exams for chart</p>';
+        const W = 400, H = 160, pad = 30;
+        const scores = data.map(h => ({
+          overall: h.overall || 0,
+          listening: h.listening || 0,
+          reading: h.reading || 0,
+          writing: h.writing || 0,
+          speaking: h.speaking || 0
+        }));
+        const minY = 1, maxY = 9;
+        const xStep = (W - pad*2) / (scores.length - 1);
+        const yScale = v => pad + ((maxY - v) / (maxY - minY)) * (H - pad*2);
+        const xScale = i => pad + i * xStep;
+
+        const line = (key, color) => {
+          const pts = scores.map((s,i) => `${xScale(i).toFixed(1)},${yScale(s[key]).toFixed(1)}`).join(' ');
+          return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+            ${scores.map((s,i) => `<circle cx="${xScale(i).toFixed(1)}" cy="${yScale(s[key]).toFixed(1)}" r="3" fill="${color}"/>`).join('')}`;
+        };
+        // Grid lines at bands 1,3,5,7,9
+        const grid = [3,5,7,9].map(b => `
+          <line x1="${pad}" y1="${yScale(b).toFixed(1)}" x2="${W-pad}" y2="${yScale(b).toFixed(1)}" stroke="#eee" stroke-width="1"/>
+          <text x="${pad-4}" y="${(yScale(b)+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#aaa">${b}</text>`).join('');
+        const labels = scores.map((s,i) => `<text x="${xScale(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="#aaa">${i+1}</text>`).join('');
+
+        return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:180px">
+          ${grid}${labels}
+          ${line('overall','#0f0e0c')}
+          ${line('listening','#1a6090')}
+          ${line('reading','#4a6741')}
+          ${line('writing','#c8963e')}
+          ${line('speaking','#c0392b')}
+        </svg>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;justify-content:center;font-size:11px">
+          ${[['Overall','#0f0e0c'],['Listening','#1a6090'],['Reading','#4a6741'],['Writing','#c8963e'],['Speaking','#c0392b']].map(([l,c])=>`
+            <span><span style="display:inline-block;width:12px;height:3px;background:${c};vertical-align:middle;margin-right:4px;border-radius:2px"></span>${l}</span>`).join('')}
+        </div>`;
+      };
+
+      // Latest scores
+      const latest = history.length ? history[history.length-1] : null;
+
       const html = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px" id="ieltsProgressModal">
-          <div style="background:#fff;border-radius:16px;padding:28px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto">
-            <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:6px">${name}'s Progress</h3>
-            <p style="font-size:13px;color:var(--muted);margin-bottom:20px">${history.length} exam${history.length!==1?'s':''} completed</p>
-            ${!history.length ? '<div class="empty">No exams completed yet.</div>' :
-              history.map((h,i) => `
-                <div style="background:var(--cream);border-radius:10px;padding:14px 16px;margin-bottom:10px">
-                  <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-                    <span style="font-size:13px;font-weight:600">Exam ${i+1}</span>
-                    <span style="font-size:13px;color:var(--muted)">${(h.recorded_at||'').slice(0,10)}</span>
-                  </div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                    ${['listening','reading','writing','speaking'].map(s=>`
-                      <div style="background:#fff;border-radius:8px;padding:10px;text-align:center">
-                        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">${s}</div>
-                        <div style="font-size:22px;font-weight:700;color:var(--sage)">${h[s]||'—'}</div>
-                      </div>`).join('')}
-                  </div>
-                  <div style="text-align:center;margin-top:10px;padding:10px;background:var(--ink);border-radius:8px;color:#fff">
-                    <span style="font-size:12px;color:rgba(255,255,255,0.5)">Overall Band</span>
-                    <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--gold)">${h.overall||'—'}</div>
-                  </div>
+          <div style="background:#fff;border-radius:16px;padding:28px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <div>
+                <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:2px">${name}</h3>
+                <p style="font-size:12px;color:var(--muted)">${history.length} exam${history.length!==1?'s':''} completed</p>
+              </div>
+              ${latest ? `<div style="text-align:center;background:var(--ink);border-radius:12px;padding:10px 18px;color:#fff">
+                <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px">LATEST</div>
+                <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--gold)">${latest.overall||'—'}</div>
+              </div>` : ''}
+            </div>
+
+            ${history.length ? `
+            <!-- Band score chart -->
+            <div style="background:var(--cream);border-radius:12px;padding:16px;margin-bottom:16px">
+              <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">📈 Band Score History</p>
+              ${buildChart(history)}
+            </div>
+
+            <!-- Latest scores grid -->
+            ${latest ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+              ${['listening','reading','writing','speaking'].map(s=>`
+                <div style="background:var(--cream);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${s.slice(0,4)}</div>
+                  <div style="font-size:22px;font-weight:700;color:var(--sage)">${latest[s]||'—'}</div>
                 </div>`).join('')}
-            <button onclick="document.getElementById('ieltsProgressModal').remove()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-top:10px;font-family:'DM Sans',sans-serif">Close</button>
+            </div>` : ''}
+
+            <!-- Exam history list -->
+            <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">All Exams</p>
+            ${history.map((h,i) => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--cream);border-radius:8px;margin-bottom:6px">
+                <span style="font-size:13px;font-weight:600">Exam ${i+1}</span>
+                <span style="font-size:12px;color:var(--muted)">${(h.recorded_at||'').slice(0,10)}</span>
+                <div style="display:flex;gap:8px;font-size:12px">
+                  <span title="Listening">🎧 ${h.listening||'—'}</span>
+                  <span title="Reading">📖 ${h.reading||'—'}</span>
+                  <span title="Writing">✍️ ${h.writing||'—'}</span>
+                  <span title="Speaking">🎙️ ${h.speaking||'—'}</span>
+                </div>
+                <span style="font-weight:700;color:var(--gold)">${h.overall||'—'}</span>
+              </div>`).join('')}
+            ` : '<div class="empty">No exams completed yet.</div>'}
+
+            <button onclick="document.getElementById('ieltsProgressModal').remove()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-top:12px;font-family:'DM Sans',sans-serif">Close</button>
           </div>
         </div>`;
       document.body.insertAdjacentHTML('beforeend', html);
@@ -1097,7 +1242,7 @@
     const exam_type = document.getElementById('ge_type').value;
     const difficulty = document.getElementById('ge_band').value;
     const btn = document.getElementById('genExamBtn');
-    btn.textContent = '✨ Generating…'; btn.disabled = true;
+    btn.textContent = '✨ Generating A+B pair…'; btn.disabled = true;
     try {
       const res = await fetch(W+'/ielts/generate-exam', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -1105,23 +1250,118 @@
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || 'Generation failed');
-      // Save as draft
-      const saveRes = await fetch(W+'/ielts/exams', {
+
+      // Save Exam A as draft
+      const saveA = await fetch(W+'/ielts/exams', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({...data.exam, exam_type, status:'draft', ai_generated:true})
+        body: JSON.stringify({...data.examA, exam_type, status:'draft', ai_generated:true, is_backup:0})
       });
-      const saveData = await saveRes.json();
+      const savedA = await saveA.json();
+
+      // Save Exam B as draft backup
+      const saveB = await fetch(W+'/ielts/exams', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({...data.examB, exam_type, status:'draft', ai_generated:true, is_backup:1})
+      });
+      const savedB = await saveB.json();
+
+      // Link them as pairs
+      await Promise.all([
+        fetch(W+'/ielts/exams/'+savedA.id, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({backup_pair_id: savedB.id}) }),
+        fetch(W+'/ielts/exams/'+savedB.id, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({backup_pair_id: savedA.id}) })
+      ]);
+
       document.getElementById('generateExamModal').remove();
-      showToast('✓ Mock exam generated! Review it in the Exams tab.');
+      showToast('✓ Exam A+B generated! Review both before publishing.');
       switchIeltsTab('exams');
       await loadIeltsExams();
-      // Open review immediately
-      reviewIeltsExam(saveData.id);
+      // Open side-by-side review
+      reviewExamPair(savedA.id, savedB.id);
     } catch(e) {
       showToast('Error: '+e.message);
       btn.textContent='✨ Generate'; btn.disabled=false;
     }
   }
+
+  // ── EXAM PAIR SIDE-BY-SIDE REVIEW ─────────────────────────
+  async function reviewExamPair(examAId, examBId) {
+    try {
+      const [resA, resB] = await Promise.all([
+        fetch(W+'/ielts/exams/'+examAId),
+        fetch(W+'/ielts/exams/'+examBId)
+      ]);
+      const [examA, examB] = await Promise.all([resA.json(), resB.json()]);
+
+      const buildPanel = (exam, label, color) => `
+        <div style="flex:1;min-width:280px">
+          <div style="background:${color};color:#fff;border-radius:8px 8px 0 0;padding:10px 16px;font-weight:700;font-size:14px">
+            ${label} — ${exam.title}
+          </div>
+          <div style="border:2px solid ${color};border-top:none;border-radius:0 0 8px 8px;padding:16px">
+            <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">🎧 Listening Script</p>
+            <textarea id="er_${label.toLowerCase()}_listening" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;margin-bottom:12px">${exam.listening_script||''}</textarea>
+
+            <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">📖 Passage 1</p>
+            <textarea id="er_${label.toLowerCase()}_p1" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;margin-bottom:12px">${exam.reading_passage1||''}</textarea>
+
+            <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">📖 Passage 2</p>
+            <textarea id="er_${label.toLowerCase()}_p2" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;margin-bottom:12px">${exam.reading_passage2||''}</textarea>
+
+            <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">✍️ Task 1 Prompt</p>
+            <textarea id="er_${label.toLowerCase()}_t1" style="width:100%;min-height:60px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical;margin-bottom:12px">${exam.writing_task1_prompt||''}</textarea>
+
+            <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">✍️ Task 2 Prompt</p>
+            <textarea id="er_${label.toLowerCase()}_t2" style="width:100%;min-height:60px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;resize:vertical">${exam.writing_task2_prompt||''}</textarea>
+          </div>
+        </div>`;
+
+      const html = `
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto" id="examPairReviewModal">
+          <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:960px;margin:auto">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <h3 style="font-family:'Playfair Display',serif;font-size:20px">📋 Review Exam Pair</h3>
+              <button onclick="document.getElementById('examPairReviewModal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">✕</button>
+            </div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Review both exams side by side. Edit any content before publishing. Exam A is primary — students take this first. Exam B is the silent backup used only if audio fails.</p>
+
+            <!-- Side by side panels -->
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
+              ${buildPanel(examA, 'A', '#1a6090')}
+              ${buildPanel(examB, 'B', '#4a6741')}
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button onclick="document.getElementById('examPairReviewModal').remove()" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;background:none">Cancel</button>
+              <button onclick="savePairEdits(${examAId}, ${examBId}, false)" style="flex:1;padding:12px;background:var(--gold);color:var(--ink);border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">💾 Save Edits</button>
+              <button onclick="savePairEdits(${examAId}, ${examBId}, true)" style="flex:2;padding:12px;background:var(--sage);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Save & Publish Both</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.insertAdjacentHTML('beforeend', html);
+    } catch(e) { showToast('Error loading exam pair: '+e.message); }
+  }
+
+  async function savePairEdits(examAId, examBId, publish=false) {
+    const buildBody = (label) => ({
+      listening_script: document.getElementById(`er_${label}_listening`).value,
+      reading_passage1: document.getElementById(`er_${label}_p1`).value,
+      reading_passage2: document.getElementById(`er_${label}_p2`).value,
+      writing_task1_prompt: document.getElementById(`er_${label}_t1`).value,
+      writing_task2_prompt: document.getElementById(`er_${label}_t2`).value,
+      ...(publish ? { status: 'published' } : {})
+    });
+    try {
+      await Promise.all([
+        fetch(W+'/ielts/exams/'+examAId, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildBody('a')) }),
+        fetch(W+'/ielts/exams/'+examBId, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildBody('b')) })
+      ]);
+      document.getElementById('examPairReviewModal').remove();
+      showToast(publish ? '✓ Both exams published! Students will take Exam A, Exam B is on standby.' : '✓ Edits saved to both exams.');
+      loadIeltsExams();
+    } catch(e) { showToast('Error: '+e.message); }
+  }
+  // ── END EXAM PAIR REVIEW ───────────────────────────────────
 
   async function reviewIeltsExam(examId) {
     try {
@@ -1251,6 +1491,185 @@
   }
 
   // ── IELTS REVIEW ──────────────────────────────────────────
+  // ── PHASE 5: ANALYTICS ────────────────────────────────────
+  async function loadIeltsAnalytics() {
+    const el = document.getElementById('ieltsAnalyticsContent');
+    el.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      // Gather data from already-loaded submissions + students
+      const subs = ieltsSubmissions;
+      const students = ieltsStudents;
+      const exams = ieltsExams;
+
+      if (!subs.length) {
+        el.innerHTML = '<div class="empty">No submissions yet — analytics will appear once students start taking exams.</div>';
+        return;
+      }
+
+      // ── CLASS PERFORMANCE OVERVIEW ──────────────────────
+      const reviewed = subs.filter(s => s.overall_band);
+      const avgBand = reviewed.length
+        ? (reviewed.reduce((a,b) => a + Number(b.overall_band), 0) / reviewed.length).toFixed(1)
+        : '—';
+      const sections = ['listening','reading','writing','speaking'];
+      const sectionAvgs = sections.map(sec => {
+        const vals = subs.filter(s => s[sec+'_ai_score']).map(s => Number(s[sec+'_ai_score']));
+        return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+      });
+
+      // ── QUESTION ANALYTICS — most missed questions ──────
+      const qStats = {}; // qid -> { correct, total }
+      subs.forEach(s => {
+        try {
+          const la = JSON.parse(s.listening_answers || '{}');
+          const ra = JSON.parse(s.reading_answers || '{}');
+          // Need answer keys from exam — build from ieltsExams
+          const exam = exams.find(e => e.id === s.exam_id);
+          if (!exam) return;
+          const lq = JSON.parse(exam.listening_questions || '[]');
+          const rq1 = JSON.parse(exam.reading_questions1 || '[]');
+          const rq2 = JSON.parse(exam.reading_questions2 || '[]');
+          const rq3 = JSON.parse(exam.reading_questions3 || '[]');
+          [...lq.map(q=>({...q,prefix:'L'})),
+           ...rq1.map(q=>({...q,prefix:'R1'})),
+           ...rq2.map(q=>({...q,prefix:'R2'})),
+           ...rq3.map(q=>({...q,prefix:'R3'}))
+          ].forEach(q => {
+            const qid = q.prefix + '_' + q.id;
+            const answers = q.prefix.startsWith('L') ? la : ra;
+            const given = (answers[qid]||'').toString().trim().toUpperCase();
+            const correct = (q.answer||'').toString().trim().toUpperCase();
+            if (!qStats[qid]) qStats[qid] = { correct:0, total:0, question: q.question, answer: q.answer };
+            qStats[qid].total++;
+            if (given === correct) qStats[qid].correct++;
+          });
+        } catch(e) {}
+      });
+
+      // Sort by worst performance
+      const hardest = Object.entries(qStats)
+        .filter(([,v]) => v.total >= 2)
+        .map(([k,v]) => ({ qid:k, ...v, pct: Math.round(v.correct/v.total*100) }))
+        .sort((a,b) => a.pct - b.pct)
+        .slice(0, 5);
+
+      // ── EXAM SCHEDULING ─────────────────────────────────
+      const publishedExams = exams.filter(e => e.status === 'published');
+
+      // ── RENDER ───────────────────────────────────────────
+      el.innerHTML = `
+        <!-- Class Performance -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px">
+          <p style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">📊 Class Performance Overview</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div style="background:var(--ink);border-radius:10px;padding:16px;text-align:center;color:#fff">
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:1px">AVG OVERALL BAND</div>
+              <div style="font-family:'Playfair Display',serif;font-size:36px;color:var(--gold)">${avgBand}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.4)">${reviewed.length} graded submissions</div>
+            </div>
+            <div style="background:var(--cream);border-radius:10px;padding:16px">
+              <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">BY SECTION (AI avg)</div>
+              ${sections.map((s,i) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <span style="font-size:12px;text-transform:capitalize">${s}</span>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:80px;height:6px;background:#eee;border-radius:3px;overflow:hidden">
+                      <div style="height:100%;background:var(--sage);border-radius:3px;width:${sectionAvgs[i]!=='—'?Math.round(Number(sectionAvgs[i])/9*100):0}%"></div>
+                    </div>
+                    <span style="font-size:13px;font-weight:700;min-width:24px">${sectionAvgs[i]}</span>
+                  </div>
+                </div>`).join('')}
+            </div>
+          </div>
+
+          <!-- Student breakdown -->
+          <p style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Student Breakdown</p>
+          ${students.map(st => {
+            const stSubs = reviewed.filter(s => s.student_id === st.id);
+            const stAvg = stSubs.length ? (stSubs.reduce((a,b)=>a+Number(b.overall_band),0)/stSubs.length).toFixed(1) : '—';
+            const target = st.target_band || 7;
+            const pct = stAvg !== '—' ? Math.min(Math.round(Number(stAvg)/target*100),100) : 0;
+            return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--cream)">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--sage);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${st.name.charAt(0)}</div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600">${st.name}</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+                  <div style="flex:1;height:5px;background:#eee;border-radius:3px;overflow:hidden">
+                    <div style="height:100%;background:${pct>=100?'var(--sage)':'var(--gold)'};border-radius:3px;width:${pct}%"></div>
+                  </div>
+                  <span style="font-size:11px;color:var(--muted)">${stAvg} / ${target}</span>
+                </div>
+              </div>
+              <span style="font-size:11px;color:var(--muted)">${stSubs.length} exam${stSubs.length!==1?'s':''}</span>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <!-- Question Analytics -->
+        ${hardest.length ? `
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px">
+          <p style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">🎯 Hardest Questions</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Questions most students got wrong — focus teaching here</p>
+          ${hardest.map(q => `
+            <div style="padding:12px;background:var(--cream);border-radius:8px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="font-size:11px;font-weight:600;color:var(--muted)">${q.qid}</span>
+                <span style="font-size:13px;font-weight:700;color:${q.pct<40?'var(--red)':'#b07800'}">${q.pct}% correct</span>
+              </div>
+              <div style="font-size:13px;margin-bottom:4px">${q.question}</div>
+              <div style="font-size:11px;color:var(--sage)">✓ Answer: ${q.answer}</div>
+              <div style="height:5px;background:#ddd;border-radius:3px;margin-top:8px;overflow:hidden">
+                <div style="height:100%;background:${q.pct<40?'var(--red)':'var(--gold)'};border-radius:3px;width:${q.pct}%"></div>
+              </div>
+            </div>`).join('')}
+        </div>` : ''}
+
+        <!-- Exam Scheduling -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px">
+          <p style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">📅 Exam Scheduling</p>
+          ${!publishedExams.length ? '<div class="empty">No published exams yet.</div>' :
+            publishedExams.map(e => `
+              <div style="padding:12px 16px;background:var(--cream);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+                <div>
+                  <div style="font-size:13px;font-weight:600">${e.title}</div>
+                  <div style="font-size:11px;color:var(--muted)">Published: ${(e.published_at||'').slice(0,10)||'—'}</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="date" id="expiry_${e.id}" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif" placeholder="Expiry date">
+                  <button onclick="setExamExpiry(${e.id})" style="padding:6px 12px;background:var(--sage);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Set Expiry</button>
+                  <button onclick="unpublishExam(${e.id})" style="padding:6px 12px;background:none;border:1px solid var(--red);color:var(--red);border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Unpublish</button>
+                </div>
+              </div>`).join('')}
+        </div>`;
+    } catch(e) { el.innerHTML = '<div class="empty">Error loading analytics: '+e.message+'</div>'; }
+  }
+
+  async function setExamExpiry(examId) {
+    const dateVal = document.getElementById('expiry_'+examId).value;
+    if (!dateVal) { showToast('Please pick an expiry date first'); return; }
+    try {
+      await fetch(W+'/ielts/exams/'+examId, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ expires_at: dateVal, status: 'published' })
+      });
+      showToast('✓ Expiry date set — exam will auto-unpublish on ' + dateVal);
+    } catch(e) { showToast('Error: '+e.message); }
+  }
+
+  async function unpublishExam(examId) {
+    if (!confirm('Unpublish this exam? Students won't be able to start it.')) return;
+    try {
+      await fetch(W+'/ielts/exams/'+examId, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ status: 'draft' })
+      });
+      showToast('✓ Exam unpublished.');
+      loadIeltsExams();
+      loadIeltsAnalytics();
+    } catch(e) { showToast('Error: '+e.message); }
+  }
+  // ── END PHASE 5 ANALYTICS ─────────────────────────────────
+
   async function loadIeltsReview() {
     try {
       const res = await fetch(W+'/ielts/submissions');
@@ -1264,8 +1683,11 @@
       el.innerHTML = pending.map(s => `
         <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
           <div>
-            <div style="font-size:15px;font-weight:600">${s.student_name}</div>
+            <div style="font-size:15px;font-weight:600">${s.student_name}
+              ${s.swap_reason ? `<span style="font-size:11px;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:middle">⚠️ Audio swap</span>` : ''}
+            </div>
             <div style="font-size:12px;color:var(--muted)">${s.exam_title} · Submitted ${(s.submitted_at||'').slice(0,10)}</div>
+            ${s.swap_reason ? `<div style="font-size:11px;color:#856404;margin-top:2px">Backup exam used — audio failed on original</div>` : ''}
           </div>
           <button onclick="openIeltsReview(${s.id})" style="padding:10px 18px;background:var(--gold);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Review →</button>
         </div>`).join('');
