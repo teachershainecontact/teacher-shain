@@ -1,792 +1,456 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Teacher Shen — Learn. Excel. Achieve.</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --ink: #0f0e0c;
-    --paper: #faf8f4;
-    --cream: #f2ede4;
-    --gold: #c8963e;
-    --gold-light: #e8b96a;
-    --gold-pale: #fdf3e3;
-    --sage: #4a6741;
-    --muted: #8a8070;
-    --border: #ddd8ce;
-    --red: #c0392b;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Shain — English Learning Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c; --paper: #faf8f4; --cream: #f2ede4;
+      --gold: #c8963e; --gold-light: #e8b96a;
+      --red: #c0392b; --sage: #4a6741;
+      --muted: #8a8070; --border: #ddd8ce;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(circle at 15% 25%, rgba(200,150,62,0.07) 0%, transparent 50%),
+        radial-gradient(circle at 85% 75%, rgba(74,103,65,0.05) 0%, transparent 50%);
+    }
 
-  html { scroll-behavior: smooth; }
+    /* ── Header ── */
+    header {
+      position: relative; z-index: 10;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 48px; border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+    .logo span { color: var(--gold); }
+    .header-nav { display: flex; align-items: center; gap: 6px; }
+    .header-nav a {
+      font-size: 13px; color: var(--muted); text-decoration: none;
+      padding: 6px 14px; border-radius: 8px; transition: all 0.2s;
+    }
+    .header-nav a:hover { background: var(--cream); color: var(--ink); }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    overflow-x: hidden;
-  }
+    /* ── Hero ── */
+    .hero {
+      position: relative; z-index: 1;
+      text-align: center; padding: 64px 48px 40px;
+    }
+    .hero-eyebrow {
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold); font-weight: 600; margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(38px, 5vw, 64px);
+      font-weight: 900; line-height: 1.05; letter-spacing: -1px; margin-bottom: 18px;
+    }
+    .hero h1 em { font-style: italic; color: var(--gold); }
+    .hero-sub {
+      font-size: 16px; color: var(--muted); line-height: 1.7;
+      max-width: 520px; margin: 0 auto 52px;
+    }
 
-  /* ── HEADER ──────────────────────────────────────────────── */
-  header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    padding: 20px 40px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(250,248,244,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
+    /* ── Course cards ── */
+    .courses {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; padding: 0 48px 52px; max-width: 1200px; margin: 0 auto;
+    }
 
-  .logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px; font-weight: 700;
-    letter-spacing: -0.3px;
-  }
-  .logo em { font-style: italic; color: var(--gold); }
+    .course-card {
+      border-radius: 20px; overflow: hidden; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s; position: relative;
+    }
+    .course-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.13); }
+    .course-card.selected { transform: translateY(-4px); box-shadow: 0 0 0 3px var(--gold), 0 16px 40px rgba(0,0,0,0.15); }
 
-  .header-cta {
-    padding: 9px 22px;
-    background: var(--ink); color: var(--paper);
-    border: none; border-radius: 100px;
-    font-size: 13px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: background 0.2s, transform 0.15s;
-  }
-  .header-cta:hover { background: #2a2825; transform: translateY(-1px); }
+    .card-inner { padding: 28px 24px 24px; display: flex; flex-direction: column; height: 100%; }
 
-  /* ── HERO ────────────────────────────────────────────────── */
-  .hero {
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center;
-    padding: 120px 24px 80px;
-    position: relative;
-    overflow: hidden;
-  }
+    .card-ielts { background: #1a3a5c; }
+    .card-toefl { background: #3a1a5c; }
+    .card-pte   { background: #1a5c3a; }
+    .card-esl   { background: var(--ink); }
 
-  /* Decorative background grid */
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 60px 60px;
-    opacity: 0.4;
-    z-index: 0;
-  }
+    .course-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 100px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 16px; width: fit-content;
+      background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6);
+    }
+    .card-esl .course-badge { color: var(--gold-light); }
 
-  /* Gold accent blob */
-  .hero::after {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    background: radial-gradient(ellipse, rgba(200,150,62,0.12) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 0;
-    pointer-events: none;
-  }
+    .course-name {
+      font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700;
+      color: #fff; margin-bottom: 4px; line-height: 1.1;
+    }
+    .course-full { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 14px; line-height: 1.4; }
+    .course-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; flex: 1; margin-bottom: 16px; }
 
-  .hero-content { position: relative; z-index: 1; max-width: 720px; }
+    .course-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 20px; }
+    .course-tag {
+      padding: 3px 9px; border-radius: 100px; font-size: 11px;
+      background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.5);
+    }
 
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 7px 16px;
-    background: var(--gold-pale);
-    border: 1px solid rgba(200,150,62,0.3);
-    border-radius: 100px;
-    font-size: 12px; font-weight: 600;
-    color: #8a6020; letter-spacing: 0.5px;
-    margin-bottom: 28px;
-    animation: fadeUp 0.6s ease both;
-  }
-  .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
+    .course-btn {
+      width: 100%; padding: 11px; border-radius: 10px; border: none;
+      font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: all 0.15s;
+      background: rgba(255,255,255,0.12); color: #fff;
+    }
+    .course-btn:hover { background: rgba(255,255,255,0.2); }
+    .card-esl .course-btn { background: var(--gold); color: var(--ink); }
+    .card-esl .course-btn:hover { background: var(--gold-light); }
+    .course-card.selected .course-btn { background: var(--gold); color: var(--ink); }
 
-  .hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(42px, 6vw, 80px);
-    font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -1.5px;
-    margin-bottom: 24px;
-    animation: fadeUp 0.6s ease 0.1s both;
-  }
-  .hero-title em { font-style: italic; color: var(--gold); }
-  .hero-title .line2 { display: block; }
+    .card-deco {
+      position: absolute; bottom: -12px; right: -8px;
+      font-size: 90px; opacity: 0.05; line-height: 1;
+      font-family: serif; pointer-events: none; user-select: none;
+    }
 
-  .hero-sub {
-    font-size: clamp(15px, 2vw, 18px);
-    color: var(--muted);
-    line-height: 1.7;
-    max-width: 480px;
-    margin: 0 auto 40px;
-    font-weight: 300;
-    animation: fadeUp 0.6s ease 0.2s both;
-  }
+    /* ── Login panel ── */
+    .login-wrap {
+      position: relative; z-index: 1;
+      max-width: 440px; margin: 0 auto 60px; padding: 0 20px;
+      display: none;
+    }
+    .login-wrap.visible { display: block; animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
 
-  .hero-actions {
-    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
-    animation: fadeUp 0.6s ease 0.3s both;
-  }
+    .login-panel {
+      background: var(--ink); border-radius: 20px; padding: 32px 36px;
+      position: relative; overflow: hidden;
+    }
 
-  .btn-primary {
-    padding: 14px 32px;
-    background: var(--ink); color: var(--paper);
-    border: none; border-radius: 100px;
-    font-size: 15px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  }
-  .btn-primary:hover { background: #2a2825; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,14,12,0.15); }
+    .course-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 100px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .pill-esl   { background: rgba(200,150,62,0.2); color: var(--gold-light); border: 1px solid rgba(200,150,62,0.3); }
+    .pill-ielts { background: rgba(37,99,168,0.25); color: #93c5fd; border: 1px solid rgba(37,99,168,0.35); }
+    .pill-toefl { background: rgba(107,47,168,0.25); color: #c4b5fd; border: 1px solid rgba(107,47,168,0.35); }
+    .pill-pte   { background: rgba(42,148,101,0.25); color: #86efac; border: 1px solid rgba(42,148,101,0.35); }
 
-  .btn-outline {
-    padding: 14px 28px;
-    background: none; color: var(--ink);
-    border: 1.5px solid var(--border);
-    border-radius: 100px;
-    font-size: 15px; font-weight: 500;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: border-color 0.2s, transform 0.15s;
-  }
-  .btn-outline:hover { border-color: var(--ink); transform: translateY(-2px); }
+    .login-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .login-sub { font-size: 13px; color: rgba(255,255,255,0.38); margin-bottom: 26px; }
 
-  /* ── PLATFORM CARDS ──────────────────────────────────────── */
-  .platforms {
-    padding: 80px 24px 100px;
-    max-width: 1100px; margin: 0 auto;
-  }
+    .role-tabs {
+      display: flex; gap: 2px; background: rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 3px; margin-bottom: 22px;
+    }
+    .role-tab {
+      flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 500;
+      color: rgba(255,255,255,0.38); border-radius: 8px; cursor: pointer;
+      transition: all 0.2s; border: none; background: none; font-family: 'DM Sans', sans-serif;
+    }
+    .role-tab.active { background: var(--gold); color: var(--ink); }
 
-  .section-label {
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 2px; text-transform: uppercase;
-    color: var(--gold); margin-bottom: 12px;
-  }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,0.38); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.11); border-radius: 10px;
+      font-size: 15px; color: #fff; font-family: 'DM Sans', sans-serif;
+      outline: none; transition: border-color 0.2s, background 0.2s;
+    }
+    .form-group input::placeholder { color: rgba(255,255,255,0.18); }
+    .form-group input:focus { border-color: var(--gold); background: rgba(255,255,255,0.1); }
 
-  .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 4vw, 44px);
-    font-weight: 700; line-height: 1.2;
-    margin-bottom: 16px;
-  }
-  .section-title em { font-style: italic; color: var(--muted); }
+    .login-btn {
+      width: 100%; padding: 14px; background: var(--gold); border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--ink);
+      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.2s; margin-top: 4px;
+    }
+    .login-btn:hover { background: var(--gold-light); }
+    .login-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .login-error { color: #e87070; font-size: 13px; margin-top: 10px; display: none; }
 
-  .section-sub {
-    font-size: 15px; color: var(--muted);
-    max-width: 500px; line-height: 1.7;
-    margin-bottom: 48px;
-  }
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 1; border-top: 1px solid var(--border);
+      padding: 18px 48px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .footer-logo { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--muted); }
+    .footer-logo span { color: var(--gold); }
+    .footer-links { display: flex; gap: 18px; }
+    .footer-links a { font-size: 12px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--ink); }
 
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-  }
-
-  .platform-card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    cursor: pointer;
-  }
-
-  .platform-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(15,14,12,0.10);
-    border-color: var(--gold);
-  }
-
-  .platform-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: var(--card-accent, var(--gold));
-    border-radius: 16px 16px 0 0;
-  }
-
-  .platform-card.available::after {
-    content: 'Available';
-    position: absolute; top: 16px; right: 16px;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    padding: 3px 8px; border-radius: 100px;
-    background: #e8f4ea; color: var(--sage);
-    border: 1px solid #b0d8b4;
-  }
-
-  .platform-card.coming-soon::after {
-    content: 'Coming Soon';
-    position: absolute; top: 16px; right: 16px;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    padding: 3px 8px; border-radius: 100px;
-    background: var(--cream); color: var(--muted);
-    border: 1px solid var(--border);
-  }
-
-  .platform-card.coming-soon { opacity: 0.7; cursor: default; }
-  .platform-card.coming-soon:hover { transform: none; box-shadow: none; border-color: var(--border); }
-
-  .card-icon {
-    font-size: 36px; margin-bottom: 16px;
-    display: block;
-  }
-
-  .card-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px; font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .card-desc {
-    font-size: 13px; color: var(--muted);
-    line-height: 1.6; margin-bottom: 20px;
-  }
-
-  .card-tags {
-    display: flex; flex-wrap: wrap; gap: 6px;
-  }
-
-  .tag {
-    font-size: 11px; font-weight: 600;
-    padding: 3px 10px; border-radius: 100px;
-    background: var(--cream); color: var(--muted);
-    border: 1px solid var(--border);
-  }
-
-  /* ── LOGIN MODAL ─────────────────────────────────────────── */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(15,14,12,0.5);
-    backdrop-filter: blur(6px);
-    z-index: 200;
-    align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
-
-  .login-modal {
-    background: var(--paper);
-    border-radius: 20px;
-    padding: 40px;
-    max-width: 420px; width: 100%;
-    box-shadow: 0 24px 80px rgba(15,14,12,0.2);
-    animation: slideUp 0.3s ease;
-    position: relative;
-  }
-
-  .modal-close {
-    position: absolute; top: 16px; right: 20px;
-    background: none; border: none;
-    font-size: 20px; cursor: pointer; color: var(--muted);
-    line-height: 1;
-  }
-
-  .modal-eyebrow {
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 2px; text-transform: uppercase;
-    color: var(--gold); margin-bottom: 8px;
-  }
-
-  .modal-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px; font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .modal-sub {
-    font-size: 13px; color: var(--muted);
-    margin-bottom: 28px; line-height: 1.6;
-  }
-
-  /* Role tabs */
-  .role-tabs {
-    display: flex; gap: 0;
-    background: var(--cream);
-    border-radius: 10px; padding: 4px;
-    margin-bottom: 24px;
-  }
-
-  .role-tab {
-    flex: 1; padding: 9px;
-    border: none; border-radius: 8px;
-    font-size: 13px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    background: none; color: var(--muted);
-    transition: all 0.15s;
-  }
-  .role-tab.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-
-  /* Platform selector */
-  .platform-select-label {
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 0.5px; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 8px; display: block;
-  }
-
-  .platform-pills {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin-bottom: 20px;
-  }
-
-  .platform-pill {
-    padding: 7px 14px;
-    border-radius: 100px;
-    border: 1.5px solid var(--border);
-    background: none; color: var(--muted);
-    font-size: 12px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s;
-  }
-  .platform-pill.selected {
-    border-color: var(--gold);
-    background: var(--gold-pale);
-    color: #8a6020;
-  }
-  .platform-pill.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
-
-  /* Form */
-  .form-group { margin-bottom: 16px; }
-
-  .form-label {
-    display: block;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 0.5px; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 7px;
-  }
-
-  .form-input {
-    width: 100%; padding: 13px 16px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-size: 15px; font-family: 'DM Sans', sans-serif;
-    background: #fff; color: var(--ink);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .form-input:focus { border-color: var(--gold); }
-
-  .login-btn {
-    width: 100%; padding: 14px;
-    background: var(--ink); color: var(--paper);
-    border: none; border-radius: 10px;
-    font-size: 15px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: background 0.2s, transform 0.15s;
-    margin-top: 4px;
-  }
-  .login-btn:hover { background: #2a2825; }
-  .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-  .login-error {
-    display: none;
-    margin-top: 12px; padding: 10px 14px;
-    background: #fdf2f2; border: 1px solid #f5c0c0;
-    border-radius: 8px; font-size: 13px; color: var(--red);
-  }
-
-  /* ── STATS BAR ───────────────────────────────────────────── */
-  .stats-bar {
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    padding: 32px 24px;
-    display: flex; justify-content: center;
-    gap: 0;
-  }
-
-  .stat {
-    text-align: center;
-    padding: 0 48px;
-    border-right: 1px solid var(--border);
-  }
-  .stat:last-child { border-right: none; }
-
-  .stat-num {
-    font-family: 'Playfair Display', serif;
-    font-size: 36px; font-weight: 900;
-    color: var(--ink); line-height: 1;
-    margin-bottom: 4px;
-  }
-  .stat-num em { font-style: italic; color: var(--gold); }
-
-  .stat-label {
-    font-size: 12px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
-  }
-
-  /* ── FOOTER ──────────────────────────────────────────────── */
-  footer {
-    padding: 40px 24px;
-    text-align: center;
-    border-top: 1px solid var(--border);
-  }
-
-  .footer-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px; font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .footer-logo em { font-style: italic; color: var(--gold); }
-
-  .footer-sub {
-    font-size: 12px; color: var(--muted);
-  }
-
-  /* ── ANIMATIONS ──────────────────────────────────────────── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; } to { opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── MOBILE ──────────────────────────────────────────────── */
-  @media (max-width: 640px) {
-    header { padding: 16px 20px; }
-    .platforms { padding: 60px 20px 80px; }
-    .cards-grid { grid-template-columns: 1fr; }
-    .stats-bar { flex-wrap: wrap; gap: 24px; }
-    .stat { border-right: none; padding: 0 24px; }
-    .login-modal { padding: 32px 24px; }
-  }
-</style>
+    @media (max-width: 900px) {
+      header { padding: 14px 20px; }
+      .hero { padding: 40px 20px 28px; }
+      .courses { grid-template-columns: 1fr 1fr; padding: 0 20px 36px; }
+      footer { padding: 14px 20px; }
+    }
+    @media (max-width: 520px) {
+      .courses { grid-template-columns: 1fr; }
+      .login-panel { padding: 24px 20px; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
-  <div class="logo">Teacher <em>Shen</em></div>
-  <button class="header-cta" onclick="openLogin()">Sign In →</button>
+  <div class="logo">Teacher <span>Shain</span></div>
+  <nav class="header-nav">
+    <a href="pages/subtitles.html" target="_blank">字 Subtitles</a>
+    <a href="pages/classroom.html">🎓 Classroom</a>
+    <a href="pages/admin.html">⚙ Admin</a>
+  </nav>
 </header>
 
-<!-- HERO -->
 <section class="hero">
-  <div class="hero-content">
-    <div class="hero-badge">English Learning Platform · Shanghai</div>
-    <h1 class="hero-title">
-      Learn English<br>
-      <em>with Shen</em>
-      <span class="line2">老师</span>
-    </h1>
-    <p class="hero-sub">
-      AI-powered English learning across IELTS, TOEFL, PTE and General English.
-      Your classroom, exams, homework and scores — all in one place.
-    </p>
-    <div class="hero-actions">
-      <button class="btn-primary" onclick="openLogin()">Sign In to Your Platform →</button>
-      <button class="btn-outline" onclick="document.querySelector('.platforms').scrollIntoView({behavior:'smooth'})">Explore Platforms</button>
-    </div>
-  </div>
+  <p class="hero-eyebrow">English Learning Platform</p>
+  <h1>Learn English<br>with <em>Shain</em> 老师</h1>
+  <p class="hero-sub">Choose your course to sign in. Live classes, pronunciation practice, AI feedback, and mock exams — all in one place.</p>
 </section>
 
-<!-- STATS BAR -->
-<div class="stats-bar">
-  <div class="stat">
-    <div class="stat-num"><em>4</em></div>
-    <div class="stat-label">Platforms</div>
+<div class="courses">
+
+  <div class="course-card card-ielts" id="card-ielts" onclick="selectCourse('ielts')">
+    <div class="card-inner">
+      <span class="course-badge">Exam Prep</span>
+      <div class="course-name">IELTS</div>
+      <div class="course-full">International English Language Testing System</div>
+      <div class="course-desc">Full mock exams, band score tracking, and targeted practice across all four sections.</div>
+      <div class="course-tags">
+        <span class="course-tag">🎧 Listening</span>
+        <span class="course-tag">📖 Reading</span>
+        <span class="course-tag">✍️ Writing</span>
+        <span class="course-tag">🎙️ Speaking</span>
+      </div>
+      <button class="course-btn">Sign in to IELTS →</button>
+    </div>
+    <div class="card-deco">I</div>
   </div>
-  <div class="stat">
-    <div class="stat-num">AI</div>
-    <div class="stat-label">Powered Scoring</div>
+
+  <div class="course-card card-toefl" id="card-toefl" onclick="selectCourse('toefl')">
+    <div class="card-inner">
+      <span class="course-badge">Exam Prep</span>
+      <div class="course-name">TOEFL</div>
+      <div class="course-full">Test of English as a Foreign Language</div>
+      <div class="course-desc">Academic English prep with integrated tasks, reading passages, and speaking response practice.</div>
+      <div class="course-tags">
+        <span class="course-tag">📝 Integrated</span>
+        <span class="course-tag">🎙️ Speaking</span>
+        <span class="course-tag">✍️ Essays</span>
+      </div>
+      <button class="course-btn">Sign in to TOEFL →</button>
+    </div>
+    <div class="card-deco">T</div>
   </div>
-  <div class="stat">
-    <div class="stat-num"><em>9</em></div>
-    <div class="stat-label">Max Band Score</div>
+
+  <div class="course-card card-pte" id="card-pte" onclick="selectCourse('pte')">
+    <div class="card-inner">
+      <span class="course-badge">Exam Prep</span>
+      <div class="course-name">PTE</div>
+      <div class="course-full">Pearson Test of English Academic</div>
+      <div class="course-desc">Computer-based exam prep with AI scoring, repeat sentence tasks, and describe image practice.</div>
+      <div class="course-tags">
+        <span class="course-tag">🤖 AI Scored</span>
+        <span class="course-tag">🔊 Pronunciation</span>
+        <span class="course-tag">📊 Analytics</span>
+      </div>
+      <button class="course-btn">Sign in to PTE →</button>
+    </div>
+    <div class="card-deco">P</div>
   </div>
-  <div class="stat">
-    <div class="stat-num">24/7</div>
-    <div class="stat-label">Practice Access</div>
+
+  <div class="course-card card-esl" id="card-esl" onclick="selectCourse('esl')">
+    <div class="card-inner">
+      <span class="course-badge">General English</span>
+      <div class="course-name">ESL</div>
+      <div class="course-full">English as a Second Language</div>
+      <div class="course-desc">General English with pronunciation recording, homework, audio feedback from Shain 老师, and live lessons.</div>
+      <div class="course-tags">
+        <span class="course-tag">🎙️ Pronunciation</span>
+        <span class="course-tag">📝 Homework</span>
+        <span class="course-tag">🏆 Scores</span>
+        <span class="course-tag">🎓 Live Class</span>
+      </div>
+      <button class="course-btn">Sign in to ESL →</button>
+    </div>
+    <div class="card-deco">英</div>
   </div>
+
 </div>
 
-<!-- PLATFORM CARDS -->
-<section class="platforms" id="platforms">
-  <div class="section-label">Our Platforms</div>
-  <h2 class="section-title">Choose your <em>exam path</em></h2>
-  <p class="section-sub">Each platform is purpose-built for its exam type — dedicated content, scoring criteria and exam format.</p>
+<!-- Login panel -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-panel">
+    <div class="course-pill pill-esl" id="coursePill">ESL</div>
+    <h2 class="login-title">Welcome back</h2>
+    <p class="login-sub" id="loginSub">Sign in to your ESL account</p>
 
-  <div class="cards-grid">
-
-    <!-- English -->
-    <div class="platform-card available" style="--card-accent:#c8963e" onclick="openLogin('english')">
-      <span class="card-icon">🗣️</span>
-      <div class="card-name">General English</div>
-      <div class="card-desc">Daily lessons, pronunciation practice, homework and live classroom sessions with Teacher Shen.</div>
-      <div class="card-tags">
-        <span class="tag">Pronunciation</span>
-        <span class="tag">Homework</span>
-        <span class="tag">Live Class</span>
-      </div>
-    </div>
-
-    <!-- IELTS -->
-    <div class="platform-card available" style="--card-accent:#1a6090" onclick="openLogin('ielts')">
-      <span class="card-icon">🎓</span>
-      <div class="card-name">IELTS</div>
-      <div class="card-desc">Full mock exams with AI listening audio, timed sections, AI scoring on writing and speaking, band score tracking.</div>
-      <div class="card-tags">
-        <span class="tag">Academic</span>
-        <span class="tag">General Training</span>
-        <span class="tag">Band 4–9</span>
-      </div>
-    </div>
-
-    <!-- TOEFL -->
-    <div class="platform-card coming-soon" style="--card-accent:#4a6741">
-      <span class="card-icon">📘</span>
-      <div class="card-name">TOEFL</div>
-      <div class="card-desc">Reading, Listening, Speaking and Writing sections with integrated tasks and score reporting.</div>
-      <div class="card-tags">
-        <span class="tag">iBT</span>
-        <span class="tag">Integrated Tasks</span>
-        <span class="tag">Score 0–120</span>
-      </div>
-    </div>
-
-    <!-- PTE -->
-    <div class="platform-card coming-soon" style="--card-accent:#8b5e3c">
-      <span class="card-icon">💻</span>
-      <div class="card-name">PTE Academic</div>
-      <div class="card-desc">Computer-based exam practice with AI scoring on spoken and written English responses.</div>
-      <div class="card-tags">
-        <span class="tag">Computer-Based</span>
-        <span class="tag">AI Scored</span>
-        <span class="tag">Score 10–90</span>
-      </div>
-    </div>
-
-    <!-- ESL -->
-    <div class="platform-card coming-soon" style="--card-accent:#6b4c8f">
-      <span class="card-icon">🌏</span>
-      <div class="card-name">ESL</div>
-      <div class="card-desc">English as a Second Language — foundational skills, grammar, vocabulary and everyday conversation.</div>
-      <div class="card-tags">
-        <span class="tag">Beginner</span>
-        <span class="tag">Intermediate</span>
-        <span class="tag">Grammar</span>
-      </div>
-    </div>
-
-    <!-- Live Subtitles -->
-    <div class="platform-card available" style="--card-accent:#c0392b" onclick="window.open('pages/subtitles.html','_blank')">
-      <span class="card-icon">🎙️</span>
-      <div class="card-name">Live Subtitles</div>
-      <div class="card-desc">Real-time speech recognition with Chinese-English translation for live classroom sessions.</div>
-      <div class="card-tags">
-        <span class="tag">Real-time</span>
-        <span class="tag">EN ↔ 中文</span>
-        <span class="tag">Classroom Tool</span>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-logo">Teacher <em>Shen</em></div>
-  <p class="footer-sub">AI-powered English learning platform · All rights reserved</p>
-</footer>
-
-<!-- LOGIN MODAL -->
-<div class="modal-overlay" id="loginModal">
-  <div class="login-modal">
-    <button class="modal-close" onclick="closeLogin()">✕</button>
-    <div class="modal-eyebrow">Welcome Back</div>
-    <h2 class="modal-title">Sign In</h2>
-    <p class="modal-sub" id="loginSub">Sign in to access your platform.</p>
-
-    <!-- Role tabs -->
     <div class="role-tabs">
-      <button class="role-tab active" id="tabStudent" onclick="setRole('student',this)">Student 学生</button>
-      <button class="role-tab" id="tabTeacher" onclick="setRole('teacher',this)">Teacher 老师</button>
+      <button class="role-tab active" onclick="setRole('student',this)">Student 学生</button>
+      <button class="role-tab" onclick="setRole('teacher',this)">Teacher 老师</button>
     </div>
 
-    <!-- Platform selector (students only) -->
-    <div id="platformSelector">
-      <span class="platform-select-label">Your Platform</span>
-      <div class="platform-pills">
-        <button class="platform-pill selected" id="pill-english" onclick="setPlatform('english',this)">🗣️ English</button>
-        <button class="platform-pill" id="pill-ielts" onclick="setPlatform('ielts',this)">🎓 IELTS</button>
-        <button class="platform-pill disabled">📘 TOEFL</button>
-        <button class="platform-pill disabled">💻 PTE</button>
-        <button class="platform-pill disabled">🌏 ESL</button>
-      </div>
-    </div>
-
-    <!-- Credentials -->
     <div class="form-group">
-      <label class="form-label">Username</label>
-      <input type="text" id="loginUser" class="form-input" placeholder="Enter your username" autocomplete="username">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="your username" autocomplete="username">
     </div>
     <div class="form-group">
-      <label class="form-label">Password</label>
-      <input type="password" id="loginPass" class="form-input" placeholder="••••••••" autocomplete="current-password"
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"
              onkeydown="if(event.key==='Enter') doLogin()">
     </div>
 
     <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
-    <div class="login-error" id="loginError"></div>
+    <p class="login-error" id="loginError"></p>
   </div>
 </div>
 
+<footer>
+  <div class="footer-logo">Teacher <span>Shain</span></div>
+  <div class="footer-links">
+    <a href="pages/subtitles.html" target="_blank">Live Subtitles</a>
+    <a href="pages/classroom.html">Classroom</a>
+    <a href="pages/admin.html">Admin</a>
+  </div>
+</footer>
+
 <script>
-  const WORKER = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
-  const DRIVE_SCRIPT = localStorage.getItem('ts_script') || 'https://script.google.com/macros/s/AKfycbxr0xsR33_BByEG_fEoeuG4lZgMRwVDujbCxpjtuhIile2co8biG4EbM0GHzl9bgAw/exec';
+  const WORKERS = {
+    esl:   'https://teacher-shain.teachershainecontact.workers.dev',
+    ielts: 'https://teacher-shain.teachershainecontact.workers.dev',
+    toefl: 'https://teacher-shain.teachershainecontact.workers.dev',
+    pte:   'https://teacher-shain.teachershainecontact.workers.dev',
+  };
+  const DRIVE_SCRIPT = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
 
+  const COURSES = {
+    esl:   { name:'ESL',   sub:'Sign in to your ESL account',   pill:'pill-esl' },
+    ielts: { name:'IELTS', sub:'Sign in to your IELTS account', pill:'pill-ielts' },
+    toefl: { name:'TOEFL', sub:'Sign in to your TOEFL account', pill:'pill-toefl' },
+    pte:   { name:'PTE',   sub:'Sign in to your PTE account',   pill:'pill-pte' },
+  };
+
+  let selectedCourse = null;
   let currentRole = 'student';
-  let currentPlatform = 'english';
 
-  // ── MODAL ──────────────────────────────────────────────────
-  function openLogin(platform) {
-    if (platform) setPlatformById(platform);
-    document.getElementById('loginModal').classList.add('open');
-    setTimeout(() => document.getElementById('loginUser').focus(), 100);
+  // Auto-redirect if already logged in
+  const _u = (() => { try { return JSON.parse(localStorage.getItem('ts_user')||'{}'); } catch { return {}; } })();
+  if (_u.role === 'teacher') location.href = 'pages/teacher-dashboard.html';
+  else if (_u.role === 'student') {
+    const st = _u.student_type || localStorage.getItem('student_type') || 'esl';
+    if      (st === 'ielts') location.href = 'pages/ielts-student.html';
+    else if (st === 'toefl') location.href = 'pages/toefl-student.html';
+    else if (st === 'pte')   location.href = 'pages/pte-student.html';
+    else                     location.href = 'pages/student-dashboard.html';
   }
 
-  function closeLogin() {
-    document.getElementById('loginModal').classList.remove('open');
+  function selectCourse(course) {
+    selectedCourse = course;
+    const cfg = COURSES[course];
+
+    document.querySelectorAll('.course-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('card-' + course).classList.add('selected');
+
+    const pill = document.getElementById('coursePill');
+    pill.className = 'course-pill ' + cfg.pill;
+    pill.textContent = cfg.name;
+    document.getElementById('loginSub').textContent = cfg.sub;
+    document.getElementById('loginBtn').textContent = 'Sign In to ' + cfg.name + ' →';
     document.getElementById('loginError').style.display = 'none';
-    document.getElementById('loginBtn').textContent = 'Sign In →';
-    document.getElementById('loginBtn').disabled = false;
+
+    const wrap = document.getElementById('loginWrap');
+    wrap.classList.add('visible');
+    setTimeout(() => { wrap.scrollIntoView({ behavior:'smooth', block:'center' }); }, 50);
+    setTimeout(() => document.getElementById('username').focus(), 400);
   }
 
-  // Close on backdrop click
-  document.getElementById('loginModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('loginModal')) closeLogin();
-  });
-
-  // ── ROLE ───────────────────────────────────────────────────
   function setRole(role, el) {
     currentRole = role;
     document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    document.getElementById('platformSelector').style.display = role === 'teacher' ? 'none' : '';
-    document.getElementById('loginSub').textContent = role === 'teacher'
-      ? 'Sign in to your teacher dashboard.'
-      : 'Sign in to access your learning platform.';
   }
 
-  // ── PLATFORM ───────────────────────────────────────────────
-  function setPlatform(platform, el) {
-    currentPlatform = platform;
-    document.querySelectorAll('.platform-pill:not(.disabled)').forEach(p => p.classList.remove('selected'));
-    el.classList.add('selected');
-  }
-
-  function setPlatformById(platform) {
-    currentPlatform = platform;
-    document.querySelectorAll('.platform-pill:not(.disabled)').forEach(p => p.classList.remove('selected'));
-    const pill = document.getElementById('pill-' + platform);
-    if (pill) pill.classList.add('selected');
-  }
-
-  // ── LOGIN ──────────────────────────────────────────────────
   async function doLogin() {
-    const username = document.getElementById('loginUser').value.trim();
-    const password = document.getElementById('loginPass').value;
+    if (!selectedCourse) { selectCourse('esl'); return; }
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
     const errEl = document.getElementById('loginError');
-    const btn = document.getElementById('loginBtn');
-
     errEl.style.display = 'none';
+
     if (!username || !password) {
-      errEl.textContent = 'Please enter your username and password.';
+      errEl.textContent = 'Please enter your username and password';
       errEl.style.display = 'block'; return;
     }
 
+    const btn = document.getElementById('loginBtn');
     btn.textContent = 'Signing in…'; btn.disabled = true;
 
     try {
-      // IELTS students use their own auth endpoint
-      if (currentRole === 'student' && currentPlatform === 'ielts') {
-        const res = await fetch(WORKER + '/ielts/login', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const _t = await res.text(); let data;
-        try { data = JSON.parse(_t); } catch { throw new Error('Server error'); }
-        if (!data.ok) throw new Error('Incorrect username or password');
-        // Save IELTS session
-        localStorage.setItem('ts_worker', WORKER);
-        localStorage.setItem('ts_script', DRIVE_SCRIPT);
-        localStorage.setItem('ielts_student', JSON.stringify(data.student));
-        localStorage.setItem('ielts_login_time', Date.now().toString());
-        window.location.href = 'pages/ielts-student.html';
-        return;
-      }
-
-      // All other logins use main auth
-      const res = await fetch(WORKER + '/login', {
+      const res = await fetch(WORKERS[selectedCourse] + '/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const _t = await res.text(); let data;
-      try { data = JSON.parse(_t); } catch { throw new Error('Server error — check Worker URL'); }
-      if (!data.ok) throw new Error('Incorrect username or password');
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch {
+        errEl.textContent = 'Server error — check Worker URL';
+        errEl.style.display = 'block';
+        btn.textContent = 'Sign In to ' + COURSES[selectedCourse].name + ' →';
+        btn.disabled = false; return;
+      }
+      if (!res.ok || data.error) throw new Error('invalid');
 
       const { role, name, id, student_type } = data.user;
+      const stype = student_type || selectedCourse;
+
       localStorage.setItem('role', role);
       localStorage.setItem('username', username);
       localStorage.setItem('userName', name);
       localStorage.setItem('userId', id);
-      localStorage.setItem('student_type', student_type || currentPlatform);
-      localStorage.setItem('ts_worker', WORKER);
+      localStorage.setItem('student_type', stype);
+      localStorage.setItem('ts_worker', WORKERS[selectedCourse]);
       localStorage.setItem('ts_script', DRIVE_SCRIPT);
-      localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id, student_type: student_type || currentPlatform }));
+      localStorage.setItem('ts_course', selectedCourse);
+      localStorage.setItem('ts_user', JSON.stringify({ role, username, name, id, student_type: stype }));
       localStorage.setItem('ts_login_time', Date.now().toString());
 
-      // Route to correct platform
-      if (role === 'teacher') {
-        window.location.href = 'pages/teacher-dashboard.html';
-      } else if ((student_type || currentPlatform) === 'ielts') {
+      if (role === 'teacher') { location.href = 'pages/teacher-dashboard.html'; return; }
+
+      // Student routing
+      if (stype === 'ielts') {
         localStorage.setItem('ielts_student', JSON.stringify({
-          id: data.user.id, username: data.user.username, name: data.user.name,
+          id, username, name,
           target_band: data.user.target_band || 6.5,
           exam_type: data.user.exam_type || 'academic'
         }));
-        localStorage.setItem('ielts_login_time', Date.now().toString());
-        window.location.href = 'pages/ielts-student.html';
+        location.href = 'pages/ielts-student.html';
+      } else if (stype === 'toefl') {
+        location.href = 'pages/toefl-student.html';
+      } else if (stype === 'pte') {
+        location.href = 'pages/pte-student.html';
       } else {
-        window.location.href = 'pages/student-dashboard.html';
+        location.href = 'pages/student-dashboard.html';
       }
 
-    } catch(e) {
-      errEl.textContent = e.message;
+    } catch {
+      errEl.textContent = 'Incorrect username or password';
       errEl.style.display = 'block';
-      btn.textContent = 'Sign In →'; btn.disabled = false;
+      btn.textContent = 'Sign In to ' + COURSES[selectedCourse].name + ' →';
+      btn.disabled = false;
     }
   }
-
-  // ── CHECK IF ALREADY LOGGED IN ─────────────────────────────
-  window.onload = () => {
-    const user = (() => { try { return JSON.parse(localStorage.getItem('ts_user') || 'null'); } catch { return null; } })();
-    const loginTime = localStorage.getItem('ts_login_time');
-    const TIMEOUT = 8 * 60 * 60 * 1000;
-    if (user && loginTime && Date.now() - parseInt(loginTime) < TIMEOUT) {
-      // Already logged in — redirect
-      if (user.role === 'teacher') {
-        window.location.href = 'pages/teacher-dashboard.html';
-      } else if ((user.student_type || '') === 'ielts') {
-        window.location.href = 'pages/ielts-student.html';
-      } else {
-        window.location.href = 'pages/student-dashboard.html';
-      }
-    }
-  };
 </script>
 </body>
 </html>
