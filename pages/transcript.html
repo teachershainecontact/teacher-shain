@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Transcript — Teacher Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
+      --gold: #c8963e; --gold-light: #e8b96a;
+      --white: #f5f5f5; --muted: #555; --sage: #4a7a41;
+      --red: #c0392b; --border: #222;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--white); display: flex; flex-direction: column; }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 28px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surface);
+    }
+    .logo { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; }
+    .logo span { color: var(--gold); }
+    .nav-pill {
+      padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--muted); font-size: 12px; text-decoration: none;
+      display: flex; align-items: center; gap: 5px; transition: all 0.15s;
+    }
+    .nav-pill:hover { color: var(--gold); border-color: var(--gold); }
+
+    /* ── Record bar ── */
+    .record-bar {
+      display: flex; align-items: center; gap: 20px;
+      padding: 18px 28px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0; background: var(--surface);
+    }
+
+    .rec-btn {
+      width: 68px; height: 68px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--surface2);
+      color: var(--white); font-size: 26px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .rec-btn:hover:not(:disabled) { border-color: var(--gold); }
+    .rec-btn.recording { background: var(--red); border-color: var(--red); animation: pulse 1.5s infinite; }
+    .rec-btn:disabled { opacity: 0.35; cursor: not-allowed; animation: none; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); } 50% { box-shadow: 0 0 0 16px rgba(192,57,43,0); } }
+
+    .rec-info { flex: 1; }
+    .rec-status { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+    .rec-status.live { color: var(--red); }
+    .rec-sub { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    .rec-timer {
+      font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 700;
+      color: var(--gold); min-width: 90px; text-align: right;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .rec-timer.visible { opacity: 1; }
+
+    /* ── Main area ── */
+    .main-area { flex: 1; overflow: hidden; position: relative; }
+
+    /* Idle */
+    .idle-state {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; padding: 40px;
+    }
+    .idle-icon { font-size: 60px; opacity: 0.15; margin-bottom: 20px; }
+    .idle-title { font-size: 22px; color: rgba(255,255,255,0.2); font-weight: 600; margin-bottom: 10px; }
+    .idle-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; max-width: 340px; }
+    .idle-step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; text-align: left;
+    }
+    .idle-step-num {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--surface2);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0;
+    }
+    .idle-step-text { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+    /* Processing */
+    .processing-state {
+      position: absolute; inset: 0; display: none; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; gap: 16px; padding: 40px;
+    }
+    .processing-state.visible { display: flex; }
+    .spinner {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 3px solid var(--border); border-top-color: var(--gold);
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .proc-title { font-size: 18px; font-weight: 600; }
+    .proc-sub { font-size: 13px; color: var(--muted); max-width: 300px; line-height: 1.6; }
+    .proc-steps { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .proc-step { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .proc-step.done { color: var(--sage); }
+    .proc-step.active { color: var(--gold); }
+    .proc-step-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* Transcript result */
+    .result-state {
+      position: absolute; inset: 0; display: none; flex-direction: column;
+      overflow: hidden;
+    }
+    .result-state.visible { display: flex; }
+
+    .result-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 28px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+      background: var(--surface);
+    }
+    .result-badge {
+      padding: 3px 10px; border-radius: 100px; font-size: 11px;
+      font-weight: 700; background: var(--sage); color: #fff; letter-spacing: 0.5px;
+    }
+    .result-meta { font-size: 12px; color: var(--muted); flex: 1; }
+    .result-meta strong { color: rgba(255,255,255,0.6); }
+
+    .result-body { flex: 1; overflow-y: auto; padding: 28px; }
+    .result-body::-webkit-scrollbar { width: 4px; }
+    .result-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    #transcriptText {
+      font-size: 17px; line-height: 1.85; color: rgba(255,255,255,0.82);
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    /* ── Bottom bar ── */
+    .bottom-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 28px; border-top: 1px solid var(--border);
+      flex-shrink: 0; background: var(--surface); flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 9px 18px; border-radius: 9px; font-size: 13px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; transition: all 0.15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-gold { background: var(--gold); color: #000; }
+    .btn-gold:hover:not(:disabled) { background: var(--gold-light); }
+    .btn-outline { background: none; border: 1px solid var(--border); color: rgba(255,255,255,0.6); }
+    .btn-outline:hover:not(:disabled) { border-color: rgba(255,255,255,0.3); color: var(--white); }
+    .btn-drive { background: none; border: 1px solid #4285f4; color: #4285f4; }
+    .btn-drive:hover:not(:disabled) { background: rgba(66,133,244,0.1); }
+    .btn-drive:disabled { opacity: 0.3; }
+
+    .btn-spacer { flex: 1; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #222; color: #fff; padding: 11px 20px;
+      border-radius: 10px; font-size: 13px;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+      .topbar, .record-bar, .bottom-bar { padding-left: 16px; padding-right: 16px; }
+      .result-header, .result-body { padding-left: 16px; padding-right: 16px; }
+      .rec-timer { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Teacher <span>Shain</span> · Class Transcript</div>
+  <a href="subtitles.html" class="nav-pill">字 Live Subtitles</a>
+</div>
+
+<div class="record-bar">
+  <button class="rec-btn" id="recBtn" onclick="toggleRecord()">🎙</button>
+  <div class="rec-info">
+    <div class="rec-status" id="recStatus">Ready to record</div>
+    <div class="rec-sub" id="recSub">Press the button to start recording the full class session.<br>When done, Whisper AI will transcribe everything.</div>
+  </div>
+  <div class="rec-timer" id="recTimer">0:00</div>
+</div>
+
+<div class="main-area">
+
+  <!-- Idle -->
+  <div class="idle-state" id="idleState">
+    <div class="idle-icon">🎓</div>
+    <div class="idle-title">How it works</div>
+    <div class="idle-steps">
+      <div class="idle-step">
+        <div class="idle-step-num">1</div>
+        <div class="idle-step-text">Press record at the start of class</div>
+      </div>
+      <div class="idle-step">
+        <div class="idle-step-num">2</div>
+        <div class="idle-step-text">Teach your class — audio records continuously</div>
+      </div>
+      <div class="idle-step">
+        <div class="idle-step-num">3</div>
+        <div class="idle-step-text">Press stop — Whisper AI transcribes the full session</div>
+      </div>
+      <div class="idle-step">
+        <div class="idle-step-num">4</div>
+        <div class="idle-step-text">Download as .txt or .docx, or save to Google Drive</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Processing -->
+  <div class="processing-state" id="processingState">
+    <div class="spinner"></div>
+    <div class="proc-title">Transcribing your class…</div>
+    <div class="proc-sub">Whisper is processing your audio. This takes about 1 minute per hour of recording.</div>
+    <div class="proc-steps">
+      <div class="proc-step done" id="step1"><span class="proc-step-dot"></span> Audio captured</div>
+      <div class="proc-step active" id="step2"><span class="proc-step-dot"></span> Sending to Whisper AI…</div>
+      <div class="proc-step" id="step3"><span class="proc-step-dot"></span> Building transcript</div>
+      <div class="proc-step" id="step4"><span class="proc-step-dot"></span> Ready to download</div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-state" id="resultState">
+    <div class="result-header">
+      <span class="result-badge">✓ Transcript Ready</span>
+      <span class="result-meta" id="resultMeta"></span>
+      <button class="btn btn-outline" style="font-size:12px;padding:6px 12px" onclick="newSession()">+ New Session</button>
+    </div>
+    <div class="result-body">
+      <div id="transcriptText"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-bar" id="bottomBar">
+  <button class="btn btn-gold" id="btnTxt" onclick="downloadTxt()" disabled>⬇ Download .txt</button>
+  <button class="btn btn-outline" id="btnDocx" onclick="downloadDocx()" disabled>⬇ Download .docx</button>
+  <span class="btn-spacer"></span>
+  <button class="btn btn-drive" id="btnDrive" onclick="saveToDrive()" disabled title="Google Drive — coming soon">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4.433 22l-2.433-4.214 5.5-9.526 2.433 4.214zm4.567 0l2.433-4.214h11l-2.433 4.214zm5.067-8.428l-2.433-4.214 4.567-7.858h4.866l-4.567 7.858z"/></svg>
+    Save to Drive
+  </button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const WORKER = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isRecording = false;
+  let timerInterval = null;
+  let seconds = 0;
+  let transcriptResult = '';
+  let sessionDate = '';
+
+  function toggleRecord() {
+    if (isRecording) stopRecording();
+    else startRecording();
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+                     : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+                     : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4'
+                     : '';
+
+      mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); processAudio(); };
+
+      // Collect chunks every 10s so we don't lose data on long sessions
+      mediaRecorder.start(10000);
+      isRecording = true;
+      sessionDate = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+      document.getElementById('recBtn').classList.add('recording');
+      document.getElementById('recBtn').textContent = '⏹';
+      document.getElementById('recStatus').textContent = 'Recording…';
+      document.getElementById('recStatus').classList.add('live');
+      document.getElementById('recSub').textContent = 'Class is being recorded. Press stop when finished.';
+      document.getElementById('recTimer').classList.add('visible');
+      document.getElementById('idleState').style.display = 'none';
+
+      seconds = 0;
+      timerInterval = setInterval(() => {
+        seconds++;
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        document.getElementById('recTimer').textContent = h > 0
+          ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+          : `${m}:${String(s).padStart(2,'0')}`;
+      }, 1000);
+
+    } catch(e) {
+      alert('Microphone access denied. Please allow microphone access and try again.');
+    }
+  }
+
+  function stopRecording() {
+    clearInterval(timerInterval);
+    isRecording = false;
+    mediaRecorder.stop();
+
+    document.getElementById('recBtn').disabled = true;
+    document.getElementById('recBtn').classList.remove('recording');
+    document.getElementById('recBtn').textContent = '🎙';
+    document.getElementById('recStatus').textContent = 'Processing…';
+    document.getElementById('recStatus').classList.remove('live');
+    document.getElementById('recSub').textContent = 'Sending audio to Whisper for transcription…';
+    document.getElementById('recTimer').classList.remove('visible');
+  }
+
+  async function processAudio() {
+    // Show processing state
+    document.getElementById('processingState').classList.add('visible');
+
+    const mimeType = audioChunks[0]?.type || 'audio/webm';
+    const ext = mimeType.includes('mp4') ? 'm4a' : 'webm';
+    const blob = new Blob(audioChunks, { type: mimeType });
+
+    const durationSecs = seconds;
+    const durationLabel = formatDuration(durationSecs);
+
+    try {
+      setStep(2, 'active');
+
+      const formData = new FormData();
+      formData.append('audio', blob, `class-recording.${ext}`);
+
+      const res = await fetch(WORKER + '/ai/transcribe', { method: 'POST', body: formData });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch(e) { throw new Error('Transcription server error: ' + text.slice(0, 120)); }
+      if (!data.ok) throw new Error(data.error || 'Transcription failed');
+
+      setStep(2, 'done');
+      setStep(3, 'active');
+
+      transcriptResult = data.transcript || '';
+
+      // Build formatted transcript
+      const formatted = formatTranscript(transcriptResult, sessionDate, durationLabel);
+
+      setStep(3, 'done');
+      setStep(4, 'done');
+
+      await new Promise(r => setTimeout(r, 600));
+
+      // Show result
+      document.getElementById('processingState').classList.remove('visible');
+      document.getElementById('resultState').classList.add('visible');
+
+      const wordCount = transcriptResult.trim().split(/\s+/).length;
+      document.getElementById('resultMeta').innerHTML = `<strong>${sessionDate}</strong> · ${durationLabel} · ${wordCount.toLocaleString()} words`;
+      document.getElementById('transcriptText').textContent = formatted;
+
+      // Enable download buttons
+      document.getElementById('btnTxt').disabled = false;
+      document.getElementById('btnDocx').disabled = false;
+      document.getElementById('btnDrive').disabled = false;
+
+      // Reset record bar
+      document.getElementById('recBtn').disabled = false;
+      document.getElementById('recStatus').textContent = 'Recording complete';
+      document.getElementById('recSub').textContent = 'Download your transcript below, or start a new session.';
+
+    } catch(e) {
+      document.getElementById('processingState').classList.remove('visible');
+      document.getElementById('idleState').style.display = '';
+      document.getElementById('recBtn').disabled = false;
+      document.getElementById('recStatus').textContent = 'Transcription failed';
+      document.getElementById('recSub').textContent = e.message;
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  function formatTranscript(text, date, duration) {
+    return `CLASS TRANSCRIPT\n================\nDate: ${date}\nDuration: ${duration}\n\n${text}`;
+  }
+
+  function formatDuration(secs) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  function setStep(num, state) {
+    const el = document.getElementById('step' + num);
+    if (!el) return;
+    el.className = 'proc-step ' + state;
+  }
+
+  /* ── Downloads ── */
+  function downloadTxt() {
+    const content = document.getElementById('transcriptText').textContent;
+    const filename = `transcript-${new Date().toISOString().slice(0,10)}.txt`;
+    downloadFile(content, filename, 'text/plain');
+  }
+
+  function downloadDocx() {
+    // Build a minimal but valid .docx using a data URI approach via HTML → Blob
+    // We use the docx structure to embed text — works in Word and Google Docs
+    const content = document.getElementById('transcriptText').textContent;
+    const lines = content.split('\n');
+
+    const paragraphs = lines.map(line => {
+      if (line.startsWith('CLASS TRANSCRIPT')) {
+        return `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="36"/></w:rPr><w:t>${escXml(line)}</w:t></w:r></w:p>`;
+      } else if (line.startsWith('===') || line.startsWith('---')) {
+        return `<w:p><w:r><w:rPr><w:color w:val="999999"/></w:rPr><w:t>${escXml(line)}</w:t></w:r></w:p>`;
+      } else if (line === '') {
+        return `<w:p><w:r><w:t></w:t></w:r></w:p>`;
+      } else {
+        return `<w:p><w:r><w:t xml:space="preserve">${escXml(line)}</w:t></w:r></w:p>`;
+      }
+    }).join('');
+
+    const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <w:body>
+    ${paragraphs}
+    <w:sectPr>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+
+    // Build minimal .docx zip structure using JSZip from CDN
+    buildAndDownloadDocx(docXml);
+  }
+
+  async function buildAndDownloadDocx(docXml) {
+    // Load JSZip if not loaded
+    if (typeof JSZip === 'undefined') {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    }
+
+    const zip = new JSZip();
+
+    zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+
+    zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+
+    zip.file('word/document.xml', docXml);
+
+    zip.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+</Relationships>`);
+
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const filename = `transcript-${new Date().toISOString().slice(0,10)}.docx`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('✓ .docx downloaded');
+  }
+
+  function downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('✓ ' + filename + ' downloaded');
+  }
+
+  function escXml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  /* ── Drive (placeholder — wired up during Apps Script pass) ── */
+  function saveToDrive() {
+    showToast('Google Drive integration coming soon');
+  }
+
+  function newSession() {
+    transcriptResult = '';
+    document.getElementById('resultState').classList.remove('visible');
+    document.getElementById('idleState').style.display = '';
+    document.getElementById('recStatus').textContent = 'Ready to record';
+    document.getElementById('recSub').textContent = 'Press the button to start recording the full class session.\nWhen done, Whisper AI will transcribe everything.';
+    document.getElementById('btnTxt').disabled = true;
+    document.getElementById('btnDocx').disabled = true;
+    document.getElementById('btnDrive').disabled = true;
+    // Reset steps
+    ['step1','step2','step3','step4'].forEach((id,i) => {
+      document.getElementById(id).className = 'proc-step' + (i === 0 ? ' done' : '');
+    });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 3000);
+  }
+</script>
+</body>
+</html>

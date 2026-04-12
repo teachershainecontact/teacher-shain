@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOEFL iBT Practice Exam — Teacher Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c; --paper: #faf8f4; --cream: #f2ede4;
+      --gold: #c8963e; --gold-light: #e8b96a; --red: #c0392b;
+      --sage: #4a6741; --muted: #8a8070; --border: #ddd8ce;
+      --toefl: #3a1a5c; --toefl-mid: #5a2a8c;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+    /* ── Exam bar ── */
+    .exam-bar {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--toefl); padding: 12px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .exam-title-bar { font-size: 14px; font-weight: 600; color: #fff; }
+    .section-badge {
+      padding: 3px 12px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    }
+    .badge-reading   { background: rgba(74,103,65,0.35); color: #8dba7e; border: 1px solid rgba(74,103,65,0.4); }
+    .badge-listening { background: rgba(26,96,144,0.35); color: #7ab8d8; border: 1px solid rgba(26,96,144,0.4); }
+    .badge-speaking  { background: rgba(192,57,43,0.35); color: #e87a6a; border: 1px solid rgba(192,57,43,0.4); }
+    .badge-writing   { background: rgba(200,150,62,0.35); color: var(--gold-light); border: 1px solid rgba(200,150,62,0.4); }
+
+    .timer-wrap { display: flex; align-items: center; gap: 10px; }
+    .timer-label { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .timer { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; min-width: 70px; text-align: right; }
+    .timer.warning { color: #e87070; animation: pulse-t 1s infinite; }
+    @keyframes pulse-t { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+    .section-progress { height: 3px; background: rgba(255,255,255,0.1); }
+    .section-progress-fill { height: 100%; background: var(--gold); transition: width 0.5s; }
+
+    /* ── Screens ── */
+    .section-screen { display: none; max-width: 820px; margin: 0 auto; padding: 28px 24px; }
+    .section-screen.active { display: block; }
+
+    .section-header-box { background: var(--toefl); color: #fff; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; }
+    .section-header-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .section-header-sub { font-size: 13px; color: rgba(255,255,255,0.55); }
+
+    /* Intro */
+    .intro-title { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+    .intro-title span { color: var(--gold); }
+    .intro-sub { font-size: 15px; color: var(--muted); margin-bottom: 32px; line-height: 1.7; }
+    .section-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+    .overview-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+    .overview-card-icon { font-size: 24px; margin-bottom: 8px; }
+    .overview-card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .overview-card-meta { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .warning-box { background: #fff8e6; border: 1px solid #f0d080; border-radius: 12px; padding: 14px 18px; font-size: 13px; color: #b07800; margin-bottom: 24px; }
+    .start-btn { padding: 14px 32px; background: var(--toefl); color: #fff; border-radius: 12px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    .start-btn:hover { background: var(--toefl-mid); }
+
+    /* Questions */
+    .passage-box { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; font-size: 15px; line-height: 1.8; color: var(--ink); }
+    .passage-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .questions-box { display: flex; flex-direction: column; gap: 20px; }
+    .question-block { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+    .question-text { font-size: 14px; font-weight: 500; margin-bottom: 14px; line-height: 1.6; }
+    .option-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 6px; border: 1px solid transparent; transition: all 0.15s; }
+    .option-row:hover { background: var(--cream); border-color: var(--border); }
+    .option-row.selected { background: #e8f0fe; border-color: #7ab8d8; }
+    .option-letter { width: 24px; height: 24px; border-radius: 50%; background: var(--cream); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .option-row.selected .option-letter { background: var(--toefl); color: #fff; border-color: var(--toefl); }
+    .option-text { font-size: 14px; line-height: 1.5; padding-top: 2px; }
+
+    /* Writing */
+    .writing-prompt { background: #fff8e6; border: 1px solid #f0d080; border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; font-size: 14px; line-height: 1.7; }
+    .writing-prompt-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .writing-area { width: 100%; padding: 16px; background: #fff; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-family: 'DM Sans', sans-serif; line-height: 1.7; resize: vertical; min-height: 200px; outline: none; }
+    .writing-area:focus { border-color: var(--gold); }
+    .word-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 6px; }
+
+    /* Speaking */
+    .speaking-task { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+    .speaking-task-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .speaking-task-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .speaking-task-prompt { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+    .prep-timer-box { background: var(--toefl); border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; display: none; }
+    .prep-timer-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+    .prep-timer-val { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold); }
+    .record-section { text-align: center; padding: 16px 0; }
+    .record-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--ink); border: 2px solid var(--border); color: #fff; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; transition: all 0.2s; }
+    .record-btn:hover { border-color: var(--gold); }
+    .record-btn.recording { background: var(--red); border-color: var(--red); animation: pulse-r 1s infinite; }
+    @keyframes pulse-r { 0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); } 50% { box-shadow: 0 0 0 14px rgba(192,57,43,0); } }
+    .record-hint { font-size: 13px; color: var(--muted); }
+    .record-timer-display { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--red); margin-top: 6px; display: none; }
+
+    /* Listening */
+    .audio-state { text-align: center; padding: 32px 20px; }
+    .audio-icon { font-size: 48px; margin-bottom: 12px; }
+    .audio-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .audio-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+    /* Nav buttons */
+    .nav-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .btn { padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .btn-gold { background: var(--gold); color: var(--ink); }
+    .btn-gold:hover { background: var(--gold-light); }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--ink); }
+    .btn-outline:hover { background: var(--cream); }
+
+    /* Complete screen */
+    .complete-screen { max-width: 560px; margin: 60px auto; padding: 0 24px; text-align: center; }
+    .complete-icon { font-size: 64px; margin-bottom: 20px; }
+    .complete-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .complete-sub { font-size: 15px; color: var(--muted); margin-bottom: 32px; line-height: 1.7; }
+    .score-preview { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 28px; }
+    .sp-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px 10px; text-align: center; }
+    .sp-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .sp-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--sage); }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
+
+    @media (max-width: 600px) {
+      .section-overview { grid-template-columns: 1fr; }
+      .score-preview { grid-template-columns: repeat(2,1fr); }
+      .exam-bar { padding: 10px 16px; }
+      .section-screen { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Exam bar -->
+<div class="exam-bar" id="examBar" style="display:none">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="exam-title-bar">TOEFL iBT Practice</div>
+    <span class="section-badge" id="sectionBadge"></span>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-label">Time Remaining</div>
+    <div class="timer" id="timerDisplay">—</div>
+  </div>
+</div>
+<div class="section-progress" id="progressBar" style="display:none">
+  <div class="section-progress-fill" id="progressFill" style="width:0%"></div>
+</div>
+
+<!-- 5-min warning -->
+<div id="fiveMinWarning" style="display:none;background:#fff8e6;border-bottom:1px solid #f0d080;padding:10px 24px;text-align:center;font-size:13px;color:#b07800;font-weight:600">
+  ⏰ 5 minutes remaining in this section!
+</div>
+
+<!-- ── INTRO SCREEN ── -->
+<div class="section-screen active" id="screen-intro" style="max-width:820px;margin:0 auto;padding:40px 24px">
+  <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:16px">TOEFL iBT Practice Test</p>
+  <h1 class="intro-title">TOEFL <span>Practice Exam</span></h1>
+  <p class="intro-sub" id="introSubText">Loading exam details…</p>
+
+  <div class="section-overview" id="sectionOverview">
+    <div class="overview-card"><div class="overview-card-icon">📖</div><div class="overview-card-title">Reading</div><div class="overview-card-meta">3 passages · 30 questions · 54 min</div></div>
+    <div class="overview-card"><div class="overview-card-icon">🎧</div><div class="overview-card-title">Listening</div><div class="overview-card-meta">2 lectures + 2 conversations · 41 min</div></div>
+    <div class="overview-card"><div class="overview-card-icon">🎙️</div><div class="overview-card-title">Speaking</div><div class="overview-card-meta">4 tasks · 17 min · AI scored</div></div>
+    <div class="overview-card"><div class="overview-card-icon">✍️</div><div class="overview-card-title">Writing</div><div class="overview-card-meta">2 tasks · 50 min</div></div>
+  </div>
+
+  <div class="warning-box">⚠️ Once you start, the timer cannot be paused. Complete all sections in order. Allow microphone access for speaking tasks.</div>
+  <button class="start-btn" id="startBtn" onclick="startExam()">Begin Exam →</button>
+</div>
+
+<!-- ── READING SECTION ── -->
+<div class="section-screen" id="screen-reading">
+  <div class="section-header-box">
+    <div class="section-header-title">📖 Reading</div>
+    <div class="section-header-sub">Read each passage carefully and answer the questions. You may refer back to the passage at any time.</div>
+  </div>
+  <div id="readingContent"></div>
+  <div class="nav-buttons">
+    <button class="btn btn-gold" onclick="submitReading()">Save & Continue to Listening →</button>
+  </div>
+</div>
+
+<!-- ── LISTENING SECTION ── -->
+<div class="section-screen" id="screen-listening">
+  <div class="section-header-box">
+    <div class="section-header-title">🎧 Listening</div>
+    <div class="section-header-sub">Listen to each lecture or conversation, then answer the questions. Audio plays once only.</div>
+  </div>
+
+  <div id="audioReadyState" class="audio-state">
+    <div class="audio-icon">🎧</div>
+    <div class="audio-title">Ready to begin Listening section</div>
+    <div class="audio-sub">Audio will be generated using text-to-speech. Answer questions after each track.</div>
+    <button class="btn btn-gold" onclick="startListening()">Start Listening →</button>
+  </div>
+
+  <div id="audioPlayingState" style="display:none" class="audio-state">
+    <div class="audio-icon" id="listeningIcon">🔊</div>
+    <div class="audio-title" id="listeningTrackTitle">Playing audio…</div>
+    <div class="audio-sub" id="listeningTrackSub">Listen carefully. Questions will appear when audio finishes.</div>
+    <div style="margin-top:16px;font-size:13px;color:var(--muted)" id="listeningProgress"></div>
+  </div>
+
+  <div id="listeningQuestionsState" style="display:none">
+    <div class="questions-box" id="listeningQuestions"></div>
+    <div class="nav-buttons">
+      <button class="btn btn-gold" id="listeningNextBtn" onclick="nextListeningTrack()">Next Track →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SPEAKING SECTION ── -->
+<div class="section-screen" id="screen-speaking">
+  <div class="section-header-box">
+    <div class="section-header-title">🎙️ Speaking</div>
+    <div class="section-header-sub">You have preparation time before each response. Speak clearly into your microphone.</div>
+  </div>
+  <div id="speakingContent"></div>
+  <div class="nav-buttons" id="speakingNavBtn" style="display:none">
+    <button class="btn btn-gold" onclick="submitSpeaking()">Save & Continue to Writing →</button>
+  </div>
+</div>
+
+<!-- ── WRITING SECTION ── -->
+<div class="section-screen" id="screen-writing">
+  <div class="section-header-box">
+    <div class="section-header-title">✍️ Writing</div>
+    <div class="section-header-sub">Task 1: Integrated — read a passage, listen to a lecture, then write your response. Task 2: Independent essay.</div>
+  </div>
+
+  <div style="margin-bottom:28px">
+    <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Task 1 — Integrated Writing (20 min)</div>
+    <div class="writing-prompt" id="writingTask1Prompt"></div>
+    <textarea class="writing-area" id="writingTask1" placeholder="Write your integrated response here (150–225 words)…" oninput="updateWordCount('writingTask1','wc1')"></textarea>
+    <div class="word-count">Words: <span id="wc1">0</span> / recommended: 150–225</div>
+  </div>
+
+  <div>
+    <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Task 2 — Independent Writing (30 min)</div>
+    <div class="writing-prompt" id="writingTask2Prompt"></div>
+    <textarea class="writing-area" id="writingTask2" placeholder="Write your independent essay here (300+ words)…" oninput="updateWordCount('writingTask2','wc2')" style="min-height:260px"></textarea>
+    <div class="word-count">Words: <span id="wc2">0</span> / recommended: 300+</div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-gold" onclick="submitWriting()">Submit Exam →</button>
+  </div>
+</div>
+
+<!-- ── COMPLETE SCREEN ── -->
+<div class="section-screen" id="screen-complete">
+  <div class="complete-screen">
+    <div class="complete-icon">🎉</div>
+    <div class="complete-title">Exam Submitted!</div>
+    <div class="complete-sub">Your TOEFL practice test has been submitted. Reading and Listening are auto-scored. Speaking and Writing will be reviewed by your teacher.</div>
+    <div class="score-preview" id="scorePreview"></div>
+    <a href="toefl-student.html" class="start-btn" style="display:inline-block;text-decoration:none;margin-right:10px">← Back to TOEFL Portal</a>
+    <a href="student-dashboard.html" class="btn btn-outline" style="display:inline-block;text-decoration:none">Dashboard</a>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  const params = new URLSearchParams(location.search);
+  const examId = params.get('exam_id');
+  const studentId = params.get('student_id');
+
+  let examData = null;
+  let submissionId = null;
+  let currentSection = 'intro';
+  let timerInterval = null;
+  let timerSeconds = 0;
+  let answers = {};
+  let speakingBlobs = {};
+  let autoSaveInterval = null;
+
+  // Listening state
+  let listeningTracks = [];
+  let currentTrack = 0;
+  let speechSynth = window.speechSynthesis;
+
+  // Speaking state
+  let speakingTasks = [];
+  let currentSpeakTask = 0;
+  let speakMediaRecorder = null;
+  let speakChunks = [];
+  let speakRecInterval = null;
+  let speakRecSeconds = 0;
+  let prepTimerInterval = null;
+
+  // ── INIT ──────────────────────────────────────────────────
+  window.onload = async () => {
+    const raw = localStorage.getItem('ts_user');
+    if (!raw) { location.href = '../index.html'; return; }
+    if (!examId) { alert('No exam ID found.'); history.back(); return; }
+    await loadExam();
+  };
+
+  async function loadExam() {
+    try {
+      const res = await fetch(W + '/toefl/exams/' + examId);
+      if (!res.ok) throw new Error('Could not load exam');
+      examData = await res.json();
+
+      // Create or resume submission
+      const subRes = await fetch(W + '/toefl/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exam_id: examId, student_id: studentId })
+      });
+      const subData = await subRes.json();
+      submissionId = subData.submission_id;
+
+      // Restore any saved answers
+      const saved = localStorage.getItem('toefl_answers_' + submissionId);
+      if (saved) answers = JSON.parse(saved);
+
+      document.getElementById('introSubText').textContent =
+        `${examData.title} · TOEFL iBT · Approx. ${examData.duration || 210} minutes`;
+
+      startAutoSave();
+    } catch(e) {
+      alert('Could not load exam: ' + e.message);
+      history.back();
+    }
+  }
+
+  function startExam() {
+    document.getElementById('examBar').style.display = '';
+    document.getElementById('progressBar').style.display = '';
+    showSection('reading');
+  }
+
+  function showSection(name) {
+    currentSection = name;
+    document.querySelectorAll('.section-screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    window.scrollTo(0, 0);
+
+    const badge = document.getElementById('sectionBadge');
+    const times = { reading: 3240, listening: 2460, speaking: 1020, writing: 3000 };
+    const labels = { reading: '📖 READING', listening: '🎧 LISTENING', speaking: '🎙️ SPEAKING', writing: '✍️ WRITING' };
+    const progress = { reading: 0, listening: 25, speaking: 50, writing: 75, complete: 100 };
+
+    if (name !== 'intro' && name !== 'complete') {
+      badge.textContent = labels[name] || name.toUpperCase();
+      badge.className = 'section-badge badge-' + name;
+      document.getElementById('progressFill').style.width = progress[name] + '%';
+      clearInterval(timerInterval);
+      startTimer(times[name] || 3600, name);
+    }
+
+    if (name === 'reading') buildReading();
+    if (name === 'listening') buildListening();
+    if (name === 'speaking') buildSpeaking();
+    if (name === 'writing') buildWriting();
+    if (name === 'complete') {
+      document.getElementById('examBar').style.display = 'none';
+      document.getElementById('progressBar').style.display = 'none';
+      clearInterval(timerInterval);
+      clearInterval(autoSaveInterval);
+      document.getElementById('progressFill').style.width = '100%';
+    }
+  }
+
+  // ── TIMER ────────────────────────────────────────────────
+  function startTimer(seconds, section) {
+    timerSeconds = seconds;
+    document.getElementById('fiveMinWarning').style.display = 'none';
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds === 300) document.getElementById('fiveMinWarning').style.display = '';
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        autoAdvance(section);
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const el = document.getElementById('timerDisplay');
+    const m = Math.floor(timerSeconds / 60), s = timerSeconds % 60;
+    el.textContent = m + ':' + String(s).padStart(2, '0');
+    el.classList.toggle('warning', timerSeconds <= 300);
+  }
+
+  function autoAdvance(section) {
+    document.getElementById('fiveMinWarning').style.display = 'none';
+    if (section === 'reading') submitReading();
+    else if (section === 'listening') submitListening();
+    else if (section === 'speaking') submitSpeaking();
+    else if (section === 'writing') submitWriting();
+  }
+
+  // ── AUTO SAVE ────────────────────────────────────────────
+  function startAutoSave() {
+    autoSaveInterval = setInterval(() => {
+      if (submissionId) localStorage.setItem('toefl_answers_' + submissionId, JSON.stringify(answers));
+    }, 30000);
+  }
+
+  // ── READING ──────────────────────────────────────────────
+  function buildReading() {
+    if (!examData?.sections?.reading) return;
+    const el = document.getElementById('readingContent');
+    el.innerHTML = examData.sections.reading.passages?.map((p, pi) => `
+      <div style="margin-bottom:32px">
+        <div class="passage-box">
+          <div class="passage-title">${p.title || 'Passage ' + (pi+1)}</div>
+          <div>${(p.text || '').replace(/\n/g, '<br>')}</div>
+        </div>
+        <div class="questions-box">
+          ${(p.questions || []).map((q, qi) => buildQuestion(q, `r_${pi}_${qi}`)).join('')}
+        </div>
+      </div>`).join('') || '<div style="padding:40px;text-align:center;color:var(--muted)">Reading content not available.</div>';
+  }
+
+  // ── LISTENING ────────────────────────────────────────────
+  function buildListening() {
+    if (!examData?.sections?.listening) return;
+    listeningTracks = examData.sections.listening.tracks || [];
+    currentTrack = 0;
+  }
+
+  function startListening() {
+    document.getElementById('audioReadyState').style.display = 'none';
+    document.getElementById('audioPlayingState').style.display = '';
+    playTrack(currentTrack);
+  }
+
+  function playTrack(idx) {
+    if (idx >= listeningTracks.length) {
+      submitListening(); return;
+    }
+    const track = listeningTracks[idx];
+    document.getElementById('listeningTrackTitle').textContent = track.title || 'Track ' + (idx+1);
+    document.getElementById('listeningTrackSub').textContent = track.type === 'lecture' ? 'Academic lecture — listen carefully.' : 'Conversation between two people.';
+    document.getElementById('listeningProgress').textContent = `Track ${idx+1} of ${listeningTracks.length}`;
+
+    if (speechSynth && track.text) {
+      speechSynth.cancel();
+      const utt = new SpeechSynthesisUtterance(track.text);
+      utt.rate = 0.92; utt.pitch = 1;
+      utt.onend = () => showTrackQuestions(idx);
+      speechSynth.speak(utt);
+    } else {
+      setTimeout(() => showTrackQuestions(idx), 2000);
+    }
+  }
+
+  function showTrackQuestions(idx) {
+    const track = listeningTracks[idx];
+    document.getElementById('audioPlayingState').style.display = 'none';
+    document.getElementById('listeningQuestionsState').style.display = '';
+    const el = document.getElementById('listeningQuestions');
+    el.innerHTML = (track.questions || []).map((q, qi) => buildQuestion(q, `l_${idx}_${qi}`)).join('');
+    const btn = document.getElementById('listeningNextBtn');
+    btn.textContent = idx + 1 < listeningTracks.length ? 'Next Track →' : 'Finish Listening →';
+  }
+
+  function nextListeningTrack() {
+    currentTrack++;
+    if (currentTrack >= listeningTracks.length) { submitListening(); return; }
+    document.getElementById('listeningQuestionsState').style.display = 'none';
+    document.getElementById('audioPlayingState').style.display = '';
+    playTrack(currentTrack);
+  }
+
+  // ── SPEAKING ─────────────────────────────────────────────
+  function buildSpeaking() {
+    if (!examData?.sections?.speaking) return;
+    speakingTasks = examData.sections.speaking.tasks || [];
+    currentSpeakTask = 0;
+    renderSpeakTask(0);
+  }
+
+  function renderSpeakTask(idx) {
+    if (idx >= speakingTasks.length) {
+      document.getElementById('speakingNavBtn').style.display = '';
+      return;
+    }
+    const task = speakingTasks[idx];
+    const el = document.getElementById('speakingContent');
+    el.innerHTML = `
+      <div class="speaking-task" id="speakTask_${idx}">
+        <div class="speaking-task-label">Task ${idx+1} of ${speakingTasks.length} · ${task.type || 'Speaking'}</div>
+        <div class="speaking-task-title">${task.title || ''}</div>
+        <div class="speaking-task-prompt">${task.prompt || ''}</div>
+        ${task.passage ? `<div class="writing-prompt" style="margin-bottom:16px"><div class="writing-prompt-label">Reading Passage</div>${task.passage}</div>` : ''}
+        <div class="prep-timer-box" id="prepBox_${idx}">
+          <div class="prep-timer-label">Preparation Time</div>
+          <div class="prep-timer-val" id="prepVal_${idx}">0:${String(task.prep_time || 15).padStart(2,'0')}</div>
+        </div>
+        <div class="record-section">
+          <button class="record-btn" id="recBtn_${idx}" onclick="toggleSpeakRecord(${idx})">🎙</button>
+          <div class="record-hint" id="recHint_${idx}">Press to start prep time</div>
+          <div class="record-timer-display" id="recTimer_${idx}">0:00</div>
+        </div>
+        ${speakingBlobs[idx] ? `<div style="color:var(--sage);font-size:13px;text-align:center;margin-top:8px">✓ Response recorded</div>` : ''}
+      </div>`;
+  }
+
+  function toggleSpeakRecord(idx) {
+    if (speakMediaRecorder && speakMediaRecorder.state !== 'inactive') {
+      stopSpeakRecording(idx);
+    } else {
+      startPrepTime(idx);
+    }
+  }
+
+  function startPrepTime(idx) {
+    const task = speakingTasks[idx];
+    const prepSecs = task.prep_time || 15;
+    document.getElementById('prepBox_' + idx).style.display = '';
+    document.getElementById('recHint_' + idx).textContent = 'Preparing…';
+    let left = prepSecs;
+    document.getElementById('prepVal_' + idx).textContent = '0:' + String(left).padStart(2,'0');
+    prepTimerInterval = setInterval(() => {
+      left--;
+      document.getElementById('prepVal_' + idx).textContent = '0:' + String(left).padStart(2,'0');
+      if (left <= 0) { clearInterval(prepTimerInterval); startSpeakRecording(idx); }
+    }, 1000);
+  }
+
+  async function startSpeakRecording(idx) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      speakChunks = [];
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+      speakMediaRecorder = new MediaRecorder(stream, { mimeType });
+      speakMediaRecorder.ondataavailable = e => { if (e.data.size > 0) speakChunks.push(e.data); };
+      speakMediaRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        speakingBlobs[idx] = new Blob(speakChunks, { type: mimeType });
+        document.getElementById('recBtn_' + idx).textContent = '✓';
+        document.getElementById('recBtn_' + idx).classList.remove('recording');
+        document.getElementById('recHint_' + idx).textContent = '✓ Recorded — moving to next task';
+        clearInterval(speakRecInterval);
+        setTimeout(() => {
+          currentSpeakTask++;
+          renderSpeakTask(currentSpeakTask);
+        }, 1200);
+      };
+      speakMediaRecorder.start();
+      const maxTime = (speakingTasks[idx]?.response_time || 45);
+      speakRecSeconds = 0;
+      document.getElementById('recBtn_' + idx).classList.add('recording');
+      document.getElementById('recBtn_' + idx).textContent = '⏹';
+      document.getElementById('recHint_' + idx).textContent = 'Recording… tap to stop';
+      document.getElementById('recTimer_' + idx).style.display = '';
+      document.getElementById('prepBox_' + idx).style.display = 'none';
+      speakRecInterval = setInterval(() => {
+        speakRecSeconds++;
+        const m = Math.floor(speakRecSeconds/60), s = speakRecSeconds%60;
+        document.getElementById('recTimer_' + idx).textContent = m+':'+String(s).padStart(2,'0');
+        if (speakRecSeconds >= maxTime) stopSpeakRecording(idx);
+      }, 1000);
+    } catch(e) {
+      showToast('Microphone access denied');
+    }
+  }
+
+  function stopSpeakRecording(idx) {
+    clearInterval(speakRecInterval);
+    if (speakMediaRecorder && speakMediaRecorder.state !== 'inactive') speakMediaRecorder.stop();
+  }
+
+  // ── WRITING ──────────────────────────────────────────────
+  function buildWriting() {
+    if (!examData?.sections?.writing) return;
+    const w = examData.sections.writing;
+    if (w.task1_prompt) {
+      document.getElementById('writingTask1Prompt').innerHTML = `<div class="writing-prompt-label">Integrated Task</div>${w.task1_prompt}`;
+    }
+    if (w.task2_prompt) {
+      document.getElementById('writingTask2Prompt').innerHTML = `<div class="writing-prompt-label">Independent Essay</div>${w.task2_prompt}`;
+    }
+  }
+
+  function updateWordCount(id, countId) {
+    const text = document.getElementById(id).value.trim();
+    const count = text ? text.split(/\s+/).length : 0;
+    document.getElementById(countId).textContent = count;
+  }
+
+  // ── BUILD QUESTION ────────────────────────────────────────
+  function buildQuestion(q, prefix) {
+    if (q.type === 'multiple_choice' || !q.type) {
+      const opts = (q.options || []).map((opt, i) => {
+        const letter = String.fromCharCode(65 + i);
+        const key = prefix + '_' + i;
+        const sel = answers[prefix] === i ? 'selected' : '';
+        return `<div class="option-row ${sel}" id="opt_${key}" onclick="selectAnswer('${prefix}', ${i}, ${(q.options||[]).length})">
+          <div class="option-letter">${letter}</div>
+          <div class="option-text">${opt}</div>
+        </div>`;
+      }).join('');
+      return `<div class="question-block">
+        <div class="question-text">${q.text || q.question || ''}</div>
+        ${opts}
+      </div>`;
+    }
+    return `<div class="question-block"><div class="question-text">${q.text || ''}</div><textarea style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;min-height:80px;outline:none" oninput="answers['${prefix}']=this.value" placeholder="Your answer…">${answers[prefix]||''}</textarea></div>`;
+  }
+
+  function selectAnswer(prefix, idx, total) {
+    answers[prefix] = idx;
+    for (let i = 0; i < total; i++) {
+      const el = document.getElementById('opt_' + prefix + '_' + i);
+      if (el) el.classList.toggle('selected', i === idx);
+    }
+  }
+
+  // ── SUBMIT SECTIONS ──────────────────────────────────────
+  async function submitReading() {
+    clearInterval(timerInterval);
+    document.getElementById('fiveMinWarning').style.display = 'none';
+    await saveProgress({ reading_answers: answers });
+    showSection('listening');
+  }
+
+  function submitListening() {
+    clearInterval(timerInterval);
+    speechSynth?.cancel();
+    document.getElementById('fiveMinWarning').style.display = 'none';
+    saveProgress({ listening_answers: answers });
+    showSection('speaking');
+  }
+
+  async function submitSpeaking() {
+    clearInterval(timerInterval);
+    document.getElementById('fiveMinWarning').style.display = 'none';
+    // Upload speaking blobs
+    for (const [idx, blob] of Object.entries(speakingBlobs)) {
+      try {
+        const fd = new FormData();
+        fd.append('audio', blob, `speaking_task_${idx}.webm`);
+        fd.append('submissionId', submissionId);
+        fd.append('taskIndex', idx);
+        const res = await fetch(W + '/upload-audio', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.ok) answers['speaking_audio_' + idx] = data.url;
+      } catch(e) {}
+    }
+    await saveProgress({ speaking_answers: answers });
+    showSection('writing');
+  }
+
+  async function submitWriting() {
+    clearInterval(timerInterval);
+    document.getElementById('fiveMinWarning').style.display = 'none';
+    const writing = {
+      task1: document.getElementById('writingTask1').value,
+      task2: document.getElementById('writingTask2').value
+    };
+    await saveProgress({ writing_answers: writing, status: 'submitted' });
+    localStorage.removeItem('toefl_answers_' + submissionId);
+    showSection('complete');
+    renderCompleteScreen();
+  }
+
+  async function saveProgress(data) {
+    if (!submissionId) return;
+    try {
+      await fetch(W + '/toefl/submissions/' + submissionId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch(e) {}
+  }
+
+  function renderCompleteScreen() {
+    document.getElementById('scorePreview').innerHTML = `
+      <div class="sp-card"><div class="sp-label">Reading</div><div class="sp-val">—</div></div>
+      <div class="sp-card"><div class="sp-label">Listening</div><div class="sp-val">—</div></div>
+      <div class="sp-card"><div class="sp-label">Speaking</div><div class="sp-val" style="font-size:14px;color:var(--muted)">Pending</div></div>
+      <div class="sp-card"><div class="sp-label">Writing</div><div class="sp-val" style="font-size:14px;color:var(--muted)">Pending</div></div>`;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 3000);
+  }
+</script>
+</body>
+</html>

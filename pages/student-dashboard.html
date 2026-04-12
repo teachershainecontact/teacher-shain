@@ -123,7 +123,7 @@
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <div class="sidebar-logo">Teacher <span>Shen</span></div>
+    <div class="sidebar-logo">Teacher <span>Shain</span></div>
     <p class="nav-section-label">Menu</p>
     <button class="nav-item active" onclick="showSection('homework')">
       <span class="icon">📝</span> Homework
@@ -138,7 +138,18 @@
     <button class="nav-item" onclick="showSection('plans')">
       <span class="icon">📅</span> Study Plan
     </button>
+    <!-- Course-specific nav — shown by JS based on student_type -->
+    <div id="courseNav" style="display:none">
+      <p class="nav-section-label" id="courseNavLabel">My Course</p>
+      <a class="nav-item" id="courseNavLink" href="#">
+        <span class="icon" id="courseNavIcon">🎓</span>
+        <span id="courseNavText">Course Portal</span>
+      </a>
+    </div>
     <p class="nav-section-label">Tools</p>
+    <a class="nav-item" href="classroom.html">
+      <span class="icon">🎓</span> Join Class
+    </a>
     <a class="nav-item" href="subtitles.html" target="_blank">
       <span class="icon">字</span> Live Subtitles
     </a>
@@ -159,7 +170,7 @@
           <h1 class="page-title">Good <span id="timeGreeting">morning</span>,<br><span id="studentName">Student</span></h1>
           <p class="page-date" id="todayDate"></p>
         </div>
-        <a href="#" class="classin-btn" id="classinBtn" target="_blank">🎓 Join Class on ClassIn</a>
+        <a href="classroom.html" class="classin-btn" id="joinClassBtn">🎓 Join Today's Class</a>
       </div>
 
       <div class="stats-row">
@@ -202,7 +213,7 @@
             <p class="section-title">Next Class</p>
             <p class="next-class-time" id="nextClassTime">—</p>
             <p class="next-class-info" id="nextClassInfo">Check your schedule</p>
-            <a href="student-classroom.html" class="join-btn" id="joinClassBtn">📹 Join Today's Class →</a>
+            <a href="classroom.html" class="join-btn" id="joinClassBtn2">📹 Join Today's Class →</a>
             <a href="subtitles.html" target="_blank" class="subtitle-quick">
               <span class="subtitle-icon-sm">字</span> Open live subtitles
             </a>
@@ -530,11 +541,32 @@
     document.getElementById('sidebarName').textContent = firstName;
     document.getElementById('avatarInitial').textContent = firstName.charAt(0).toUpperCase();
 
-    // ClassIn settings
+    // Course-specific nav
+    const studentType = user.student_type || localStorage.getItem('student_type') || 'esl';
+    if (studentType === 'ielts') {
+      document.getElementById('courseNav').style.display = '';
+      document.getElementById('courseNavLabel').textContent = 'IELTS';
+      document.getElementById('courseNavIcon').textContent = '🎓';
+      document.getElementById('courseNavText').textContent = 'IELTS Portal';
+      document.getElementById('courseNavLink').href = 'ielts-student.html';
+    } else if (studentType === 'toefl') {
+      document.getElementById('courseNav').style.display = '';
+      document.getElementById('courseNavLabel').textContent = 'TOEFL';
+      document.getElementById('courseNavIcon').textContent = '📝';
+      document.getElementById('courseNavText').textContent = 'TOEFL Portal';
+      document.getElementById('courseNavLink').href = 'toefl-student.html';
+    } else if (studentType === 'pte') {
+      document.getElementById('courseNav').style.display = '';
+      document.getElementById('courseNavLabel').textContent = 'PTE';
+      document.getElementById('courseNavIcon').textContent = '📊';
+      document.getElementById('courseNavText').textContent = 'PTE Portal';
+      document.getElementById('courseNavLink').href = 'pte-student.html';
+    }
+
+    // Class settings (next class time)
     try {
       const res = await fetch(W + '/settings');
       const s = await res.json();
-      if (s.classin_url) { document.getElementById('classinBtn').href = s.classin_url; document.getElementById('joinClassBtn').href = s.classin_url; }
       if (s.next_class_time) document.getElementById('nextClassTime').textContent = s.next_class_time;
       if (s.next_class_info) document.getElementById('nextClassInfo').textContent = s.next_class_info;
     } catch(e) {}

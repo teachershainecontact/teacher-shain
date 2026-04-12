@@ -3,523 +3,440 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — Teacher Shen</title>
+  <title>Admin Panel — Teacher Shain</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink: #0f0e0c;
-      --paper: #faf8f4;
-      --cream: #f2ede4;
-      --gold: #c8963e;
-      --gold-light: #e8b96a;
-      --red: #c0392b;
-      --sage: #4a6741;
-      --muted: #8a8070;
-      --border: #ddd8ce;
+      --ink: #0f0e0c; --paper: #faf8f4; --cream: #f2ede4;
+      --gold: #c8963e; --gold-light: #e8b96a; --red: #c0392b;
+      --sage: #4a6741; --muted: #8a8070; --border: #ddd8ce;
+      --navy: #1a2540;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; display: flex; }
 
-    header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 40px; border-bottom: 1px solid var(--border);
-      background: var(--ink);
-    }
-    .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; }
-    .logo span { color: var(--gold); }
-    .header-right { display: flex; align-items: center; gap: 16px; }
-    .back-link { font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: none; }
-    .back-link:hover { color: var(--gold); }
-    .worker-badge { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 1px; text-transform: uppercase; }
+    .sidebar { width: 240px; background: var(--navy); padding: 28px 20px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+    .sidebar-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .sidebar-logo span { color: var(--gold); }
+    .sidebar-sub { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 28px; }
+    .nav-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 8px; margin-top: 20px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; width: 100%; text-align: left; margin-bottom: 2px; transition: all 0.15s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: var(--gold); color: var(--ink); }
+    .nav-item .icon { font-size: 15px; width: 20px; text-align: center; }
+    .sidebar-bottom { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); }
 
-    .main { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    .main { flex: 1; padding: 36px 40px; overflow-y: auto; }
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; margin-bottom: 4px; }
+    .page-title span { color: var(--gold); font-style: italic; }
+    .page-sub { font-size: 13px; color: var(--muted); }
 
-    /* Gate */
-    #gate {
-      max-width: 400px; margin: 80px auto; background: var(--ink);
-      border-radius: 16px; padding: 40px; color: #fff;
-    }
-    #gate h2 { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 8px; }
-    #gate p { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 28px; }
-    #gate .config-row { margin-bottom: 16px; }
-    #gate label { display: block; font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 6px; letter-spacing: 0.5px; }
-    #gate input {
-      width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
-      font-size: 14px; color: #fff; font-family: 'DM Sans', sans-serif; outline: none;
-    }
-    #gate input:focus { border-color: var(--gold); }
-    #gate .save-btn {
-      width: 100%; padding: 14px; background: var(--gold); border: none;
-      border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--ink);
-      cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 8px;
-    }
-    #gate .save-btn:hover { background: var(--gold-light); }
-    #gate .err { color: #e87070; font-size: 13px; margin-top: 10px; }
+    .section { display: none; }
+    .section.active { display: block; }
 
-    /* Tabs */
-    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
-    .tab {
-      padding: 12px 20px; font-size: 14px; font-weight: 500; border: none;
-      background: none; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent;
-      margin-bottom: -1px; transition: all 0.2s;
-    }
-    .tab.active { color: var(--ink); border-bottom-color: var(--gold); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px 28px; margin-bottom: 20px; }
+    .card-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
 
-    /* Section headers */
-    .section-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
-    }
-    .section-title { font-family: 'Playfair Display', serif; font-size: 22px; }
-    .section-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
-
-    /* Cards / forms */
-    .card {
-      background: #fff; border: 1px solid var(--border); border-radius: 12px;
-      padding: 24px; margin-bottom: 16px;
-    }
-    .card-title { font-weight: 600; font-size: 15px; margin-bottom: 16px; }
-
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.4px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 6px; text-transform: uppercase; }
     .form-group input, .form-group select {
-      padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
-      font-size: 14px; color: var(--ink); font-family: 'DM Sans', sans-serif;
-      background: var(--paper); outline: none; transition: border-color 0.2s;
+      width: 100%; padding: 11px 14px; background: var(--cream);
+      border: 1px solid var(--border); border-radius: 10px;
+      font-size: 14px; color: var(--ink); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s;
     }
-    .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+    .form-group input:focus, .form-group select:focus { border-color: var(--gold); background: #fff; }
+    .form-group .hint { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-    .btn {
-      padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
-      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; border: none;
-    }
-    .btn-gold { background: var(--gold); color: var(--ink); }
-    .btn-gold:hover { background: var(--gold-light); }
-    .btn-outline { background: none; border: 1px solid var(--border); color: var(--ink); }
-    .btn-outline:hover { border-color: var(--ink); }
-    .btn-red { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
-    .btn-red:hover { background: #fee2e2; }
-    .btn-sm { padding: 6px 12px; font-size: 13px; }
+    .btn-save { padding: 11px 24px; background: var(--gold); border: none; border-radius: 10px; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
+    .btn-save:hover { background: var(--gold-light); }
+    .btn-danger { padding: 11px 24px; background: none; border: 1px solid var(--red); border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--red); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .btn-danger:hover { background: var(--red); color: #fff; }
 
-    /* Student table */
+    .worker-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 20px; }
+    .worker-card { background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+    .worker-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .worker-url { font-size: 11px; color: var(--muted); margin-bottom: 8px; word-break: break-all; }
+
+    .course-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--cream); padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+    .course-tab { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 7px; border: none; background: none; color: var(--muted); transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+    .course-tab.active { background: var(--ink); color: #fff; }
+
     .student-table { width: 100%; border-collapse: collapse; }
-    .student-table th {
-      text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--muted); font-weight: 500; padding: 8px 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .student-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-    .student-table tr:last-child td { border-bottom: none; }
+    .student-table th { text-align: left; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 10px 14px; border-bottom: 2px solid var(--border); }
+    .student-table td { padding: 12px 14px; border-bottom: 1px solid var(--cream); font-size: 13px; }
     .student-table tr:hover td { background: var(--cream); }
-    .badge {
-      display: inline-block; padding: 2px 10px; border-radius: 100px;
-      font-size: 11px; font-weight: 500; background: var(--cream); color: var(--muted);
-    }
-    .pass-cell { font-family: monospace; font-size: 13px; color: var(--muted); letter-spacing: 0.5px; }
+    .type-badge { padding: 2px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; }
+    .type-esl   { background: rgba(200,150,62,0.15); color: #8a6020; }
+    .type-ielts { background: rgba(26,58,120,0.1);   color: #1a3a78; }
+    .type-toefl { background: rgba(58,26,92,0.1);    color: #3a1a5c; }
+    .type-pte   { background: rgba(26,92,58,0.1);    color: #1a5c3a; }
+    .action-link { font-size: 12px; color: var(--muted); cursor: pointer; }
+    .action-link:hover { color: var(--red); }
+
     .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
 
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: var(--ink); color: #fff; padding: 12px 20px;
-      border-radius: 8px; font-size: 14px; z-index: 999;
-      transform: translateY(80px); opacity: 0; transition: all 0.3s;
-    }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.error { background: var(--red); }
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
 
-    .worker-url-display {
-      background: var(--cream); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 14px; font-family: monospace;
-      font-size: 13px; color: var(--muted); word-break: break-all;
-    }
-
-    @media (max-width: 600px) {
-      .form-row { grid-template-columns: 1fr; }
-      .form-row.three { grid-template-columns: 1fr; }
-      header { padding: 16px 20px; }
-      .main { padding: 24px 16px; }
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: static; }
+      .main { padding: 20px 16px; }
+      .form-row, .worker-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">Teacher <span>Shain</span> — Admin</div>
-  <div class="header-right">
-    <span class="worker-badge">⚡ Cloudflare</span>
-    <a href="../index.html" class="back-link">← Back to site</a>
-  </div>
-</header>
-
-<!-- Setup Gate -->
-<div id="gate">
-  <h2>Admin Setup</h2>
-  <p>Enter your Cloudflare Worker URL and teacher password to continue.</p>
-  <div class="config-row">
-    <label>WORKER URL</label>
-    <input type="url" id="gateWorker" placeholder="https://teacher-shain.YOUR-NAME.workers.dev">
-  </div>
-  <div class="config-row">
-    <label>TEACHER PASSWORD</label>
-    <input type="password" id="gatePassword" placeholder="your teacher password"
-           onkeydown="if(event.key==='Enter') gateLogin()">
-  </div>
-  <button class="save-btn" onclick="gateLogin()">Enter Admin Panel →</button>
-  <p class="err" id="gateErr"></p>
-</div>
-
-<!-- Main Panel (hidden until authenticated) -->
-<div class="main" id="panel" style="display:none">
-
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('students', this)">👤 Students</button>
-    <button class="tab" onclick="switchTab('classes', this)">📚 Classes</button>
-    <button class="tab" onclick="switchTab('settings', this)">⚙️ Settings</button>
+<aside class="sidebar">
+  <div>
+    <div class="sidebar-logo">Teacher <span>Shain</span></div>
+    <div class="sidebar-sub">Admin Panel</div>
   </div>
 
-  <!-- STUDENTS TAB -->
-  <div class="tab-panel active" id="tab-students">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Students</div>
-        <div class="section-sub">Add, view, or remove student accounts</div>
-      </div>
+  <p class="nav-label">Settings</p>
+  <button class="nav-item active" onclick="showSection('classroom',this)"><span class="icon">🎓</span> Classroom</button>
+  <button class="nav-item" onclick="showSection('workers',this)"><span class="icon">⚙️</span> Workers & APIs</button>
+  <button class="nav-item" onclick="showSection('drive',this)"><span class="icon">📁</span> Google Drive</button>
+
+  <p class="nav-label">Manage</p>
+  <button class="nav-item" onclick="showSection('students',this)"><span class="icon">👩‍🎓</span> All Students</button>
+  <button class="nav-item" onclick="showSection('classes',this)"><span class="icon">🏫</span> Classes</button>
+
+  <p class="nav-label">System</p>
+  <button class="nav-item" onclick="showSection('status',this)"><span class="icon">📊</span> System Status</button>
+  <button class="nav-item" onclick="showSection('danger',this)"><span class="icon">⚠️</span> Danger Zone</button>
+
+  <div class="sidebar-bottom">
+    <a href="teacher-dashboard.html" class="nav-item"><span class="icon">←</span> Teacher Dashboard</a>
+    <button class="nav-item" onclick="doLogout()"><span class="icon">⏻</span> Sign out</button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- CLASSROOM -->
+  <div class="section active" id="section-classroom">
+    <div class="page-header">
+      <h1 class="page-title">Classroom <span>Settings</span></h1>
+      <p class="page-sub">Configure the live classroom embedded in the platform.</p>
     </div>
-
     <div class="card">
-      <div class="card-title">➕ Add New Student</div>
-      <div class="form-row three">
+      <div class="card-title">📹 Whereby Room URL</div>
+      <div class="form-group">
+        <label>Room URL</label>
+        <input type="url" id="wherebyUrl" placeholder="https://whereby.com/your-room-name">
+        <div class="hint">Sign up at whereby.com → create a room → paste the URL here. Students and teachers use this to join class.</div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
-          <label>FULL NAME</label>
-          <input type="text" id="newName" placeholder="Wang Fang">
+          <label>Next Class Time</label>
+          <input type="text" id="nextClassTime" placeholder="e.g. Tue & Thu 7:00 PM">
         </div>
         <div class="form-group">
-          <label>USERNAME</label>
-          <input type="text" id="newUsername" placeholder="wangfang" autocomplete="off">
-        </div>
-        <div class="form-group">
-          <label>PASSWORD</label>
-          <input type="text" id="newPassword" placeholder="simple password" autocomplete="off">
+          <label>Class Info</label>
+          <input type="text" id="nextClassInfo" placeholder="e.g. Intermediate · 90 min">
         </div>
       </div>
-      <div class="form-row" style="max-width:340px; margin-bottom:16px">
-        <div class="form-group">
-          <label>CLASS (optional)</label>
-          <select id="newClass">
-            <option value="">— No class yet —</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn btn-gold" onclick="addStudent()">Add Student</button>
+      <button class="btn-save" onclick="saveClassroom()">Save Settings</button>
     </div>
-
-    <div class="card" style="padding:0; overflow:hidden">
-      <div id="studentTableWrap">
-        <div class="empty">Loading students…</div>
+    <div class="card">
+      <div class="card-title">🔗 Whereby Preview</div>
+      <div id="wherebyPreview" style="background:var(--cream);border:1px solid var(--border);border-radius:12px;height:280px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px">
+        Save a Whereby URL above to preview
       </div>
     </div>
   </div>
 
-  <!-- CLASSES TAB -->
-  <div class="tab-panel" id="tab-classes">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Classes</div>
-        <div class="section-sub">Create class groups to assign homework</div>
-      </div>
+  <!-- WORKERS -->
+  <div class="section" id="section-workers">
+    <div class="page-header">
+      <h1 class="page-title">Workers <span>& APIs</span></h1>
+      <p class="page-sub">Configure Cloudflare Worker URLs and API keys for each course.</p>
     </div>
-
     <div class="card">
-      <div class="card-title">➕ Add New Class</div>
-      <div class="form-row" style="max-width:500px">
-        <div class="form-group">
-          <label>CLASS NAME</label>
-          <input type="text" id="newClassName" placeholder="Tuesday Intermediate">
-        </div>
-        <div class="form-group">
-          <label>COLOUR</label>
-          <input type="color" id="newClassColor" value="#2D6BE4" style="padding:4px; height:42px; cursor:pointer">
-        </div>
+      <div class="card-title">☁️ Cloudflare Worker URLs</div>
+      <div class="form-group"><label>ESL Worker</label><input type="url" id="workerEsl" placeholder="https://worker-esl.your-name.workers.dev"></div>
+      <div class="form-group"><label>IELTS Worker</label><input type="url" id="workerIelts" placeholder="https://worker-ielts.your-name.workers.dev"></div>
+      <div class="form-group"><label>TOEFL Worker</label><input type="url" id="workerToefl" placeholder="https://worker-toefl.your-name.workers.dev"></div>
+      <div class="form-group"><label>PTE Worker</label><input type="url" id="workerPte" placeholder="https://worker-pte.your-name.workers.dev"></div>
+      <div class="form-group">
+        <label>AI Worker (shared)</label>
+        <input type="url" id="workerAi" placeholder="https://worker-ai.your-name.workers.dev">
+        <div class="hint">Handles Whisper transcription, pronunciation scoring, and homework generation across all courses.</div>
       </div>
-      <button class="btn btn-gold" onclick="addClass()">Add Class</button>
+      <button class="btn-save" onclick="saveWorkers()">Save Worker URLs</button>
     </div>
-
-    <div class="card" style="padding:0; overflow:hidden">
-      <div id="classTableWrap">
-        <div class="empty">Loading classes…</div>
+    <div class="card">
+      <div class="card-title">🔑 Google Apps Script</div>
+      <div class="form-group">
+        <label>Apps Script Web App URL</label>
+        <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/…/exec">
+        <div class="hint">Deploy your Apps Script as a Web App and paste the URL here. Used for all Google Drive uploads.</div>
       </div>
+      <button class="btn-save" onclick="saveAppsScript()">Save</button>
     </div>
   </div>
 
-  <!-- SETTINGS TAB -->
-  <div class="tab-panel" id="tab-settings">
-    <div class="section-title" style="margin-bottom:24px">Settings</div>
-
-    <div class="card">
-      <div class="card-title">🔗 Worker URL</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:12px">
-        This URL is saved in your browser. Paste it into all HTML files too (see README).
-      </p>
-      <div class="worker-url-display" id="workerUrlDisplay">—</div>
-      <button class="btn btn-outline" style="margin-top:12px" onclick="resetGate()">Change Worker URL</button>
+  <!-- DRIVE -->
+  <div class="section" id="section-drive">
+    <div class="page-header">
+      <h1 class="page-title">Google <span>Drive</span></h1>
+      <p class="page-sub">Configure Drive folder IDs for file uploads.</p>
     </div>
-
     <div class="card">
-      <div class="card-title">🔒 Change Teacher Password</div>
-      <div class="form-row" style="max-width:500px">
-        <div class="form-group">
-          <label>NEW PASSWORD</label>
-          <input type="text" id="newTeacherPass" placeholder="new password">
-        </div>
+      <div class="card-title">📁 Folder IDs</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Open each folder in Google Drive, copy the ID from the URL (the long string after /folders/) and paste it here.</p>
+      <div class="form-row">
+        <div class="form-group"><label>Student Recordings</label><input type="text" id="driveRecordings" placeholder="Folder ID"></div>
+        <div class="form-group"><label>Class Transcripts</label><input type="text" id="driveTranscripts" placeholder="Folder ID"></div>
+        <div class="form-group"><label>Teacher Feedback</label><input type="text" id="driveFeedback" placeholder="Folder ID"></div>
+        <div class="form-group"><label>Exam Submissions</label><input type="text" id="driveExams" placeholder="Folder ID"></div>
       </div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:12px">
-        Default account username is <strong>teacher</strong>. Change the password from the default <code>changeme123</code> immediately.
-      </p>
-      <button class="btn btn-gold" onclick="changeTeacherPassword()">Update Password</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📋 How to connect HTML files to your Worker</div>
-      <p style="font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:12px">
-        Open each HTML file and find this line near the top of the <code>&lt;script&gt;</code> section:
-      </p>
-      <div class="worker-url-display">const WORKER = 'REPLACE_WITH_YOUR_WORKER_URL';</div>
-      <p style="font-size:14px; color:var(--muted); line-height:1.7; margin-top:12px">
-        Replace it with your actual Worker URL shown above. Do this in:
-        <strong>index.html</strong>, <strong>student-dashboard.html</strong>,
-        <strong>homework.html</strong>, <strong>teacher-dashboard.html</strong>.
-      </p>
+      <button class="btn-save" onclick="saveDrive()">Save Drive Settings</button>
     </div>
   </div>
 
-</div>
+  <!-- STUDENTS -->
+  <div class="section" id="section-students">
+    <div class="page-header">
+      <h1 class="page-title">All <span>Students</span></h1>
+      <p class="page-sub">View and manage students across all courses.</p>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+        <div class="course-tabs" style="margin-bottom:0;flex:1">
+          <button class="course-tab active" onclick="loadStudents('all',this)">All</button>
+          <button class="course-tab" onclick="loadStudents('esl',this)">ESL</button>
+          <button class="course-tab" onclick="loadStudents('ielts',this)">IELTS</button>
+          <button class="course-tab" onclick="loadStudents('toefl',this)">TOEFL</button>
+          <button class="course-tab" onclick="loadStudents('pte',this)">PTE</button>
+        </div>
+      </div>
+      <div id="studentTableWrap" style="overflow-x:auto"><div class="empty">Loading students…</div></div>
+    </div>
+  </div>
 
-<div class="toast" id="toast"></div>
+  <!-- CLASSES -->
+  <div class="section" id="section-classes">
+    <div class="page-header">
+      <h1 class="page-title">Class <span>Management</span></h1>
+      <p class="page-sub">View all classes across courses.</p>
+    </div>
+    <div class="card"><div id="classesList"><div class="empty">Loading classes…</div></div></div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="section" id="section-status">
+    <div class="page-header">
+      <h1 class="page-title">System <span>Status</span></h1>
+      <p class="page-sub">Check connectivity to all workers and services.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">☁️ Worker Status</div>
+      <div class="worker-grid" id="workerStatusGrid"></div>
+      <button class="btn-save" onclick="checkStatus()">🔄 Check All</button>
+    </div>
+  </div>
+
+  <!-- DANGER -->
+  <div class="section" id="section-danger">
+    <div class="page-header">
+      <h1 class="page-title">Danger <span>Zone</span></h1>
+      <p class="page-sub">Irreversible actions. Use with caution.</p>
+    </div>
+    <div class="card" style="border-color:#e8b0b0">
+      <div class="card-title" style="color:var(--red)">🗑️ Clear Local Cache</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Clears all cached settings and worker URLs from this browser. Does not affect the database.</p>
+      <button class="btn-danger" onclick="clearCache()">Clear Local Cache</button>
+    </div>
+    <div class="card" style="border-color:#e8b0b0;margin-top:16px">
+      <div class="card-title" style="color:var(--red)">⚠️ Reset Whereby URL</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Removes the cached Whereby room URL. Students will see "No classroom set up" until a new URL is saved.</p>
+      <button class="btn-danger" onclick="resetWhereby()">Reset Whereby URL</button>
+    </div>
+  </div>
+
+</main>
+<div id="toast"></div>
 
 <script>
-  let WORKER = '';
-  let allClasses = [];
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
 
-  // ── Gate ─────────────────────────────────────────────────────────────
-  window.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('ts_worker');
-    const authed = localStorage.getItem('ts_authed');
-    if (saved && authed === '1') {
-      WORKER = saved;
-      showPanel();
-    } else if (saved) {
-      document.getElementById('gateWorker').value = saved;
-    }
-  });
+  window.onload = () => {
+    const u = (() => { try { return JSON.parse(localStorage.getItem('ts_user')||'{}'); } catch { return {}; } })();
+    if (u.role !== 'teacher') { location.href = '../index.html'; return; }
+    loadSaved();
+    loadStudents('all');
+  };
 
-  async function gateLogin() {
-    const workerUrl = document.getElementById('gateWorker').value.trim().replace(/\/$/, '');
-    const password = document.getElementById('gatePassword').value;
-    const errEl = document.getElementById('gateErr');
-    errEl.textContent = '';
+  function doLogout() { localStorage.removeItem('ts_user'); location.href = '../index.html'; }
 
-    if (!workerUrl || !password) { errEl.textContent = 'Fill in both fields.'; return; }
+  function showSection(name, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    if (name === 'status') checkStatus();
+    if (name === 'classes') loadClasses();
+    if (name === 'students') loadStudents('all');
+  }
 
+  function loadSaved() {
+    const map = {
+      wherebyUrl:'whereby_room_url', nextClassTime:'next_class_time', nextClassInfo:'next_class_info',
+      workerEsl:'worker_esl', workerIelts:'worker_ielts', workerToefl:'worker_toefl',
+      workerPte:'worker_pte', workerAi:'worker_ai', appsScriptUrl:'ts_script',
+      driveRecordings:'drive_recordings', driveTranscripts:'drive_transcripts',
+      driveFeedback:'drive_feedback', driveExams:'drive_exams'
+    };
+    Object.entries(map).forEach(([id, key]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = localStorage.getItem(key) || '';
+    });
+    // Show whereby preview if URL exists
+    const url = localStorage.getItem('whereby_room_url');
+    if (url) updateWherebyPreview(url);
+  }
+
+  async function saveClassroom() {
+    const url   = document.getElementById('wherebyUrl').value.trim();
+    const time  = document.getElementById('nextClassTime').value.trim();
+    const info  = document.getElementById('nextClassInfo').value.trim();
+    if (url)  localStorage.setItem('whereby_room_url', url);
+    if (time) localStorage.setItem('next_class_time', time);
+    if (info) localStorage.setItem('next_class_info', info);
     try {
-      const res = await fetch(workerUrl + '/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'teacher', password })
+      await fetch(W + '/settings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whereby_room_url: url, next_class_time: time, next_class_info: info })
       });
-      const data = await (async () => { const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("/admin non-JSON: " + _t.slice(0,120)); } })();
-      if (!res.ok || data.error) { errEl.textContent = 'Wrong password or Worker URL not reachable.'; return; }
-
-      WORKER = workerUrl;
-      localStorage.setItem('ts_worker', WORKER);
-      localStorage.setItem('ts_authed', '1');
-      showPanel();
-    } catch (e) {
-      errEl.textContent = 'Could not reach Worker. Check the URL.';
-    }
+    } catch(e) {}
+    if (url) updateWherebyPreview(url);
+    showToast('✓ Classroom settings saved');
   }
 
-  function showPanel() {
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('panel').style.display = 'block';
-    document.getElementById('workerUrlDisplay').textContent = WORKER;
-    loadClasses();
-    loadStudents();
+  function updateWherebyPreview(url) {
+    const embedUrl = url + (url.includes('?') ? '&' : '?') + 'embed&skipMediaPermissionPrompt';
+    document.getElementById('wherebyPreview').innerHTML =
+      `<iframe src="${embedUrl}" allow="camera;microphone;fullscreen;display-capture" style="width:100%;height:100%;border:none;border-radius:12px"></iframe>`;
   }
 
-  function resetGate() {
-    localStorage.removeItem('ts_authed');
-    localStorage.removeItem('ts_worker');
-    location.reload();
+  function saveWorkers() {
+    const map = {
+      workerEsl:'worker_esl', workerIelts:'worker_ielts', workerToefl:'worker_toefl',
+      workerPte:'worker_pte', workerAi:'worker_ai'
+    };
+    Object.entries(map).forEach(([id, key]) => {
+      const val = document.getElementById(id)?.value.trim();
+      if (val) localStorage.setItem(key, val);
+    });
+    const esl = document.getElementById('workerEsl').value.trim();
+    if (esl) localStorage.setItem('ts_worker', esl);
+    showToast('✓ Worker URLs saved');
   }
 
-  // ── Tabs ──────────────────────────────────────────────────────────────
-  function switchTab(name, el) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('tab-' + name).classList.add('active');
+  function saveAppsScript() {
+    const val = document.getElementById('appsScriptUrl').value.trim();
+    if (val) { localStorage.setItem('ts_script', val); showToast('✓ Apps Script URL saved'); }
   }
 
-  // ── API helpers ───────────────────────────────────────────────────────
-  async function api(path, method = 'GET', body = null) {
-    const opts = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(WORKER + path, opts);
-      const _t = await res.text(); try { return JSON.parse(_t); } catch(e) { throw new Error("admin-api non-JSON: " + _t.slice(0,120)); }
+  function saveDrive() {
+    const map = { driveRecordings:'drive_recordings', driveTranscripts:'drive_transcripts', driveFeedback:'drive_feedback', driveExams:'drive_exams' };
+    Object.entries(map).forEach(([id, key]) => { const v = document.getElementById(id)?.value.trim(); if (v) localStorage.setItem(key, v); });
+    showToast('✓ Drive folder IDs saved');
   }
 
-  // ── Students ──────────────────────────────────────────────────────────
-  async function loadStudents() {
-    const students = await api('/students');
+  async function loadStudents(type, btn) {
+    if (btn) { document.querySelectorAll('.course-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
     const wrap = document.getElementById('studentTableWrap');
-
-    if (!students.length) {
-      wrap.innerHTML = '<div class="empty">No students yet — add one above.</div>';
-      return;
-    }
-
-    const classMap = Object.fromEntries(allClasses.map(c => [c.id, c]));
-
-    wrap.innerHTML = `
-      <table class="student-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Username</th>
-            <th>Password</th>
-            <th>Class</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${students.map(s => `
-            <tr>
-              <td><strong>${esc(s.name)}</strong></td>
-              <td><code>${esc(s.username)}</code></td>
-              <td class="pass-cell" id="pass-${s.id}">••••••</td>
-              <td><span class="badge">${classMap[s.class_id]?.name || '—'}</span></td>
-              <td style="text-align:right; display:flex; gap:8px; justify-content:flex-end">
-                <button class="btn btn-outline btn-sm" onclick="togglePass(${s.id}, '${esc(s.password || '')}')">👁</button>
-                <button class="btn btn-red btn-sm" onclick="removeStudent(${s.id}, '${esc(s.name)}')">Remove</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
+    wrap.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      const url = type === 'all' ? W + '/students' : W + '/students?type=' + type;
+      const res = await fetch(url);
+      const students = await res.json();
+      if (!students.length) { wrap.innerHTML = '<div class="empty">No students found.</div>'; return; }
+      wrap.innerHTML = `<table class="student-table">
+        <thead><tr><th>Name</th><th>Username</th><th>Course</th><th>Class</th><th>Joined</th><th></th></tr></thead>
+        <tbody>${students.map(s => `<tr>
+          <td><strong>${s.name}</strong></td>
+          <td style="color:var(--muted)">@${s.username}</td>
+          <td><span class="type-badge type-${s.student_type||'esl'}">${(s.student_type||'ESL').toUpperCase()}</span></td>
+          <td>${s.class_name||'—'}</td>
+          <td style="color:var(--muted)">${s.created_at?.slice(0,10)||'—'}</td>
+          <td><span class="action-link" onclick="removeStudent(${s.id},'${s.name}')">Remove</span></td>
+        </tr>`).join('')}</tbody>
       </table>`;
-  }
-
-  function togglePass(id, pass) {
-    const el = document.getElementById('pass-' + id);
-    el.textContent = el.textContent === '••••••' ? pass : '••••••';
-  }
-
-  async function addStudent() {
-    const name = document.getElementById('newName').value.trim();
-    const username = document.getElementById('newUsername').value.trim();
-    const password = document.getElementById('newPassword').value.trim();
-    const class_id = document.getElementById('newClass').value || null;
-
-    if (!name || !username || !password) { toast('Fill in name, username, and password', true); return; }
-
-    const data = await api('/students', 'POST', { name, username, password, class_id });
-    if (data.error === 'username taken') { toast('That username is already taken', true); return; }
-    if (data.error) { toast('Error: ' + data.error, true); return; }
-
-    toast(`Student "${name}" added!`);
-    document.getElementById('newName').value = '';
-    document.getElementById('newUsername').value = '';
-    document.getElementById('newPassword').value = '';
-    loadStudents();
+    } catch(e) { wrap.innerHTML = '<div class="empty">Could not load — ' + e.message + '</div>'; }
   }
 
   async function removeStudent(id, name) {
-    if (!confirm(`Remove student "${name}"? This cannot be undone.`)) return;
-    await api('/students/' + id, 'POST', { _method: 'DELETE' });
-    toast(`Removed ${name}`);
-    loadStudents();
+    if (!confirm('Remove ' + name + '? This cannot be undone.')) return;
+    try { await fetch(W + '/students/' + id, { method: 'DELETE' }); showToast('✓ Removed'); loadStudents('all'); }
+    catch(e) { showToast('Error: ' + e.message); }
   }
 
-  // ── Classes ───────────────────────────────────────────────────────────
   async function loadClasses() {
-    allClasses = await api('/classes');
-    renderClassTable();
-    // Populate class dropdown in student form
-    const sel = document.getElementById('newClass');
-    sel.innerHTML = '<option value="">— No class yet —</option>' +
-      allClasses.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    const el = document.getElementById('classesList');
+    try {
+      const res = await fetch(W + '/classes');
+      const classes = await res.json();
+      if (!classes.length) { el.innerHTML = '<div class="empty">No classes yet.</div>'; return; }
+      el.innerHTML = classes.map(c => `
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1"><div style="font-weight:600">${c.name}</div><div style="font-size:12px;color:var(--muted)">${c.student_count||0} students</div></div>
+          <div style="font-size:12px;color:var(--muted)">${c.created_at?.slice(0,10)||''}</div>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty">Could not load classes.</div>'; }
   }
 
-  function renderClassTable() {
-    const wrap = document.getElementById('classTableWrap');
-    if (!allClasses.length) {
-      wrap.innerHTML = '<div class="empty">No classes yet — add one above.</div>';
-      return;
+  async function checkStatus() {
+    const workers = [
+      { id:'esl',    label:'ESL Worker',   key:'worker_esl' },
+      { id:'ielts',  label:'IELTS Worker', key:'worker_ielts' },
+      { id:'toefl',  label:'TOEFL Worker', key:'worker_toefl' },
+      { id:'pte',    label:'PTE Worker',   key:'worker_pte' },
+      { id:'ai',     label:'AI Worker',    key:'worker_ai' },
+      { id:'script', label:'Apps Script',  key:'ts_script' },
+    ];
+    const grid = document.getElementById('workerStatusGrid');
+    grid.innerHTML = workers.map(w => `
+      <div class="worker-card">
+        <div class="worker-name">${w.label}</div>
+        <div class="worker-url" id="su_${w.id}">${localStorage.getItem(w.key) || 'Not configured'}</div>
+        <div id="ss_${w.id}" style="font-size:12px">⏳ Checking…</div>
+      </div>`).join('');
+
+    for (const w of workers) {
+      const url = localStorage.getItem(w.key);
+      const el = document.getElementById('ss_' + w.id);
+      if (!url) { el.textContent = '— Not configured'; el.style.color = 'var(--muted)'; continue; }
+      try {
+        const res = await fetch(url + '/health', { signal: AbortSignal.timeout(5000) });
+        el.textContent = res.ok ? '🟢 Online' : '🔴 Error ' + res.status;
+      } catch { el.textContent = '🔴 Unreachable'; }
     }
-    wrap.innerHTML = `
-      <table class="student-table">
-        <thead><tr><th>Class Name</th><th>Colour</th><th>ID</th></tr></thead>
-        <tbody>
-          ${allClasses.map(c => `
-            <tr>
-              <td><strong>${esc(c.name)}</strong></td>
-              <td><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${c.color};vertical-align:middle;margin-right:8px"></span>${c.color}</td>
-              <td><code style="font-size:12px;color:var(--muted)">${c.id}</code></td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>`;
   }
 
-  async function addClass() {
-    const name = document.getElementById('newClassName').value.trim();
-    const color = document.getElementById('newClassColor').value;
-    if (!name) { toast('Enter a class name', true); return; }
-    const data = await api('/classes', 'POST', { name, color });
-    if (data.error) { toast('Error: ' + data.error, true); return; }
-    toast(`Class "${name}" created!`);
-    document.getElementById('newClassName').value = '';
-    loadClasses();
+  function clearCache() {
+    if (!confirm('Clear all local settings and session data?')) return;
+    const keep = ['ts_user','ts_login_time'];
+    Object.keys(localStorage).filter(k => !keep.includes(k)).forEach(k => localStorage.removeItem(k));
+    loadSaved();
+    showToast('✓ Local cache cleared');
   }
 
-  // ── Teacher password ──────────────────────────────────────────────────
-  async function changeTeacherPassword() {
-    const newPass = document.getElementById('newTeacherPass').value.trim();
-    if (!newPass || newPass.length < 6) { toast('Password must be at least 6 characters', true); return; }
-    // Use a dedicated endpoint (add to worker if needed) — for now update via D1 direct
-    // Simple approach: POST to /students with _method PATCH for teacher account
-    // We call a dedicated /teacher-password endpoint
-    const res = await fetch(WORKER + '/teacher-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: newPass })
-    });
-    if (res.status === 404) {
-      toast('Add /teacher-password route to worker — see README', true);
-      return;
-    }
-    toast('Teacher password updated! Log in again next visit.');
-    document.getElementById('newTeacherPass').value = '';
-    localStorage.removeItem('ts_authed');
+  function resetWhereby() {
+    if (!confirm('Remove the Whereby room URL?')) return;
+    localStorage.removeItem('whereby_room_url');
+    document.getElementById('wherebyUrl').value = '';
+    document.getElementById('wherebyPreview').innerHTML = 'Save a Whereby URL above to preview';
+    showToast('✓ Whereby URL removed');
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────
-  function esc(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function toast(msg, isError = false) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast show' + (isError ? ' error' : '');
-    clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
-  }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 3000); }
 </script>
-
 </body>
 </html>

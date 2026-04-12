@@ -129,37 +129,6 @@
     .progress-bar-wrap { height: 6px; background: var(--border); border-radius: 3px; margin-top: 8px; }
     .progress-bar { height: 100%; border-radius: 3px; background: var(--gold); transition: width 0.5s; }
 
-    /* LOGIN SCREEN */
-    #loginScreen {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: var(--ink); padding: 24px;
-    }
-    .login-card {
-      background: #1a1a18; border: 1px solid #2a2a28;
-      border-radius: 20px; padding: 36px; max-width: 380px; width: 100%;
-    }
-    .login-title { font-family: 'Playfair Display', serif; font-size: 26px; color: #fff; margin-bottom: 6px; }
-    .login-title span { color: var(--gold); }
-    .login-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 28px; }
-    .login-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.4); display: block; margin-bottom: 8px; }
-    .login-input {
-      width: 100%; padding: 12px 16px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px; color: #fff; font-size: 15px;
-      font-family: 'DM Sans', sans-serif; outline: none; margin-bottom: 16px;
-      transition: border-color 0.2s;
-    }
-    .login-input:focus { border-color: var(--gold); }
-    .login-btn {
-      width: 100%; padding: 14px; background: var(--gold);
-      border: none; border-radius: 10px; font-size: 15px;
-      font-weight: 600; color: var(--ink); cursor: pointer;
-      font-family: 'DM Sans', sans-serif; transition: background 0.2s;
-    }
-    .login-btn:hover { background: var(--gold-light); }
-    .login-error { color: #e87070; font-size: 13px; margin-top: 10px; display: none; }
-
     /* TOAST */
     #toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -177,27 +146,17 @@
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="loginScreen">
-  <div class="login-card">
-    <h1 class="login-title">IELTS <span>Prep</span></h1>
-    <p class="login-sub">Sign in with your IELTS student account</p>
-    <label class="login-label">Username</label>
-    <input class="login-input" type="text" id="loginUser" placeholder="your username" autocomplete="username">
-    <label class="login-label">Password</label>
-    <input class="login-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
-           onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="login-btn" onclick="doLogin()">Sign In →</button>
-    <p class="login-error" id="loginError">Incorrect username or password</p>
-  </div>
-</div>
-
-<!-- MAIN APP (hidden until login) -->
-<div id="mainApp" style="display:none">
+<!-- MAIN APP -->
+<div id="mainApp">
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">Teacher <span>Shain</span> · IELTS</div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <a href="student-dashboard.html" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:13px">← Dashboard</a>
+      <div class="topbar-logo">Teacher <span>Shain</span> · IELTS</div>
+    </div>
     <div class="topbar-right">
+      <a href="classroom.html" style="padding:7px 16px;background:var(--gold);color:#000;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">🎓 Join Class</a>
       <span class="student-name" id="topbarName"></span>
       <button class="logout-btn" onclick="doLogout()">Sign out</button>
     </div>
@@ -251,70 +210,56 @@
   let currentStudent = null;
   let mySubmissions = [];
 
-  // ── LOGIN ──────────────────────────────────────────────────
-  async function doLogin() {
-    const username = document.getElementById('loginUser').value.trim();
-    const password = document.getElementById('loginPass').value;
-    const errEl = document.getElementById('loginError');
-    errEl.style.display = 'none';
-    if (!username || !password) { errEl.textContent = 'Please enter username and password'; errEl.style.display = 'block'; return; }
-
-    try {
-      const res = await fetch(W + '/ielts/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error('invalid');
-      currentStudent = data.student;
-      localStorage.setItem('ielts_student', JSON.stringify(currentStudent));
-      localStorage.setItem('ielts_login_time', Date.now().toString());
-      showApp();
-    } catch(e) {
-      errEl.textContent = 'Incorrect username or password';
-      errEl.style.display = 'block';
-    }
-  }
-
+  // ── SESSION — uses main platform login (ts_user) ──────────
   function doLogout() {
+    localStorage.removeItem('ts_user');
     localStorage.removeItem('ielts_student');
-    currentStudent = null;
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
+    window.location.href = '../index.html';
   }
 
-  // ── SESSION TIMEOUT (8h) ──────────────────────────────────────
+  // ── SESSION TIMEOUT (8h) ──────────────────────────────────
   (function() {
     const TIMEOUT = 28800000;
-    function checkIeltsSession() {
-      const loginTime = localStorage.getItem('ielts_login_time');
-      const student = localStorage.getItem('ielts_student');
-      if (!student || !loginTime) return;
-      if (Date.now() - parseInt(loginTime) > TIMEOUT) {
-        alert('Your session has expired. Please sign in again.');
-        doLogout();
-      }
+    const loginTime = localStorage.getItem('ts_login_time');
+    if (loginTime && Date.now() - parseInt(loginTime) > TIMEOUT) {
+      alert('Your session has expired. Please sign in again.');
+      doLogout(); return;
     }
-    checkIeltsSession();
-    setInterval(checkIeltsSession, 5 * 60 * 1000);
-    ['click','keydown','touchstart'].forEach(e => document.addEventListener(e, () => {
-      if (localStorage.getItem('ielts_student')) localStorage.setItem('ielts_login_time', Date.now().toString());
-    }, { passive: true }));
+    setInterval(() => {
+      const t = localStorage.getItem('ts_login_time');
+      if (t && Date.now() - parseInt(t) > TIMEOUT) { alert('Session expired.'); doLogout(); }
+    }, 5 * 60 * 1000);
+    ['click','keydown','touchstart'].forEach(e =>
+      document.addEventListener(e, () => localStorage.setItem('ts_login_time', Date.now().toString()), { passive: true })
+    );
   })();
-  // ── END SESSION TIMEOUT ───────────────────────────────────────
 
   // ── INIT ───────────────────────────────────────────────────
   window.onload = () => {
-    const saved = localStorage.getItem('ielts_student');
-    if (saved) {
-      currentStudent = JSON.parse(saved);
+    // Try ts_user first (logged in via main platform)
+    const tsUser = localStorage.getItem('ts_user');
+    const savedIelts = localStorage.getItem('ielts_student');
+
+    if (tsUser) {
+      const u = JSON.parse(tsUser);
+      if (u.role !== 'student') { window.location.href = '../index.html'; return; }
+      currentStudent = {
+        id: u.id, name: u.name, username: u.username,
+        target_band: u.target_band || 6.5,
+        exam_type: u.exam_type || 'academic'
+      };
+      // Also save as ielts_student for backward compat
+      localStorage.setItem('ielts_student', JSON.stringify(currentStudent));
       showApp();
+    } else if (savedIelts) {
+      currentStudent = JSON.parse(savedIelts);
+      showApp();
+    } else {
+      window.location.href = '../index.html';
     }
   };
 
   async function showApp() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = '';
     document.getElementById('topbarName').textContent = currentStudent.name;
     document.getElementById('heroName').textContent = currentStudent.name;
     document.getElementById('targetBadge').textContent = `Target: Band ${currentStudent.target_band}`;

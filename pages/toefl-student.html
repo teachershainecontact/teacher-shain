@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOEFL Preparation — Teacher Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c; --paper: #faf8f4; --cream: #f2ede4;
+      --gold: #c8963e; --gold-light: #e8b96a; --red: #c0392b;
+      --sage: #4a6741; --muted: #8a8070; --border: #ddd8ce;
+      --toefl: #3a1a5c; --toefl-mid: #5a2a8c;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+    .topbar {
+      background: var(--toefl); padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .back-link { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .back-link:hover { color: #fff; }
+    .topbar-logo { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #fff; }
+    .topbar-logo span { color: var(--gold); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .join-btn { padding: 7px 16px; background: var(--gold); color: #000; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; }
+    .join-btn:hover { background: var(--gold-light); }
+    .student-name { font-size: 13px; color: rgba(255,255,255,0.55); }
+    .logout-btn { padding: 6px 12px; background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 7px; color: rgba(255,255,255,0.5); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    .logout-btn:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+
+    .hero { background: var(--toefl); padding: 28px 28px 36px; color: #fff; position: relative; overflow: hidden; }
+    .hero::before { content: 'T'; position: absolute; right: -10px; bottom: -30px; font-size: 180px; font-weight: 900; font-family: serif; color: rgba(255,255,255,0.04); line-height: 1; pointer-events: none; }
+    .hero-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+    .hero-name { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; margin-bottom: 4px; }
+    .hero-sub { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
+    .target-badge { display: inline-block; padding: 4px 14px; border-radius: 100px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+
+    .score-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+    .score-card { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 10px; text-align: center; }
+    .score-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+    .score-val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--gold); line-height: 1; }
+    .score-val.empty { font-size: 18px; color: rgba(255,255,255,0.2); }
+    .score-max { font-size: 10px; color: rgba(255,255,255,0.25); margin-top: 3px; }
+    .total-row { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.06); border-radius: 12px; padding: 14px 18px; }
+    .total-label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .total-score { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--gold); line-height: 1; }
+    .total-max { font-size: 14px; color: rgba(255,255,255,0.3); }
+    .total-desc { flex: 1; font-size: 12px; color: rgba(255,255,255,0.35); line-height: 1.6; }
+
+    .container { max-width: 820px; margin: 0 auto; padding: 32px 24px; }
+    .section-title { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+    .exam-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin-bottom: 12px; transition: box-shadow 0.15s; }
+    .exam-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .exam-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+    .exam-title { font-size: 15px; font-weight: 600; }
+    .exam-status { padding: 3px 11px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+    .status-available { background: #f0f9ff; color: #1a6090; border: 1px solid #b0d4f0; }
+    .status-completed { background: #eef7f0; color: var(--sage); border: 1px solid #b0d8b4; }
+    .status-in-progress { background: #fff8e6; color: #b07800; border: 1px solid #f0d080; }
+    .exam-meta { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .pill { padding: 3px 10px; border-radius: 100px; font-size: 11px; background: var(--cream); color: var(--muted); border: 1px solid var(--border); }
+    .score-boxes { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
+    .sbox { background: var(--cream); border-radius: 8px; padding: 10px; text-align: center; }
+    .sbox-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .sbox-val { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--sage); }
+    .start-btn { padding: 10px 22px; background: var(--toefl); color: #fff; border-radius: 9px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    .start-btn:hover { background: var(--toefl-mid); }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .info-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+    .info-icon { font-size: 22px; margin-bottom: 8px; }
+    .info-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .info-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    .empty { text-align: center; padding: 40px 24px; color: var(--muted); }
+    .empty-icon { font-size: 36px; opacity: 0.3; margin-bottom: 10px; }
+
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
+
+    @media (max-width: 600px) {
+      .score-grid, .score-boxes { grid-template-columns: repeat(2,1fr); }
+      .info-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+      .hero { padding: 20px 16px 28px; }
+      .container { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="student-dashboard.html" class="back-link">← Dashboard</a>
+    <div class="topbar-logo">Teacher <span>Shain</span> · TOEFL</div>
+  </div>
+  <div class="topbar-right">
+    <a href="classroom.html" class="join-btn">🎓 Join Class</a>
+    <span class="student-name" id="topbarName"></span>
+    <button class="logout-btn" onclick="doLogout()">Sign out</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-label">TOEFL iBT Preparation</div>
+  <div class="hero-name" id="heroName">Welcome</div>
+  <div class="hero-sub" id="heroSub">Loading your scores…</div>
+  <div class="target-badge" id="targetBadge">Target: 100+</div>
+
+  <div class="score-grid">
+    <div class="score-card"><div class="score-label">Reading</div><div class="score-val empty" id="scoreR">—</div><div class="score-max">/30</div></div>
+    <div class="score-card"><div class="score-label">Listening</div><div class="score-val empty" id="scoreL">—</div><div class="score-max">/30</div></div>
+    <div class="score-card"><div class="score-label">Speaking</div><div class="score-val empty" id="scoreS">—</div><div class="score-max">/30</div></div>
+    <div class="score-card"><div class="score-label">Writing</div><div class="score-val empty" id="scoreW">—</div><div class="score-max">/30</div></div>
+  </div>
+
+  <div class="total-row">
+    <div>
+      <div class="total-label">Total Score</div>
+      <div><span class="total-score" id="scoreTotal">—</span><span class="total-max"> / 120</span></div>
+    </div>
+    <div class="total-desc">TOEFL iBT scores range 0–120.<br>Most universities require 80–100+.</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div style="margin-bottom:36px">
+    <p class="section-title">My Practice Tests</p>
+    <div id="examsList">
+      <div class="empty"><div class="empty-icon">📋</div>Loading your practice tests…</div>
+    </div>
+  </div>
+
+  <div>
+    <p class="section-title">TOEFL Sections</p>
+    <div class="info-grid">
+      <div class="info-card"><div class="info-icon">📖</div><div class="info-name">Reading</div><div class="info-desc">3–4 academic passages, 10 questions each. 54–72 min. Tests reading comprehension.</div></div>
+      <div class="info-card"><div class="info-icon">🎧</div><div class="info-name">Listening</div><div class="info-desc">3–4 lectures + 2–3 conversations. 41–57 min. Tests understanding of spoken English.</div></div>
+      <div class="info-card"><div class="info-icon">🎙️</div><div class="info-name">Speaking</div><div class="info-desc">4 tasks — 1 independent + 3 integrated. 17 min. Recorded and AI + examiner scored.</div></div>
+      <div class="info-card"><div class="info-icon">✍️</div><div class="info-name">Writing</div><div class="info-desc">2 tasks — integrated + independent essay. 50 min. Tests academic writing ability.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  let currentStudent = null;
+
+  function doLogout() {
+    localStorage.removeItem('ts_user');
+    window.location.href = '../index.html';
+  }
+
+  (function() {
+    const TIMEOUT = 28800000;
+    const t = localStorage.getItem('ts_login_time');
+    if (t && Date.now() - parseInt(t) > TIMEOUT) { doLogout(); return; }
+    setInterval(() => { const t2 = localStorage.getItem('ts_login_time'); if (t2 && Date.now() - parseInt(t2) > TIMEOUT) doLogout(); }, 5*60*1000);
+    ['click','keydown','touchstart'].forEach(e => document.addEventListener(e, () => localStorage.setItem('ts_login_time', Date.now().toString()), { passive: true }));
+  })();
+
+  window.onload = () => {
+    const raw = localStorage.getItem('ts_user');
+    if (!raw) { window.location.href = '../index.html'; return; }
+    const u = JSON.parse(raw);
+    if (u.role !== 'student') { window.location.href = '../index.html'; return; }
+    currentStudent = { id: u.id, name: u.name, username: u.username, target_score: u.target_score || 100 };
+    document.getElementById('topbarName').textContent = u.name;
+    document.getElementById('heroName').textContent = u.name;
+    document.getElementById('heroSub').textContent = 'TOEFL iBT · ' + u.username;
+    document.getElementById('targetBadge').textContent = 'Target: ' + currentStudent.target_score + '+';
+    loadScores();
+    loadExams();
+  };
+
+  async function loadScores() {
+    try {
+      const res = await fetch(W + '/toefl/scores?student_id=' + currentStudent.id);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.latest) return;
+      const s = data.latest;
+      setScore('scoreR', s.reading); setScore('scoreL', s.listening);
+      setScore('scoreS', s.speaking); setScore('scoreW', s.writing);
+      if (s.total) { const el = document.getElementById('scoreTotal'); el.textContent = s.total; el.classList.remove('empty'); }
+    } catch(e) {}
+  }
+
+  function setScore(id, val) {
+    if (!val) return;
+    const el = document.getElementById(id);
+    el.textContent = val; el.classList.remove('empty');
+  }
+
+  async function loadExams() {
+    const el = document.getElementById('examsList');
+    try {
+      const res = await fetch(W + '/toefl/exams?student_id=' + currentStudent.id);
+      if (!res.ok) throw new Error('Could not connect');
+      const exams = await res.json();
+      if (!exams.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No practice tests assigned yet. Your teacher will assign tests soon.</div>';
+        return;
+      }
+      el.innerHTML = exams.map(renderExam).join('');
+    } catch(e) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>Could not load — ' + e.message + '</div>';
+    }
+  }
+
+  function renderExam(e) {
+    const sc = e.status === 'completed' ? 'status-completed' : e.status === 'in_progress' ? 'status-in-progress' : 'status-available';
+    const sl = e.status === 'completed' ? '✓ Completed' : e.status === 'in_progress' ? '⏳ In Progress' : 'Available';
+    const scores = e.status === 'completed' && e.scores ? `
+      <div class="score-boxes">
+        <div class="sbox"><div class="sbox-label">Reading</div><div class="sbox-val">${e.scores.reading||'—'}</div></div>
+        <div class="sbox"><div class="sbox-label">Listening</div><div class="sbox-val">${e.scores.listening||'—'}</div></div>
+        <div class="sbox"><div class="sbox-label">Speaking</div><div class="sbox-val">${e.scores.speaking||'—'}</div></div>
+        <div class="sbox"><div class="sbox-label">Writing</div><div class="sbox-val">${e.scores.writing||'—'}</div></div>
+      </div>` : '';
+    const btn = e.status !== 'completed' ? `<button class="start-btn" onclick="startExam(${e.id})">${e.status === 'in_progress' ? 'Continue →' : 'Start Test →'}</button>` : '';
+    return `<div class="exam-card">
+      <div class="exam-header"><div class="exam-title">${e.title}</div><span class="exam-status ${sc}">${sl}</span></div>
+      <div class="exam-meta">TOEFL iBT · ${e.duration||210} min · ${e.created_at?.slice(0,10)||''}</div>
+      <div class="pills"><span class="pill">📖 Reading</span><span class="pill">🎧 Listening</span><span class="pill">🎙️ Speaking</span><span class="pill">✍️ Writing</span></div>
+      ${scores}${btn}
+    </div>`;
+  }
+
+  function startExam(id) { window.location.href = `toefl-exam.html?exam_id=${id}&student_id=${currentStudent.id}`; }
+
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 3000); }
+</script>
+</body>
+</html>

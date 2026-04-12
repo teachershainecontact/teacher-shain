@@ -119,7 +119,11 @@
     <button class="nav-item" onclick="showSection('students',this)"><span class="icon">👩‍🎓</span> Students</button>
     <button class="nav-item" onclick="showSection('classes',this)"><span class="icon">🏫</span> Classes</button>
     <button class="nav-item" onclick="showSection('transcripts',this)"><span class="icon">📄</span> Transcripts</button>
+
+    <p class="nav-section-label">Courses</p>
     <button class="nav-item" onclick="showSection('ielts',this)"><span class="icon">🎓</span> IELTS</button>
+    <button class="nav-item" onclick="showSection('toefl',this)"><span class="icon">📝</span> TOEFL</button>
+    <button class="nav-item" onclick="showSection('pte',this)"><span class="icon">📊</span> PTE</button>
 
     <p class="nav-section-label">Create</p>
     <button class="nav-item" onclick="openModal('hw')"><span class="icon">＋</span> New Homework</button>
@@ -127,8 +131,8 @@
     <button class="nav-item" onclick="openAddClass()"><span class="icon">＋</span> Add Class</button>
 
     <p class="nav-section-label">Tools</p>
+    <a class="nav-item" href="classroom.html" style="background:var(--gold);color:var(--ink);font-weight:700"><span class="icon">🎓</span> Start Class</a>
     <a class="nav-item" href="subtitles.html" target="_blank"><span class="icon">字</span> Live Subtitles</a>
-    <button class="nav-item" onclick="openModal('classin')"><span class="icon">🔗</span> Set ClassIn Link</button>
     <button class="nav-item" onclick="openModal('plan')"><span class="icon">📅</span> Study Plan</button>
 
     <div class="sidebar-bottom">
@@ -167,13 +171,14 @@
         <div>
           <div class="panel-card">
             <p class="section-title">Quick Actions</p>
-            <a class="action-btn" href="classroom.html"><span class="action-icon">📹</span> Start Classroom</a>
+            <a class="action-btn" href="classroom.html" style="background:var(--gold);border-color:var(--gold);font-weight:700"><span class="action-icon">🎓</span> Start Class Now</a>
             <button class="action-btn" onclick="openModal('hw')"><span class="action-icon">📝</span> Create homework</button>
             <button class="action-btn" onclick="openModal('student')"><span class="action-icon">👩‍🎓</span> Add student</button>
             <a class="action-btn" href="subtitles.html" target="_blank"><span class="action-icon">字</span> Open live subtitles</a>
-            <button class="action-btn" onclick="openModal('classin')"><span class="action-icon">🔗</span> Update ClassIn link</button>
             <button class="action-btn" onclick="openModal('plan')"><span class="action-icon">📅</span> Edit study plan</button>
             <a class="action-btn" href="ielts-student.html" target="_blank"><span class="action-icon">🎓</span> IELTS Student View</a>
+            <a class="action-btn" href="toefl-student.html" target="_blank"><span class="action-icon">📝</span> TOEFL Student View</a>
+            <a class="action-btn" href="pte-student.html" target="_blank"><span class="action-icon">📊</span> PTE Student View</a>
           </div>
         </div>
       </div>
@@ -273,6 +278,45 @@
         </div>
       </div>
     </div>
+
+    <!-- ── TOEFL SECTION ── -->
+    <div id="section-toefl" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">TOEFL <span>Preparation</span></h1>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">Manage TOEFL students, practice tasks, and scores</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('student')">＋ Add TOEFL Student</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:24px;background:var(--cream);padding:4px;border-radius:10px;border:1px solid var(--border)">
+        <button onclick="switchCourseTab('toefl','students',this)" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--ink);color:#fff">👩‍🎓 Students</button>
+        <button onclick="switchCourseTab('toefl','tasks',this)" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:none;color:var(--muted)">📋 Tasks</button>
+        <button onclick="switchCourseTab('toefl','review',this)" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:none;color:var(--muted)">🎧 Review</button>
+      </div>
+      <div id="toeflPanel-students"><div class="empty">Loading TOEFL students…</div></div>
+      <div id="toeflPanel-tasks" style="display:none"><div class="empty">TOEFL tasks — coming soon.</div></div>
+      <div id="toeflPanel-review" style="display:none"><div class="empty">No submissions to review yet.</div></div>
+    </div>
+
+    <!-- ── PTE SECTION ── -->
+    <div id="section-pte" style="display:none">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">PTE <span>Academic</span></h1>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">Manage PTE students, practice tasks, and scores</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('student')">＋ Add PTE Student</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:24px;background:var(--cream);padding:4px;border-radius:10px;border:1px solid var(--border)">
+        <button onclick="switchCourseTab('pte','students',this)" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--ink);color:#fff">👩‍🎓 Students</button>
+        <button onclick="switchCourseTab('pte','tasks',this)" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:none;color:var(--muted)">📋 Tasks</button>
+        <button onclick="switchCourseTab('pte','review',this)" style="flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:none;color:var(--muted)">🎧 Review</button>
+      </div>
+      <div id="ptePanel-students"><div class="empty">Loading PTE students…</div></div>
+      <div id="ptePanel-tasks" style="display:none"><div class="empty">PTE tasks — coming soon.</div></div>
+      <div id="ptePanel-review" style="display:none"><div class="empty">No submissions to review yet.</div></div>
+    </div>
+
   </main>
 </div>
 
@@ -349,7 +393,7 @@
       <label>STUDENT TYPE</label>
       <div style="display:flex;gap:10px;margin-top:6px">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
-          <input type="radio" name="newStudentType" value="english" checked> 📚 English
+          <input type="radio" name="newStudentType" value="esl" checked> 📚 ESL
         </label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
           <input type="radio" name="newStudentType" value="ielts"> 🎓 IELTS
@@ -358,10 +402,7 @@
           <input type="radio" name="newStudentType" value="toefl"> 📝 TOEFL
         </label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
-          <input type="radio" name="newStudentType" value="pte"> 🖥️ PTE
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;font-size:14px">
-          <input type="radio" name="newStudentType" value="esl"> 🌍 ESL
+          <input type="radio" name="newStudentType" value="pte"> 📊 PTE
         </label>
       </div>
     </div>
@@ -489,13 +530,52 @@
 
   // ── NAVIGATION ────────────────────────────────────────────
   function showSection(name, btn) {
-    ['review','students','classes','homework','transcripts','ielts'].forEach(s =>
-      document.getElementById('section-'+s).style.display = s===name ? '' : 'none');
+    ['review','students','classes','homework','transcripts','ielts','toefl','pte'].forEach(s => {
+      const el = document.getElementById('section-'+s);
+      if (el) el.style.display = s===name ? '' : 'none';
+    });
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     if (btn) btn.classList.add('active');
     if (name === 'transcripts') loadTranscripts();
     if (name === 'ielts') loadIeltsSection();
     if (name === 'classes') renderClassesSection();
+    if (name === 'toefl') loadCourseStudents('toefl');
+    if (name === 'pte') loadCourseStudents('pte');
+  }
+
+  function switchCourseTab(course, tab, clickedBtn) {
+    ['students','tasks','review'].forEach(t => {
+      const el = document.getElementById(course+'Panel-'+t);
+      if (el) el.style.display = t===tab ? '' : 'none';
+    });
+    if (clickedBtn) {
+      clickedBtn.parentElement.querySelectorAll('button').forEach(b => {
+        b.style.background = 'none'; b.style.color = 'var(--muted)';
+      });
+      clickedBtn.style.background = 'var(--ink)'; clickedBtn.style.color = '#fff';
+    }
+    if (tab === 'students') loadCourseStudents(course);
+  }
+
+  async function loadCourseStudents(course) {
+    const el = document.getElementById(course+'Panel-students');
+    if (!el) return;
+    try {
+      const res = await fetch(W+'/students?type='+course);
+      const students = await res.json();
+      if (!students.length) { el.innerHTML = '<div class="empty">No '+course.toUpperCase()+' students yet. Click "+ Add Student" to add one.</div>'; return; }
+      el.innerHTML = students.map(s => `
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:8px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--cream);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--muted)">${(s.name||'?')[0].toUpperCase()}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">${s.name}</div>
+            <div style="font-size:12px;color:var(--muted)">@${s.username}</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">${s.class_name||'No class'}</div>
+        </div>`).join('');
+    } catch(e) {
+      el.innerHTML = '<div class="empty">Could not load students: '+e.message+'</div>';
+    }
   }
 
   function doLogout() { localStorage.removeItem('ts_user'); window.location.href='../index.html'; }
@@ -641,12 +721,6 @@
       const avg = graded.length ? (graded.reduce((a,b)=>a+Number(b.score),0)/graded.length).toFixed(1) : '—';
       const typeBadge = st.student_type === 'ielts'
         ? '<span style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">IELTS</span>'
-        : st.student_type === 'toefl'
-        ? '<span style="background:#d97706;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">TOEFL</span>'
-        : st.student_type === 'pte'
-        ? '<span style="background:#059669;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">PTE</span>'
-        : st.student_type === 'esl'
-        ? '<span style="background:#0891b2;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">ESL</span>'
         : '<span style="background:#2D6BE4;color:#fff;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">English</span>';
       const className = allClasses.find(c=>c.id===st.class_id)?.name || '<span style="color:var(--muted)">—</span>';
       return `<tr>
@@ -1672,7 +1746,7 @@
   }
 
   async function unpublishExam(examId) {
-    if (!confirm('Unpublish this exam? Students will not be able to start it.')) return;
+    if (!confirm('Unpublish this exam? Students won't be able to start it.')) return;
     try {
       await fetch(W+'/ielts/exams/'+examId, {
         method:'POST', headers:{'Content-Type':'application/json'},

@@ -3,563 +3,880 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Classroom — Teacher Shen</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <title>Classroom — Teacher Shain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink: #0f0e0c;
-      --gold: #c8963e;
-      --gold-light: #e8b96a;
-      --sage: #4a6741;
-      --red: #c0392b;
-      --border: #2a2a2a;
-      --surface: #1a1a1a;
-      --muted: #888;
+      --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
+      --gold: #c8963e; --gold-light: #e8b96a;
+      --white: #f5f5f5; --muted: #666; --sage: #4a7a41;
+      --red: #c0392b; --border: #222;
+      --sidebar-w: 320px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #0a0a0a;
-      color: #fff;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--white); display: flex; flex-direction: column; }
 
-    /* TOP BAR */
+    /* ── Top bar ── */
     .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 20px;
-      background: #111;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      z-index: 10;
-      gap: 12px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 20px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0; background: var(--surface); z-index: 10;
     }
-    .topbar-left { display: flex; align-items: center; gap: 14px; }
-    .logo { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .logo { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-right: 4px; }
     .logo span { color: var(--gold); }
-    .room-badge {
-      font-size: 11px; padding: 4px 10px;
-      background: rgba(200,150,62,0.15);
-      border: 1px solid rgba(200,150,62,0.3);
-      border-radius: 100px; color: var(--gold);
-      white-space: nowrap;
+    .class-badge {
+      padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
+      background: var(--sage); color: #fff; letter-spacing: 0.5px;
     }
-    .rec-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--red);
-      animation: blink 1.2s infinite;
-      display: none;
-    }
-    .rec-dot.active { display: inline-block; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .class-badge.live { background: var(--red); animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
 
-    .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .topbar-spacer { flex: 1; }
 
-    .btn {
-      padding: 8px 16px; border-radius: 8px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; border: none;
-      font-family: 'DM Sans', sans-serif;
-      transition: all 0.15s; white-space: nowrap;
+    .topbar-btn {
+      padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; border: none;
+      transition: all 0.15s; display: flex; align-items: center; gap: 6px;
     }
-    .btn-ghost { background: var(--surface); color: #fff; border: 1px solid var(--border); }
-    .btn-ghost:hover { border-color: var(--gold); }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--muted); }
+    .btn-outline:hover { color: var(--white); border-color: #444; }
     .btn-gold { background: var(--gold); color: #000; }
     .btn-gold:hover { background: var(--gold-light); }
     .btn-red { background: var(--red); color: #fff; }
     .btn-red:hover { opacity: 0.85; }
-    .btn-sage { background: var(--sage); color: #fff; }
 
-    /* MAIN LAYOUT */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
+    .sidebar-toggle {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--white); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
     }
+    .sidebar-toggle:hover { background: #2a2a2a; }
+    .sidebar-toggle.active { background: var(--gold); color: #000; border-color: var(--gold); }
 
-    /* JITSI FRAME */
-    #jitsiFrame {
-      width: 100%;
-      flex: 1;
-      border: none;
-      display: block;
-    }
+    /* ── Main layout ── */
+    .main { flex: 1; display: flex; overflow: hidden; position: relative; }
 
-    /* SUBTITLES OVERLAY */
-    #subtitleOverlay {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      background: linear-gradient(transparent, rgba(0,0,0,0.85));
-      padding: 20px 24px 16px;
-      pointer-events: none;
-      transition: opacity 0.3s;
+    /* ── Video area ── */
+    .video-area {
+      flex: 1; position: relative; background: #000;
+      transition: margin-right 0.3s ease;
     }
-    #subtitleOverlay.hidden { opacity: 0; }
-    .subtitle-live {
-      font-size: 22px;
-      font-weight: 600;
-      color: #fff;
-      line-height: 1.4;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-      margin-bottom: 6px;
-      min-height: 1.4em;
-    }
-    .subtitle-interim {
-      font-size: 16px;
-      color: rgba(255,255,255,0.5);
-      line-height: 1.4;
-      min-height: 1.4em;
+    .video-area.sidebar-open { margin-right: var(--sidebar-w); }
+
+    .whereby-frame {
+      width: 100%; height: 100%; border: none; display: block;
     }
 
-    /* TRANSCRIPT PANEL (hidden by default) */
-    #transcriptPanel {
-      position: absolute;
-      top: 0; right: 0; bottom: 0;
-      width: 280px;
-      background: rgba(10,10,10,0.92);
-      border-left: 1px solid var(--border);
+    /* No room placeholder */
+    .no-room {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      background: #050505; padding: 40px;
+    }
+    .no-room-icon { font-size: 56px; opacity: 0.2; margin-bottom: 20px; }
+    .no-room-title { font-size: 20px; color: rgba(255,255,255,0.25); margin-bottom: 8px; font-weight: 600; }
+    .no-room-sub { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: absolute; right: 0; top: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--surface); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transform: translateX(100%); transition: transform 0.3s ease;
+      z-index: 5; overflow: hidden;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-tabs {
+      display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .stab {
+      flex: 1; padding: 12px 8px; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
+      cursor: pointer; text-align: center; border: none; background: none;
+      transition: all 0.15s; border-bottom: 2px solid transparent;
+    }
+    .stab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    .stab-panel { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+    .stab-panel.active { display: flex; }
+    .stab-panel::-webkit-scrollbar { width: 3px; }
+    .stab-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+    /* ── Shared panel styles ── */
+    .panel-section { padding: 16px; border-bottom: 1px solid var(--border); }
+    .panel-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+    }
+
+    /* ── Translation panel ── */
+    .lang-pair {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    }
+    .lang-select {
+      flex: 1; padding: 8px 10px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--white); font-size: 13px; font-family: 'DM Sans', sans-serif;
+      outline: none;
+    }
+    .lang-swap {
+      width: 30px; height: 30px; border-radius: 50%; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--muted); font-size: 14px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .lang-swap:hover { color: var(--gold); border-color: var(--gold); }
+
+    .trans-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
+    }
+    .trans-toggle:hover { border-color: #444; }
+    .trans-toggle-label { font-size: 13px; font-weight: 500; }
+    .toggle-pill {
+      width: 38px; height: 20px; border-radius: 10px; background: var(--border);
+      position: relative; transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle-pill.on { background: var(--sage); }
+    .toggle-pill::after {
+      content: ''; position: absolute; width: 14px; height: 14px;
+      border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: left 0.2s;
+    }
+    .toggle-pill.on::after { left: 21px; }
+
+    .trans-input-wrap { position: relative; margin-bottom: 10px; }
+    .trans-input {
+      width: 100%; padding: 10px 36px 10px 12px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--white); font-size: 13px; font-family: 'DM Sans', sans-serif;
+      resize: none; outline: none; min-height: 72px; line-height: 1.5;
+      transition: border-color 0.2s;
+    }
+    .trans-input:focus { border-color: var(--gold); }
+    .trans-input::placeholder { color: var(--muted); }
+    .trans-mic-btn {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .trans-mic-btn:hover { color: var(--gold); border-color: var(--gold); }
+    .trans-mic-btn.listening { background: var(--red); border-color: var(--red); color: #fff; }
+
+    .trans-result {
+      padding: 12px; background: rgba(200,150,62,0.06);
+      border: 1px solid rgba(200,150,62,0.2); border-radius: 10px;
+      font-size: 14px; line-height: 1.6; color: var(--gold-light);
+      min-height: 52px; display: none;
+    }
+    .trans-result.visible { display: block; }
+
+    .trans-btn {
+      width: 100%; padding: 10px; border-radius: 9px; border: none;
+      background: var(--gold); color: #000; font-size: 13px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .trans-btn:hover { background: var(--gold-light); }
+
+    /* Student translation display */
+    .student-trans-box {
+      margin: 16px; padding: 16px; background: rgba(200,150,62,0.08);
+      border: 1px solid rgba(200,150,62,0.25); border-radius: 12px;
       display: none;
-      flex-direction: column;
-      z-index: 5;
     }
-    #transcriptPanel.open { display: flex; }
-    .panel-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      font-size: 12px; font-weight: 600;
-      letter-spacing: 1px; text-transform: uppercase;
-      color: var(--muted);
-      display: flex; justify-content: space-between; align-items: center;
+    .student-trans-box.visible { display: block; }
+    .student-trans-original { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .student-trans-result { font-size: 18px; color: var(--gold-light); line-height: 1.6; font-weight: 500; }
+
+    /* ── Recording panel ── */
+    .rec-status-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; margin-bottom: 10px;
     }
-    #transcriptLog {
-      flex: 1; overflow-y: auto;
-      padding: 12px 16px;
-      display: flex; flex-direction: column; gap: 8px;
+    .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .rec-dot.recording { background: var(--red); animation: blink 1s infinite; }
+    .rec-label { flex: 1; font-size: 13px; font-weight: 500; }
+    .rec-time { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold); }
+
+    .rec-big-btn {
+      width: 100%; padding: 12px; border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: all 0.15s; margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .transcript-line {
-      font-size: 13px; line-height: 1.6;
-      color: rgba(255,255,255,0.75);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
+    .rec-big-btn.start { background: var(--red); color: #fff; }
+    .rec-big-btn.start:hover { opacity: 0.85; }
+    .rec-big-btn.stop { background: var(--surface2); color: var(--white); border: 1px solid var(--border); }
+    .rec-big-btn.stop:hover { border-color: #444; }
+    .rec-big-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Transcript result */
+    .transcript-box {
+      display: none; flex-direction: column; gap: 10px; padding: 16px;
     }
-    .transcript-line .time {
-      font-size: 10px; color: var(--muted);
-      margin-bottom: 2px;
+    .transcript-box.visible { display: flex; }
+    .transcript-text {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px; font-size: 12px; line-height: 1.7;
+      color: rgba(255,255,255,0.7); max-height: 200px; overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .transcript-text::-webkit-scrollbar { width: 3px; }
+    .transcript-text::-webkit-scrollbar-thumb { background: var(--border); }
+    .dl-row { display: flex; gap: 8px; }
+    .dl-btn {
+      flex: 1; padding: 9px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; transition: all 0.15s;
+      text-align: center;
+    }
+    .dl-txt { background: var(--surface2); border: 1px solid var(--border); color: var(--white); }
+    .dl-txt:hover { border-color: #444; }
+    .dl-docx { background: #1a6090; color: #fff; }
+    .dl-docx:hover { opacity: 0.85; }
+    .dl-drive { background: none; border: 1px solid #4285f4; color: #4285f4; font-size: 11px; }
+    .dl-drive:hover { background: rgba(66,133,244,0.1); }
+
+    /* Processing */
+    .proc-box {
+      display: none; flex-direction: column; align-items: center;
+      gap: 12px; padding: 24px 16px; text-align: center;
+    }
+    .proc-box.visible { display: flex; }
+    .spinner { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--gold); animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .proc-label { font-size: 13px; font-weight: 600; }
+    .proc-sub { font-size: 11px; color: var(--muted); }
+
+    /* ── Animations panel ── */
+    .anim-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px;
+    }
+    .anim-btn {
+      aspect-ratio: 1; border-radius: 12px; background: var(--surface2);
+      border: 1px solid var(--border); font-size: 28px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; transition: all 0.15s;
+    }
+    .anim-btn:hover { border-color: var(--gold); transform: scale(1.05); }
+    .anim-btn span { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .anim-teacher-ctrl {
+      margin: 0 16px 16px; padding: 12px 14px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .anim-ctrl-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+    .anim-ctrl-label { color: rgba(255,255,255,0.6); }
+
+    /* ── Animation overlay ── */
+    #animCanvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden;
+    }
+    .anim-particle {
+      position: absolute; font-size: 32px; animation: floatUp 2.5s ease-out forwards;
+      pointer-events: none; user-select: none;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-80vh) scale(1.2) rotate(720deg); opacity: 0; }
+    }
+    .anim-burst {
+      position: absolute; font-size: 48px;
+      animation: burst 1s ease-out forwards;
+    }
+    @keyframes burst {
+      0% { transform: scale(0); opacity: 1; }
+      60% { transform: scale(1.4); opacity: 1; }
+      100% { transform: scale(1); opacity: 0; }
     }
 
-    /* SETUP SCREEN */
-    #setupScreen {
-      position: absolute;
-      inset: 0;
-      background: #0a0a0a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-      padding: 24px;
-    }
-    .setup-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 36px;
-      max-width: 440px;
-      width: 100%;
-    }
-    .setup-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 26px; font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .setup-title span { color: var(--gold); }
-    .setup-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
-    .setup-label {
-      font-size: 11px; font-weight: 600;
-      letter-spacing: 1px; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 8px; display: block;
-    }
-    .setup-input {
-      width: 100%; padding: 12px 16px;
-      background: #111; border: 1px solid var(--border);
-      border-radius: 10px; color: #fff; font-size: 15px;
-      font-family: 'DM Sans', sans-serif; outline: none;
-      transition: border-color 0.2s; margin-bottom: 20px;
-    }
-    .setup-input:focus { border-color: var(--gold); }
-    .setup-note {
-      font-size: 12px; color: var(--muted);
-      margin-bottom: 24px; line-height: 1.6;
-      padding: 12px 14px;
-      background: rgba(200,150,62,0.08);
-      border-radius: 8px; border-left: 3px solid var(--gold);
-    }
-
-    /* END CLASS MODAL */
-    #endModal {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      display: none;
-      align-items: center; justify-content: center;
-      padding: 24px;
-    }
-    #endModal.open { display: flex; }
-    .end-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 480px; width: 100%;
-      max-height: 85vh; overflow-y: auto;
-    }
-    .end-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px; margin-bottom: 6px;
-    }
-    .end-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
-    .analysis-section {
-      background: #111; border-radius: 12px;
-      padding: 16px; margin-bottom: 16px;
-    }
-    .analysis-label {
-      font-size: 11px; font-weight: 600;
-      letter-spacing: 1px; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 10px;
-    }
-    .analysis-text { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.8); }
-    .hw-preview {
-      background: rgba(74,103,65,0.15);
-      border: 1px solid rgba(74,103,65,0.3);
-      border-radius: 12px; padding: 16px; margin-bottom: 16px;
-    }
-    .hw-preview-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-    .hw-preview-instr { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; }
-    .end-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-    .end-actions .btn { flex: 1; padding: 12px; font-size: 14px; }
-
-    /* Toast */
+    /* ── Toast ── */
     #toast {
-      position: fixed; bottom: 24px; left: 50%;
-      transform: translateX(-50%);
-      background: #222; color: #fff;
-      padding: 12px 22px; border-radius: 10px;
-      font-size: 14px; opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none; z-index: 200;
-      white-space: nowrap;
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #222; color: #fff; padding: 10px 18px;
+      border-radius: 9px; font-size: 12px; opacity: 0;
+      transition: opacity 0.3s; pointer-events: none; z-index: 1000; white-space: nowrap;
+    }
+
+    @media (max-width: 700px) {
+      :root { --sidebar-w: 100vw; }
+      .video-area.sidebar-open { margin-right: 0; }
     }
   </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
+<!-- Top bar -->
 <div class="topbar">
-  <div class="topbar-left">
-    <div class="logo">Teacher <span>Shain</span></div>
-    <div class="room-badge" id="roomBadge">No room set</div>
-    <div class="rec-dot" id="recDot"></div>
+  <div class="logo">Teacher <span>Shain</span></div>
+  <span class="class-badge" id="classBadge">Classroom</span>
+  <div class="topbar-spacer"></div>
+
+  <!-- Teacher only controls -->
+  <div id="teacherTopControls" style="display:none;align-items:center;gap:8px">
+    <button class="topbar-btn btn-red" id="recTopBtn" onclick="toggleRecording()">⏺ Record</button>
   </div>
-  <div class="topbar-right">
-    <button class="btn btn-ghost" id="subtitleToggleBtn" onclick="toggleSubtitles()">CC Off</button>
-    <button class="btn btn-ghost" id="transcriptToggleBtn" onclick="toggleTranscriptPanel()">📝 Transcript</button>
-    <button class="btn btn-gold" id="startMicBtn" onclick="startMic()">🎙 Start Recording</button>
-    <button class="btn btn-red" onclick="endClass()">End Class</button>
-  </div>
+
+  <button class="sidebar-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Tools">☰</button>
 </div>
 
-<!-- MAIN -->
+<!-- Main -->
 <div class="main">
 
-  <!-- SETUP SCREEN -->
-  <div id="setupScreen">
-    <div class="setup-card">
-      <h1 class="setup-title">Start <span>Classroom</span></h1>
-      <p class="setup-sub">Your Whereby room will load automatically</p>
-      <div class="setup-note">
-        💡 Your classroom is powered by Whereby. Make sure your room URL is saved in your worker settings.
+  <!-- Video -->
+  <div class="video-area" id="videoArea">
+    <div class="no-room" id="noRoom">
+      <div class="no-room-icon">📹</div>
+      <div class="no-room-title">No classroom set up yet</div>
+      <div class="no-room-sub">The admin needs to set the Whereby room URL.<br>Go to Admin → Class Settings.</div>
+    </div>
+    <iframe class="whereby-frame" id="wherebyFrame" style="display:none"
+      allow="camera; microphone; fullscreen; display-capture; autoplay"
+      src=""></iframe>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+
+    <div class="sidebar-tabs">
+      <button class="stab active" onclick="switchTab('translate', this)">🌐 Translate</button>
+      <button class="stab" onclick="switchTab('record', this)" id="recordTab">⏺ Record</button>
+      <button class="stab" onclick="switchTab('animate', this)">🎉 Fun</button>
+    </div>
+
+    <!-- ── TRANSLATE TAB ── -->
+    <div class="stab-panel active" id="tab-translate">
+
+      <!-- Teacher controls -->
+      <div class="panel-section" id="teacherTransControls" style="display:none">
+        <div class="panel-label">Translation Settings</div>
+        <div class="lang-pair">
+          <select class="lang-select" id="langFrom" onchange="onLangChange()">
+            <option value="en">English</option>
+            <option value="zh">Chinese</option>
+            <option value="ko">Korean</option>
+            <option value="ja">Japanese</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="ar">Arabic</option>
+          </select>
+          <button class="lang-swap" onclick="swapLangs()" title="Swap">⇄</button>
+          <select class="lang-select" id="langTo" onchange="onLangChange()">
+            <option value="zh" selected>Chinese</option>
+            <option value="en">English</option>
+            <option value="ko">Korean</option>
+            <option value="ja">Japanese</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="ar">Arabic</option>
+          </select>
+        </div>
+
+        <div class="trans-toggle" onclick="toggleStudentTranslation()">
+          <span class="trans-toggle-label">Show translation to students</span>
+          <div class="toggle-pill" id="studentTransToggle"></div>
+        </div>
       </div>
-      <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px" onclick="startClass()">
-        Start Class →
-      </button>
+
+      <!-- Mic + text input -->
+      <div class="panel-section">
+        <div class="panel-label">Translate</div>
+        <div class="trans-input-wrap">
+          <textarea class="trans-input" id="transInput" placeholder="Type or use mic to translate…" rows="3"></textarea>
+          <button class="trans-mic-btn" id="transMicBtn" onclick="toggleTransMic()" title="Mic">🎙</button>
+        </div>
+        <div class="trans-result" id="transResult"></div>
+        <button class="trans-btn" onclick="doTranslate()">Translate →</button>
+      </div>
+
+      <!-- Student view -->
+      <div class="student-trans-box" id="studentTransBox">
+        <div class="student-trans-original" id="studentTransOriginal"></div>
+        <div class="student-trans-result" id="studentTransResult">Waiting for teacher…</div>
+      </div>
+
     </div>
-  </div>
 
-  <!-- JITSI + SUBTITLES -->
-  <iframe id="jitsiFrame" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
+    <!-- ── RECORD TAB (teacher only) ── -->
+    <div class="stab-panel" id="tab-record">
+      <div class="panel-section">
+        <div class="panel-label">Class Recording</div>
+        <div class="rec-status-row">
+          <div class="rec-dot" id="recDot"></div>
+          <div class="rec-label" id="recLabel">Not recording</div>
+          <div class="rec-time" id="recTime" style="display:none">0:00</div>
+        </div>
+        <button class="rec-big-btn start" id="recMainBtn" onclick="toggleRecording()">⏺ Start Recording</button>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6">
+          Records the full class session. When stopped, Whisper AI transcribes everything automatically.
+        </div>
+      </div>
 
-  <!-- SUBTITLE OVERLAY -->
-  <div id="subtitleOverlay" class="hidden">
-    <div class="subtitle-live" id="subtitleLive"></div>
-    <div class="subtitle-interim" id="subtitleInterim"></div>
-  </div>
+      <!-- Processing -->
+      <div class="proc-box" id="procBox">
+        <div class="spinner"></div>
+        <div class="proc-label">Transcribing…</div>
+        <div class="proc-sub">Whisper is processing your audio.<br>This may take a minute.</div>
+      </div>
 
-  <!-- TRANSCRIPT PANEL -->
-  <div id="transcriptPanel">
-    <div class="panel-header">
-      <span>Live Transcript</span>
-      <span id="wordCountBadge" style="color:var(--gold)">0 words</span>
+      <!-- Result -->
+      <div class="transcript-box" id="transcriptBox">
+        <div class="panel-label" style="padding:0">Transcript Ready</div>
+        <div class="transcript-text" id="transcriptOutput"></div>
+        <div class="dl-row">
+          <button class="dl-btn dl-txt" onclick="downloadTxt()">⬇ .txt</button>
+          <button class="dl-btn dl-docx" onclick="downloadDocx()">⬇ .docx</button>
+        </div>
+        <button class="dl-btn dl-drive" onclick="saveToDrive()" style="width:100%">
+          ⬆ Save to Google Drive
+        </button>
+        <button class="topbar-btn btn-outline" style="width:100%;justify-content:center;margin-top:4px" onclick="resetRecording()">+ New Recording</button>
+      </div>
     </div>
-    <div id="transcriptLog"></div>
-  </div>
 
-</div>
+    <!-- ── ANIMATE TAB ── -->
+    <div class="stab-panel" id="tab-animate">
 
-<!-- END CLASS MODAL -->
-<div id="endModal">
-  <div class="end-card">
-    <h2 class="end-title">Class Ended 🎓</h2>
-    <p class="end-sub" id="endSub">Saving transcript and generating AI analysis…</p>
-    <div id="endContent"></div>
-    <div class="end-actions" id="endActions" style="display:none">
-      <button class="btn btn-ghost" onclick="closeEndModal()">Close</button>
-      <button class="btn btn-sage" id="assignHwBtn" onclick="assignHomework()">Assign Homework →</button>
+      <!-- Teacher kill switch -->
+      <div class="anim-teacher-ctrl" id="animTeacherCtrl" style="display:none">
+        <div class="anim-ctrl-row">
+          <span class="anim-ctrl-label">Students can send animations</span>
+          <div class="toggle-pill on" id="studentAnimToggle" onclick="toggleStudentAnims(this)"></div>
+        </div>
+      </div>
+
+      <div class="anim-grid">
+        <button class="anim-btn" onclick="fireAnim('⭐')">⭐<span>Star</span></button>
+        <button class="anim-btn" onclick="fireAnim('🎉')">🎉<span>Party</span></button>
+        <button class="anim-btn" onclick="fireAnim('🔥')">🔥<span>Fire</span></button>
+        <button class="anim-btn" onclick="fireAnim('👏')">👏<span>Clap</span></button>
+        <button class="anim-btn" onclick="fireAnim('🏆')">🏆<span>Trophy</span></button>
+        <button class="anim-btn" onclick="fireAnim('💯')">💯<span>100</span></button>
+        <button class="anim-btn" onclick="fireAnim('🚀')">🚀<span>Rocket</span></button>
+        <button class="anim-btn" onclick="fireAnim('❤️')">❤️<span>Love</span></button>
+        <button class="anim-btn" onclick="fireFireworks()">✨<span>Fireworks</span></button>
+      </div>
+
+      <div style="padding:0 16px 16px;font-size:11px;color:var(--muted);line-height:1.6">
+        Tap any emoji to launch a full-screen animation. Great for celebrating good answers!
+      </div>
     </div>
-  </div>
-</div>
+
+  </div><!-- /sidebar -->
+</div><!-- /main -->
+
+<!-- Animation canvas -->
+<div id="animCanvas"></div>
 
 <!-- Toast -->
 <div id="toast"></div>
 
 <script>
-  const W = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  const WORKER = localStorage.getItem('ts_worker') || 'https://teacher-shain.teachershainecontact.workers.dev';
+  const user = (() => {
+    try { return JSON.parse(localStorage.getItem('ts_user') || '{}'); } catch { return {}; }
+  })();
+  const isTeacher = user.role === 'teacher';
 
-  let recognition = null;
-  let isListening = false;
-  let fullTranscript = '';
-  let subtitlesVisible = false;
-  let roomName = '';
-  let generatedHw = null;
-  let sessionStartTime = null;
+  // ── Init ──
+  window.addEventListener('DOMContentLoaded', () => {
+    setupRole();
+    loadRoomUrl();
+  });
 
+  function setupRole() {
+    if (isTeacher) {
+      document.getElementById('teacherTopControls').style.display = 'flex';
+      document.getElementById('teacherTransControls').style.display = 'block';
+      document.getElementById('animTeacherCtrl').style.display = 'block';
+      document.getElementById('recordTab').style.display = '';
+    } else {
+      // Students: hide record tab
+      document.getElementById('recordTab').style.display = 'none';
+      // Show student translation box
+      document.getElementById('studentTransBox').classList.add('visible');
+    }
+  }
+
+  async function loadRoomUrl() {
+    // Try localStorage first (set by admin)
+    let url = localStorage.getItem('whereby_room_url');
+    if (!url) {
+      // Try fetching from worker settings
+      try {
+        const res = await fetch(WORKER + '/settings/whereby_room_url');
+        const data = await res.json();
+        url = data.value || '';
+        if (url) localStorage.setItem('whereby_room_url', url);
+      } catch(e) {}
+    }
+    if (url) {
+      const frame = document.getElementById('wherebyFrame');
+      // Add Whereby URL params for better embed experience
+      const embedUrl = url.includes('?')
+        ? url + '&embed&skipMediaPermissionPrompt'
+        : url + '?embed&skipMediaPermissionPrompt';
+      frame.src = embedUrl;
+      frame.style.display = 'block';
+      document.getElementById('noRoom').style.display = 'none';
+      document.getElementById('classBadge').textContent = 'Live';
+      document.getElementById('classBadge').classList.add('live');
+    }
+  }
+
+  // ── Sidebar ──
+  let sidebarOpen = false;
+  function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    document.getElementById('sidebar').classList.toggle('open', sidebarOpen);
+    document.getElementById('videoArea').classList.toggle('sidebar-open', sidebarOpen);
+    document.getElementById('sidebarToggleBtn').classList.toggle('active', sidebarOpen);
+  }
+
+  function switchTab(name, el) {
+    document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.stab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  // ── Translation ──
+  let studentTransEnabled = false;
+  let transRecognition = null;
+  let transListening = false;
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  // ── INIT ─────────────────────────────────────────────────
-  window.onload = async () => {
-    // Settings loaded on startClass
-  };
+  function onLangChange() {}
 
-  // ── START CLASS ───────────────────────────────────────────
-  async function startClass() {
-    let wherebyUrl = '';
-    try {
-      const res = await fetch(W + '/settings');
-      const s = await res.json();
-      wherebyUrl = s.classin_url || '';
-    } catch(e) {}
-
-    if (!wherebyUrl) {
-      alert('No classroom URL found. Please save your Whereby URL via the worker settings.');
-      return;
-    }
-
-    roomName = wherebyUrl;
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('roomBadge').textContent = 'whereby.com/teacher-shen';
-
-    // Load Whereby with ?embed
-    const frame = document.getElementById('jitsiFrame');
-    const embedUrl = wherebyUrl.includes('?') ? wherebyUrl + '&embed' : wherebyUrl + '?embed';
-    frame.src = embedUrl;
-    frame.allow = 'camera; microphone; fullscreen; speaker-selection';
-
-    sessionStartTime = new Date();
-    showToast('Class started! Click 🎙 Start Recording to begin transcription.');
+  function swapLangs() {
+    const from = document.getElementById('langFrom');
+    const to = document.getElementById('langTo');
+    const tmp = from.value;
+    from.value = to.value;
+    to.value = tmp;
   }
 
-  // ── MIC / SPEECH RECOGNITION ─────────────────────────────
-  function startMic() {
-    if (!SpeechRecognition) {
-      alert('Speech recognition not supported in this browser. Please use Chrome.');
-      return;
-    }
-    if (isListening) {
-      stopMic();
-      return;
-    }
-
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onstart = () => {
-      isListening = true;
-      document.getElementById('recDot').classList.add('active');
-      document.getElementById('startMicBtn').textContent = '⏹ Stop Recording';
-      document.getElementById('startMicBtn').className = 'btn btn-red';
-      showToast('Recording started — AI transcription running in background');
-    };
-
-    recognition.onend = () => {
-      // Auto-restart if still supposed to be listening
-      if (isListening) {
-        setTimeout(() => { try { recognition.start(); } catch(e) {} }, 300);
-      }
-    };
-
-    recognition.onresult = (event) => {
-      let finalText = '', interimText = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += t;
-        else interimText += t;
-      }
-
-      if (finalText.trim()) {
-        fullTranscript += ' ' + finalText.trim();
-        addToTranscriptLog(finalText.trim());
-        updateWordCount();
-        if (subtitlesVisible) {
-          document.getElementById('subtitleLive').textContent = finalText.trim();
-          document.getElementById('subtitleInterim').textContent = '';
-        }
-      }
-      if (interimText && subtitlesVisible) {
-        document.getElementById('subtitleInterim').textContent = interimText;
-      }
-    };
-
-    recognition.onerror = (e) => {
-      if (e.error === 'not-allowed') {
-        showToast('Microphone access denied');
-        isListening = false;
-      }
-    };
-
-    recognition.start();
+  function toggleStudentTranslation() {
+    studentTransEnabled = !studentTransEnabled;
+    document.getElementById('studentTransToggle').classList.toggle('on', studentTransEnabled);
+    showToast(studentTransEnabled ? 'Translation visible to students' : 'Translation hidden from students');
   }
 
-  function stopMic() {
-    isListening = false;
-    if (recognition) recognition.stop();
-    document.getElementById('recDot').classList.remove('active');
-    document.getElementById('startMicBtn').textContent = '🎙 Start Recording';
-    document.getElementById('startMicBtn').className = 'btn btn-gold';
-  }
-
-  // ── SUBTITLES TOGGLE ─────────────────────────────────────
-  function toggleSubtitles() {
-    subtitlesVisible = !subtitlesVisible;
-    const overlay = document.getElementById('subtitleOverlay');
-    const btn = document.getElementById('subtitleToggleBtn');
-    if (subtitlesVisible) {
-      overlay.classList.remove('hidden');
-      btn.textContent = 'CC On';
-      btn.className = 'btn btn-sage';
-    } else {
-      overlay.classList.add('hidden');
-      btn.textContent = 'CC Off';
-      btn.className = 'btn btn-ghost';
-    }
-    // NOTE: Recording never stops when toggling CC
-  }
-
-  // ── TRANSCRIPT PANEL ─────────────────────────────────────
-  function toggleTranscriptPanel() {
-    document.getElementById('transcriptPanel').classList.toggle('open');
-  }
-
-  function addToTranscriptLog(text) {
-    const log = document.getElementById('transcriptLog');
-    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const div = document.createElement('div');
-    div.className = 'transcript-line';
-    div.innerHTML = `<div class="time">${time}</div>${text}`;
-    log.appendChild(div);
-    log.scrollTop = log.scrollHeight;
-  }
-
-  function updateWordCount() {
-    const words = fullTranscript.trim().split(/\s+/).filter(Boolean).length;
-    document.getElementById('wordCountBadge').textContent = words + ' words';
-  }
-
-  // ── END CLASS ─────────────────────────────────────────────
-  async function endClass() {
-    if (!fullTranscript.trim()) {
-      if (!confirm('No transcript recorded. End class anyway?')) return;
-      closeEndModal();
-      return;
-    }
-    if (!confirm('End class and save transcript?')) return;
-
-    stopMic();
-    document.getElementById('endModal').classList.add('open');
-    document.getElementById('endSub').textContent = 'Saving transcript…';
-    document.getElementById('endContent').innerHTML = '';
-    document.getElementById('endActions').style.display = 'none';
+  async function doTranslate() {
+    const text = document.getElementById('transInput').value.trim();
+    if (!text) return;
+    const from = document.getElementById('langFrom')?.value || 'en';
+    const to = document.getElementById('langTo')?.value || 'zh';
+    const resultEl = document.getElementById('transResult');
+    resultEl.textContent = '…';
+    resultEl.classList.add('visible');
 
     try {
-      // Save transcript
-      const words = fullTranscript.trim().split(/\s+/).length;
-      const mins = sessionStartTime ? Math.round((new Date() - sessionStartTime) / 60000) : Math.round(words / 130);
-      const saveRes = await fetch(W + '/transcripts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: fullTranscript.trim(), language: 'en', duration_minutes: mins })
-      });
-      const saveData = await saveRes.json();
-      if (!saveData.ok) throw new Error(saveData.error);
+      const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
+      const d = await r.json();
+      const translated = d.responseData?.translatedText || 'Translation unavailable';
+      resultEl.textContent = translated;
 
-      document.getElementById('endSub').textContent = 'Transcript saved. AI is analysing the lesson…';
-
-      // AI generate homework
-      const hwRes = await fetch(W + '/ai/generate-homework', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript_text: fullTranscript.trim() })
-      });
-      const hwData = await hwRes.json();
-
-      if (hwData.ok && hwData.homework) {
-        generatedHw = hwData.homework;
-        document.getElementById('endSub').textContent = 'AI analysis complete. Review the suggested homework below.';
-        document.getElementById('endContent').innerHTML = `
-          <div class="analysis-section">
-            <div class="analysis-label">📚 Lesson Summary</div>
-            <div class="analysis-text">${generatedHw.instructions?.slice(0, 200) || 'Class transcript saved successfully.'}…</div>
-          </div>
-          <div class="hw-preview">
-            <div class="analysis-label">✨ Suggested Homework</div>
-            <div class="hw-preview-title">${generatedHw.title || 'Practice Assignment'}</div>
-            <div class="hw-preview-instr">${(generatedHw.instructions || '').slice(0, 300)}…</div>
-            ${generatedHw.focus_areas?.length ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${generatedHw.focus_areas.map(f=>`<span style="background:#333;color:var(--gold);padding:3px 10px;border-radius:100px;font-size:11px">${f}</span>`).join('')}</div>` : ''}
-          </div>`;
-        document.getElementById('endActions').style.display = 'flex';
+      // Push to student view if enabled
+      if (studentTransEnabled || !isTeacher) {
+        document.getElementById('studentTransOriginal').textContent = text;
+        document.getElementById('studentTransResult').textContent = translated;
+        document.getElementById('studentTransBox').classList.add('visible');
       }
+    } catch(e) {
+      resultEl.textContent = 'Translation failed';
+    }
+  }
+
+  function toggleTransMic() {
+    if (!SpeechRecognition) { showToast('Speech recognition not supported in this browser'); return; }
+    if (transListening) {
+      transListening = false;
+      transRecognition?.stop();
+      document.getElementById('transMicBtn').classList.remove('listening');
+      return;
+    }
+    if (!transRecognition) {
+      transRecognition = new SpeechRecognition();
+      transRecognition.continuous = false;
+      transRecognition.interimResults = false;
+      transRecognition.onresult = (e) => {
+        const text = e.results[0][0].transcript;
+        document.getElementById('transInput').value = text;
+        doTranslate();
+      };
+      transRecognition.onend = () => {
+        transListening = false;
+        document.getElementById('transMicBtn').classList.remove('listening');
+      };
+      transRecognition.onerror = () => {
+        transListening = false;
+        document.getElementById('transMicBtn').classList.remove('listening');
+      };
+    }
+    const from = document.getElementById('langFrom')?.value || 'en';
+    transRecognition.lang = from === 'zh' ? 'zh-CN' : from === 'ko' ? 'ko-KR' : from === 'ja' ? 'ja-JP' : 'en-US';
+    transListening = true;
+    document.getElementById('transMicBtn').classList.add('listening');
+    transRecognition.start();
+  }
+
+  // Enter key to translate
+  document.getElementById('transInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doTranslate(); }
+  });
+
+  // ── Recording (teacher only) ──
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isRecording = false;
+  let recInterval = null;
+  let recSeconds = 0;
+  let transcriptResult = '';
+  let sessionDate = '';
+
+  function toggleRecording() {
+    if (!isTeacher) return;
+    if (isRecording) stopRecording();
+    else startRecording();
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+                     : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+                     : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+      mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); processRecording(); };
+      mediaRecorder.start(10000);
+      isRecording = true;
+      sessionDate = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+      recSeconds = 0;
+
+      // UI
+      document.getElementById('recDot').classList.add('recording');
+      document.getElementById('recLabel').textContent = 'Recording…';
+      document.getElementById('recTime').style.display = '';
+      document.getElementById('recMainBtn').className = 'rec-big-btn stop';
+      document.getElementById('recMainBtn').textContent = '⏹ Stop Recording';
+      document.getElementById('recTopBtn').textContent = '⏹ Stop';
+      document.getElementById('recTopBtn').className = 'topbar-btn btn-outline';
+
+      recInterval = setInterval(() => {
+        recSeconds++;
+        const h = Math.floor(recSeconds/3600), m = Math.floor((recSeconds%3600)/60), s = recSeconds%60;
+        document.getElementById('recTime').textContent = h > 0
+          ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+          : `${m}:${String(s).padStart(2,'0')}`;
+      }, 1000);
+
+      // Auto-switch to record tab
+      document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.stab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[onclick*="record"]').classList.add('active');
+      document.getElementById('tab-record').classList.add('active');
+      if (!sidebarOpen) toggleSidebar();
 
     } catch(e) {
-      document.getElementById('endSub').textContent = 'Error: ' + e.message;
-      document.getElementById('endActions').style.display = 'flex';
-      document.getElementById('assignHwBtn').style.display = 'none';
+      showToast('Microphone access denied');
     }
   }
 
-  async function assignHomework() {
-    if (!generatedHw) return;
-    // Redirect to teacher dashboard with homework pre-filled
-    localStorage.setItem('ts_pending_hw', JSON.stringify(generatedHw));
-    window.location.href = 'teacher-dashboard.html#homework';
+  function stopRecording() {
+    clearInterval(recInterval);
+    isRecording = false;
+    mediaRecorder.stop();
+    document.getElementById('recDot').classList.remove('recording');
+    document.getElementById('recLabel').textContent = 'Processing…';
+    document.getElementById('recMainBtn').disabled = true;
+    document.getElementById('recTopBtn').disabled = true;
   }
 
-  function closeEndModal() {
-    document.getElementById('endModal').classList.remove('open');
+  async function processRecording() {
+    document.getElementById('procBox').classList.add('visible');
+    const mimeType = audioChunks[0]?.type || 'audio/webm';
+    const ext = mimeType.includes('mp4') ? 'm4a' : 'webm';
+    const blob = new Blob(audioChunks, { type: mimeType });
+
+    try {
+      const formData = new FormData();
+      formData.append('audio', blob, `class.${ext}`);
+      const res = await fetch(WORKER + '/ai/transcribe', { method: 'POST', body: formData });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error('Server error'); }
+      if (!data.ok) throw new Error(data.error || 'Transcription failed');
+
+      transcriptResult = data.transcript || '';
+      const wordCount = transcriptResult.trim().split(/\s+/).length;
+      const dur = formatDuration(recSeconds);
+
+      document.getElementById('procBox').classList.remove('visible');
+      document.getElementById('transcriptOutput').textContent =
+        `CLASS TRANSCRIPT\nDate: ${sessionDate}\nDuration: ${dur}\nWords: ${wordCount}\n\n${transcriptResult}`;
+      document.getElementById('transcriptBox').classList.add('visible');
+      document.getElementById('recLabel').textContent = `Done · ${dur} · ${wordCount} words`;
+      document.getElementById('recMainBtn').style.display = 'none';
+      document.getElementById('recTopBtn').style.display = 'none';
+      showToast('✓ Transcript ready');
+
+    } catch(e) {
+      document.getElementById('procBox').classList.remove('visible');
+      document.getElementById('recLabel').textContent = 'Transcription failed';
+      document.getElementById('recMainBtn').disabled = false;
+      document.getElementById('recMainBtn').className = 'rec-big-btn start';
+      document.getElementById('recMainBtn').textContent = '⏺ Start Recording';
+      document.getElementById('recTopBtn').disabled = false;
+      showToast('Error: ' + e.message);
+    }
   }
 
+  function formatDuration(secs) {
+    const h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  function resetRecording() {
+    transcriptResult = '';
+    audioChunks = [];
+    document.getElementById('transcriptBox').classList.remove('visible');
+    document.getElementById('recMainBtn').style.display = '';
+    document.getElementById('recMainBtn').disabled = false;
+    document.getElementById('recMainBtn').className = 'rec-big-btn start';
+    document.getElementById('recMainBtn').textContent = '⏺ Start Recording';
+    document.getElementById('recTopBtn').style.display = '';
+    document.getElementById('recTopBtn').disabled = false;
+    document.getElementById('recTopBtn').textContent = '⏺ Record';
+    document.getElementById('recTopBtn').className = 'topbar-btn btn-red';
+    document.getElementById('recTime').style.display = 'none';
+    document.getElementById('recLabel').textContent = 'Not recording';
+  }
+
+  // ── Downloads ──
+  function getTranscriptContent() {
+    return document.getElementById('transcriptOutput').textContent;
+  }
+
+  function downloadTxt() {
+    const content = getTranscriptContent();
+    if (!content) return;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `transcript-${new Date().toISOString().slice(0,10)}.txt`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('✓ .txt downloaded');
+  }
+
+  async function downloadDocx() {
+    if (typeof JSZip === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const content = getTranscriptContent();
+    if (!content) return;
+
+    const paragraphs = content.split('\n').map(line => {
+      if (!line.trim()) return `<w:p/>`;
+      const bold = line.startsWith('CLASS') || line.startsWith('Date:') || line.startsWith('Duration:') || line.startsWith('Words:');
+      return `<w:p><w:r>${bold ? '<w:rPr><w:b/></w:rPr>' : ''}<w:t xml:space="preserve">${escXml(line)}</w:t></w:r></w:p>`;
+    }).join('');
+
+    const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>${paragraphs}<w:sectPr><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body>
+</w:document>`;
+
+    const zip = new JSZip();
+    zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`);
+    zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+    zip.file('word/document.xml', docXml);
+    zip.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`);
+
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `transcript-${new Date().toISOString().slice(0,10)}.docx`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('✓ .docx downloaded');
+  }
+
+  function saveToDrive() { showToast('Google Drive — coming in next update'); }
+
+  function escXml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function loadScript(src) {
+    return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+  }
+
+  // ── Animations ──
+  let studentAnimsEnabled = true;
+
+  function toggleStudentAnims(el) {
+    studentAnimsEnabled = !studentAnimsEnabled;
+    el.classList.toggle('on', studentAnimsEnabled);
+    showToast(studentAnimsEnabled ? 'Student animations ON' : 'Student animations OFF');
+  }
+
+  function fireAnim(emoji) {
+    const canvas = document.getElementById('animCanvas');
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'anim-particle';
+        el.textContent = emoji;
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.bottom = '-40px';
+        el.style.fontSize = (24 + Math.random() * 24) + 'px';
+        el.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+        el.style.animationDelay = (Math.random() * 0.4) + 's';
+        canvas.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }, i * 60);
+    }
+  }
+
+  function fireFireworks() {
+    const canvas = document.getElementById('animCanvas');
+    const emojis = ['✨','🎆','🎇','⭐','💫','🌟'];
+    const count = 24;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'anim-particle';
+        el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        el.style.left = (10 + Math.random() * 80) + 'vw';
+        el.style.bottom = (Math.random() * 40) + 'vh';
+        el.style.fontSize = (20 + Math.random() * 30) + 'px';
+        el.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+        canvas.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }, i * 80);
+    }
+    // Central burst
+    const burst = document.createElement('div');
+    burst.className = 'anim-burst';
+    burst.textContent = '🎆';
+    burst.style.left = '45vw'; burst.style.top = '35vh';
+    canvas.appendChild(burst);
+    burst.addEventListener('animationend', () => burst.remove());
+  }
+
+  // ── Toast ──
   function showToast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.opacity = '1';
-    setTimeout(() => t.style.opacity = '0', 3500);
+    t.textContent = msg; t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 2800);
   }
 </script>
 </body>

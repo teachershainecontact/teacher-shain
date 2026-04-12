@@ -3,433 +3,169 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Subtitles 实时字幕 — Teacher Shen</title>
+  <title>Live Subtitles — Teacher Shain</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0a0a;
-      --surface: #141414;
-      --surface2: #1e1e1e;
-      --gold: #c8963e;
-      --gold-light: #e8b96a;
-      --white: #f5f5f5;
-      --muted: #666;
-      --sage: #4a7a41;
-      --red: #c0392b;
-      --border: #2a2a2a;
+      --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
+      --gold: #c8963e; --gold-light: #e8b96a;
+      --white: #f5f5f5; --muted: #555; --sage: #4a7a41;
+      --red: #c0392b; --border: #222;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--white); display: flex; flex-direction: column; }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--white);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Top bar */
     .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 32px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 28px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0; background: var(--surface);
     }
-    .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 18px;
-      font-weight: 700;
-    }
+    .logo { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; }
     .logo span { color: var(--gold); }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
 
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .lang-toggle {
-      display: flex;
-      background: var(--surface2);
-      border-radius: 10px;
-      padding: 3px;
-      border: 1px solid var(--border);
-    }
-    .lang-opt {
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      color: var(--muted);
-      transition: all 0.15s;
-      border: none;
-      background: none;
-    }
+    .lang-toggle { display: flex; background: var(--surface2); border-radius: 9px; padding: 3px; border: 1px solid var(--border); }
+    .lang-opt { padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.15s; border: none; background: none; }
     .lang-opt.active { background: var(--gold); color: #000; }
 
-    .size-btn {
-      padding: 8px 14px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      color: var(--white);
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .size-btn:hover { background: var(--surface); }
+    .size-btn { padding: 5px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; color: var(--white); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    .size-btn:hover { background: #2a2a2a; }
 
-    /* Main record button */
-    .record-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px 32px 16px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      gap: 14px;
+    .nav-pill {
+      padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--muted); font-size: 12px; text-decoration: none;
+      display: flex; align-items: center; gap: 5px; transition: all 0.15s;
     }
+    .nav-pill:hover { color: var(--gold); border-color: var(--gold); }
 
+    .mic-bar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 28px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
     .mic-btn {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      background: var(--surface);
-      color: var(--white);
-      font-size: 28px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--surface2);
+      color: var(--white); font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
     }
     .mic-btn:hover { border-color: var(--gold); }
-    .mic-btn.listening {
-      background: var(--red);
-      border-color: var(--red);
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); }
-      50% { box-shadow: 0 0 0 16px rgba(192,57,43,0); }
-    }
+    .mic-btn.listening { background: var(--red); border-color: var(--red); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); } 50% { box-shadow: 0 0 0 14px rgba(192,57,43,0); } }
 
-    .status-text {
-      font-size: 13px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--muted);
-      transition: background 0.2s;
-    }
+    .mic-info { flex: 1; }
+    .mic-status { font-size: 13px; display: flex; align-items: center; gap: 7px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: background 0.2s; flex-shrink: 0; }
     .status-dot.live { background: var(--red); animation: blink 1s infinite; }
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .mic-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
-    /* Subtitle display — the main area */
-    .subtitle-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 32px;
-      position: relative;
-      overflow: hidden;
-    }
+    .subtitle-area { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 24px 28px; overflow: hidden; }
 
-    /* Faded history */
-    .subtitle-history {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      gap: 20px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
+    .history-lines { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; overflow: hidden; }
+    .history-line { transition: opacity 0.4s; }
+    .history-line:nth-last-child(1) { opacity: 0.5; }
+    .history-line:nth-last-child(2) { opacity: 0.3; }
+    .history-line:nth-last-child(3) { opacity: 0.15; }
+    .history-line:nth-last-child(n+4) { opacity: 0.07; }
+    .hist-en { font-size: 18px; color: var(--white); line-height: 1.4; }
+    .hist-zh { font-family: 'Noto Sans SC', sans-serif; font-size: 16px; color: var(--gold-light); line-height: 1.5; margin-top: 2px; }
 
-    .history-item {
-      opacity: 0.3;
-      transition: opacity 0.3s;
-    }
-    .history-item.recent { opacity: 0.6; }
-
-    .history-en {
-      font-size: 18px;
-      color: rgba(255,255,255,0.6);
-      margin-bottom: 4px;
-      line-height: 1.4;
-    }
-    .history-zh {
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: 16px;
-      color: rgba(200,150,62,0.6);
-      line-height: 1.5;
-    }
-
-    /* Live subtitle box */
     .live-box {
-      background: rgba(20,20,20,0.95);
-      border: 1px solid var(--border);
-      border-top: 3px solid var(--gold);
-      border-radius: 16px;
-      padding: 28px 32px;
-      min-height: 120px;
-      position: relative;
+      background: rgba(18,18,18,0.98); border: 1px solid var(--border);
+      border-top: 3px solid var(--gold); border-radius: 16px;
+      padding: 24px 28px; min-height: 110px; position: relative;
     }
-
     .live-label {
-      position: absolute;
-      top: -12px;
-      left: 20px;
-      background: var(--gold);
-      color: #000;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 100px;
+      position: absolute; top: -11px; left: 18px;
+      background: var(--gold); color: #000; font-size: 9px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; padding: 2px 9px; border-radius: 100px;
     }
 
-    .live-en {
-      font-size: var(--en-size, 26px);
-      color: var(--white);
-      line-height: 1.4;
-      margin-bottom: 12px;
-      min-height: 1.4em;
-      transition: font-size 0.2s;
-    }
+    .live-en { font-size: var(--en-size, 28px); color: var(--white); line-height: 1.4; min-height: 1.4em; transition: font-size 0.2s; }
+    .live-en.interim { color: rgba(255,255,255,0.35); font-style: italic; }
+    .live-zh { font-family: 'Noto Sans SC', sans-serif; font-size: var(--zh-size, 26px); color: var(--gold-light); line-height: 1.6; margin-top: 10px; min-height: 1.6em; transition: font-size 0.2s; }
 
-    .live-zh {
-      font-family: 'Noto Sans SC', sans-serif;
-      font-size: var(--zh-size, 28px);
-      color: var(--gold-light);
-      line-height: 1.6;
-      min-height: 1.6em;
-      transition: font-size 0.2s;
-    }
+    .placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; pointer-events: none; }
+    .placeholder-icon { font-size: 36px; opacity: 0.12; margin-bottom: 10px; }
+    .placeholder-text { font-size: 14px; color: rgba(255,255,255,0.18); margin-bottom: 5px; }
+    .placeholder-zh { font-family: 'Noto Sans SC', sans-serif; font-size: 12px; color: rgba(200,150,62,0.18); }
 
-    .live-en.interim { color: rgba(255,255,255,0.5); }
+    .not-supported { display: none; text-align: center; padding: 40px; color: var(--muted); }
+    .not-supported h2 { color: var(--white); font-size: 18px; margin-bottom: 8px; }
 
-    /* Placeholder */
-    .placeholder {
-      text-align: center;
-      padding: 48px;
-      color: var(--muted);
+    .bottom-bar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 10px 28px; border-top: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
     }
-    .placeholder-icon { font-size: 48px; margin-bottom: 16px; }
-    .placeholder-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.4); }
-    .placeholder-sub { font-size: 14px; line-height: 1.6; }
-    .placeholder-zh { font-family: 'Noto Sans SC', sans-serif; font-size: 14px; margin-top: 8px; color: rgba(200,150,62,0.4); }
-
-    /* Settings panel */
-    .settings-panel {
-      position: fixed;
-      top: 70px; right: 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      width: 260px;
-      z-index: 50;
-      display: none;
-    }
-    .settings-panel.open { display: block; }
-    .settings-title { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
-
-    .setting-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-      font-size: 14px;
-    }
-    .setting-label { color: rgba(255,255,255,0.7); }
-
-    select.setting-select {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      color: var(--white);
-      font-size: 13px;
-      padding: 5px 10px;
-      font-family: 'DM Sans', sans-serif;
-    }
-
-    /* Toggle */
-    .toggle {
-      width: 40px; height: 22px;
-      background: var(--border);
-      border-radius: 11px;
-      position: relative;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .toggle.on { background: var(--sage); }
-    .toggle::after {
-      content: '';
-      position: absolute;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      background: #fff;
-      top: 3px; left: 3px;
-      transition: left 0.2s;
-    }
-    .toggle.on::after { left: 21px; }
-
-    /* Bottom instructions */
-    .bottom-tips {
-      padding: 12px 32px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 24px;
-      flex-shrink: 0;
-    }
-    .tip { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-    .tip kbd {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 6px;
-      font-size: 11px;
-    }
-
-    /* Not supported */
-    .not-supported {
-      display: none;
-      text-align: center;
-      padding: 60px 32px;
-      color: var(--muted);
-    }
-    .not-supported h2 { color: var(--white); font-size: 22px; margin-bottom: 12px; }
+    .tip { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .tip kbd { background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; font-size: 10px; }
 
     @media (max-width: 600px) {
-      .live-en { font-size: 20px !important; }
-      .live-zh { font-size: 22px !important; }
-      .record-area { padding: 16px 20px; }
-      .subtitle-area { padding: 20px; }
+      .topbar, .mic-bar, .subtitle-area, .bottom-bar { padding-left: 16px; padding-right: 16px; }
+      .live-en { font-size: 22px !important; }
+      .live-zh { font-size: 20px !important; }
     }
   </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="logo">Teacher <span>Shain</span> · 实时字幕</div>
-  <div class="controls">
+  <div class="logo">Teacher <span>Shain</span> · Live Subtitles</div>
+  <div class="topbar-right">
     <div class="lang-toggle">
-      <button class="lang-opt active" data-mode="en-zh" onclick="setLang('en-zh')" id="modeEnZh">EN → 中文</button>
-      <button class="lang-opt" data-mode="zh-en" onclick="setLang('zh-en')" id="modeZhEn">中文 → EN</button>
-      <button class="lang-opt" data-mode="en-only" onclick="setLang('en-only')">EN only</button>
+      <button class="lang-opt active" data-mode="en-zh" onclick="setLang('en-zh')">EN → 中</button>
+      <button class="lang-opt" data-mode="zh-en" onclick="setLang('zh-en')">中 → EN</button>
+      <button class="lang-opt" data-mode="en-only" onclick="setLang('en-only')">EN</button>
     </div>
-    <button class="size-btn" onclick="changeSize('en', -1); changeSize('zh', -1)">A−</button>
-    <button class="size-btn" onclick="changeSize('en', 1); changeSize('zh', 1)">A+</button>
-    <button class="size-btn" onclick="toggleSettings()">⚙</button>
+    <button class="size-btn" onclick="changeSize(-2)">A−</button>
+    <button class="size-btn" onclick="changeSize(2)">A+</button>
+    <a href="transcript.html" class="nav-pill">📝 Transcript</a>
   </div>
 </div>
 
-<!-- Settings -->
-<div class="settings-panel" id="settingsPanel">
-  <p class="settings-title">Settings</p>
-  <div class="setting-row">
-    <span class="setting-label">Translation</span>
-    <div class="toggle on" id="translationToggle" onclick="toggleTranslation(this)"></div>
-  </div>
-  <div class="setting-row">
-    <span class="setting-label">Show history</span>
-    <div class="toggle on" id="historyToggle" onclick="toggleHistory(this)"></div>
-  </div>
-  <div class="setting-row">
-    <span class="setting-label">Clear history</span>
-    <button class="size-btn" onclick="clearHistory()">Clear</button>
-  </div>
-  <div class="setting-row" style="margin-top:16px">
-    <span class="setting-label" style="font-size:12px;color:var(--muted)">Uses browser's built-in speech recognition + MyMemory free translation API</span>
-  </div>
-</div>
-
-<div class="record-area">
+<div class="mic-bar">
   <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎙</button>
-  <div class="status-text">
-    <span class="status-dot" id="statusDot"></span>
-    <span id="statusLabel">Click microphone to start · 点击麦克风开始</span>
+  <div class="mic-info">
+    <div class="mic-status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusLabel">Click microphone to start · 点击麦克风开始</span>
+    </div>
+    <div class="mic-hint">Chrome / Edge only · <kbd>Space</kbd> to toggle</div>
   </div>
 </div>
 
 <div class="subtitle-area">
-  <div class="subtitle-history" id="subtitleHistory"></div>
-
-  <div class="live-box" id="liveBox" style="--en-size:26px;--zh-size:28px">
+  <div class="history-lines" id="historyLines"></div>
+  <div class="live-box" id="liveBox" style="--en-size:28px;--zh-size:26px">
     <span class="live-label">LIVE</span>
-
     <div id="placeholder" class="placeholder">
       <div class="placeholder-icon">字</div>
-      <div class="placeholder-title">Ready for live subtitles</div>
-      <div class="placeholder-sub">Press the microphone, then speak in English.</div>
-      <div class="placeholder-zh">按下麦克风，然后用英语说话，中文字幕将实时显示在这里。</div>
+      <div class="placeholder-text">Press the microphone to begin</div>
+      <div class="placeholder-zh">按下麦克风开始实时字幕</div>
     </div>
-
     <div id="subtitleContent" style="display:none">
       <div class="live-en" id="liveEn"></div>
       <div class="live-zh" id="liveZh"></div>
     </div>
-
-    <div id="notSupported" class="not-supported">
+    <div class="not-supported" id="notSupported">
       <h2>Browser not supported</h2>
-      <p>Live speech recognition requires Chrome or Edge on desktop.<br>Please open this page in Chrome.</p>
+      <p>Live subtitles require Chrome or Edge on desktop.</p>
     </div>
   </div>
 </div>
 
-<div class="bottom-tips">
-  <div class="tip"><kbd>Space</kbd> Start/stop mic</div>
-  <div class="tip">🌐 Auto-translates to Chinese</div>
-  <div class="tip" id="transcriptWordCount" style="color:var(--gold-light)"></div>
-  <button class="size-btn" id="saveTranscriptBtn" style="display:none;background:var(--gold);color:#000;font-weight:600;border:none;padding:8px 16px;border-radius:8px;cursor:pointer" onclick="saveTranscript()">✨ Save Transcript</button>
-</div>
-
-<!-- Toast -->
-<div id="toast" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200"></div>
-
-<!-- AI Homework Modal -->
-<div id="hwModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:150;display:none;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#1e1e1e;border:1px solid #333;border-radius:20px;padding:36px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto">
-    <h2 style="font-family:'Playfair Display',serif;font-size:24px;color:#fff;margin-bottom:6px">Generated Homework ✨</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Reviewed by AI from today's lesson transcript</p>
-    <div id="hwModalContent"></div>
-    <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
-      <button onclick="closeHwModal()" style="flex:1;padding:12px;background:#333;border:none;border-radius:10px;color:#fff;cursor:pointer;font-size:14px">Close</button>
-      <button onclick="createHwFromModal()" id="createHwBtn" style="flex:2;padding:12px;background:var(--gold);border:none;border-radius:10px;color:#000;font-weight:600;cursor:pointer;font-size:14px">→ Create This Homework</button>
-    </div>
-  </div>
+<div class="bottom-bar">
+  <div class="tip"><kbd>Space</kbd> Start / Stop</div>
+  <div class="tip">🌐 Translated via MyMemory API</div>
 </div>
 
 <script>
-  const W = 'https://teacher-shain.teachershainecontact.workers.dev';
-
-  let recognition = null;
-  let isListening = false;
-  let currentMode = 'en-zh';
-  let translationEnabled = true;
-  let showHistory = true;
-  let historyItems = [];
-  let enSize = 26, zhSize = 28;
-  let lastFinalText = '';
-  let translationDebounce = null;
-  let fullTranscript = '';
-  let generatedHw = null;
-
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition, isListening = false, currentMode = 'en-zh';
+  let translationDebounce, historyItems = [], enSize = 28, zhSize = 26;
 
   if (!SpeechRecognition) {
     document.getElementById('placeholder').style.display = 'none';
@@ -447,7 +183,6 @@
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
-      isListening = true;
       document.getElementById('micBtn').classList.add('listening');
       document.getElementById('statusDot').classList.add('live');
       document.getElementById('statusLabel').textContent = 'Listening… · 聆听中…';
@@ -456,37 +191,45 @@
     };
 
     recognition.onend = () => {
-      isListening = false;
+      if (isListening) {
+        setTimeout(() => { try { recognition.start(); } catch(e) {} }, 150);
+        return;
+      }
       document.getElementById('micBtn').classList.remove('listening');
       document.getElementById('statusDot').classList.remove('live');
       document.getElementById('statusLabel').textContent = 'Click microphone to start · 点击麦克风开始';
       document.getElementById('liveEn').textContent = '';
       document.getElementById('liveZh').textContent = '';
+      document.getElementById('liveEn').classList.remove('interim');
     };
 
     recognition.onresult = (event) => {
       let finalText = '', interimText = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += transcript;
-        else interimText += transcript;
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += t;
+        else interimText += t;
       }
-
+      const liveEn = document.getElementById('liveEn');
+      const liveZh = document.getElementById('liveZh');
       if (finalText) {
-        lastFinalText = finalText;
-        fullTranscript += ' ' + finalText.trim();
-        addToHistory(finalText.trim());
-        updateTranscriptCount();
-        if (translationEnabled && currentMode !== 'en-only') translateAndShow(finalText.trim());
-        else { document.getElementById('liveEn').textContent = finalText.trim(); document.getElementById('liveZh').textContent = ''; }
+        const trimmed = finalText.trim();
+        liveEn.classList.remove('interim');
+        liveEn.textContent = trimmed;
+        addToHistory(trimmed);
+        if (currentMode !== 'en-only') translate(trimmed, liveZh);
+        else liveZh.textContent = '';
       } else if (interimText) {
-        document.getElementById('liveEn').textContent = interimText;
-        document.getElementById('liveZh').textContent = '';
+        liveEn.classList.add('interim');
+        liveEn.textContent = interimText;
+        liveZh.textContent = '';
       }
     };
 
     recognition.onerror = (e) => {
       if (e.error === 'not-allowed') {
+        isListening = false;
+        document.getElementById('micBtn').classList.remove('listening');
         document.getElementById('statusLabel').textContent = 'Microphone access denied';
       }
     };
@@ -494,198 +237,64 @@
 
   function toggleListening() {
     if (!SpeechRecognition) return;
-    if (isListening) recognition.stop();
+    if (isListening) { isListening = false; recognition.stop(); }
     else {
-      const lang = currentMode === 'en-zh' ? 'en-US' : 'zh-CN';
-      recognition.lang = lang;
+      recognition.lang = currentMode === 'zh-en' ? 'zh-CN' : 'en-US';
+      isListening = true;
       recognition.start();
     }
   }
 
-  document.addEventListener('keydown', e => {
-    if (e.code === 'Space' && e.target === document.body) {
-      e.preventDefault(); toggleListening();
-    }
-  });
-
-  async function translateAndShow(text) {
-    document.getElementById('liveEn').textContent = text;
-    document.getElementById('liveZh').textContent = '…';
+  async function translate(text, el) {
+    el.textContent = '…';
     clearTimeout(translationDebounce);
     translationDebounce = setTimeout(async () => {
       try {
-        const target = currentMode === 'en-zh' ? 'zh' : 'en';
-        const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${target}`);
-        const _t1 = await r.text(); let d; try { d = JSON.parse(_t1); } catch(e) { throw new Error('subtitles-ai non-JSON: ' + _t1.slice(0,120)); }
-        document.getElementById('liveZh').textContent = d.responseData?.translatedText || '';
-      } catch { document.getElementById('liveZh').textContent = ''; }
+        const [from, to] = currentMode === 'en-zh' ? ['en','zh'] : ['zh','en'];
+        const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
+        const d = await r.json();
+        el.textContent = d.responseData?.translatedText || '';
+        if (historyItems.length) { historyItems[historyItems.length-1].zh = el.textContent; renderHistory(); }
+      } catch { el.textContent = ''; }
     }, 400);
   }
 
-  function addToHistory(text) {
-    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    historyItems.push({ text, time });
+  function addToHistory(en) {
+    historyItems.push({ en, zh: '' });
+    if (historyItems.length > 5) historyItems.shift();
     renderHistory();
   }
 
   function renderHistory() {
-    const el = document.getElementById('subtitleHistory');
-    if (!showHistory || historyItems.length === 0) { el.innerHTML = ''; return; }
-    el.innerHTML = historyItems.slice(-20).reverse().map(item =>
-      `<div class="history-item"><span class="history-time">${item.time}</span><span>${item.text}</span></div>`
-    ).join('');
-  }
-
-  function updateTranscriptCount() {
-    const words = fullTranscript.trim().split(/\s+/).filter(Boolean).length;
-    const el = document.getElementById('transcriptWordCount');
-    const btn = document.getElementById('saveTranscriptBtn');
-    if (words > 0) {
-      el.textContent = `📝 ${words} words captured`;
-      btn.style.display = '';
-    }
-  }
-
-  async function saveTranscript() {
-    const text = fullTranscript.trim();
-    if (!text) return;
-    const btn = document.getElementById('saveTranscriptBtn');
-    btn.textContent = 'Saving…';
-    btn.disabled = true;
-
-    try {
-      const words = text.split(/\s+/).length;
-      const mins = Math.round(words / 130);
-      const res = await fetch(W + '/transcripts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, language: currentMode, duration_minutes: mins })
-      });
-      const _t2 = await res.text(); let data; try { data = JSON.parse(_t2); } catch(e) { throw new Error('subtitles-save non-JSON: ' + _t2.slice(0,120)); }
-      if (!data.ok) throw new Error(data.error);
-
-      showToast('✓ Transcript saved! Generating homework…');
-      btn.textContent = '✨ Generating Homework…';
-
-      // Auto-generate homework from transcript
-      const hwRes = await fetch(W + '/ai/generate-homework', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript_text: text })
-      });
-      const _t3 = await hwRes.text(); let hwData; try { hwData = JSON.parse(_t3); } catch(e) { throw new Error('/homework non-JSON: ' + _t3.slice(0,120)); }
-
-      if (hwData.ok && hwData.homework) {
-        generatedHw = hwData.homework;
-        showHwModal(hwData.homework);
-      }
-
-      btn.textContent = '✓ Saved';
-      setTimeout(() => { btn.textContent = '✨ Save Transcript'; btn.disabled = false; }, 3000);
-    } catch(e) {
-      showToast('Error: ' + e.message);
-      btn.textContent = '✨ Save Transcript';
-      btn.disabled = false;
-    }
-  }
-
-  function showHwModal(hw) {
-    const focusHtml = hw.focus_areas?.length
-      ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">${hw.focus_areas.map(f => `<span style="background:#333;color:var(--gold);padding:4px 12px;border-radius:100px;font-size:12px">${f}</span>`).join('')}</div>`
-      : '';
-    document.getElementById('hwModalContent').innerHTML = `
-      <div style="margin-bottom:16px">
-        <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Title</p>
-        <p style="color:#fff;font-size:18px;font-weight:600">${hw.title}</p>
-      </div>
-      <div style="margin-bottom:16px">
-        <p style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Instructions</p>
-        <p style="color:rgba(255,255,255,0.8);font-size:14px;line-height:1.7">${(hw.instructions||'').replace(/\n/g,'<br>')}</p>
-      </div>
-      ${focusHtml}
-      <div style="margin-top:14px;padding:12px 16px;background:#333;border-radius:10px;font-size:13px;color:var(--muted)">
-        ⏱ Estimated: ${hw.estimated_minutes || 15} minutes
-      </div>`;
-    document.getElementById('hwModal').style.display = 'flex';
-  }
-
-  function closeHwModal() {
-    document.getElementById('hwModal').style.display = 'none';
-  }
-
-  async function createHwFromModal() {
-    if (!generatedHw) return;
-    const btn = document.getElementById('createHwBtn');
-    btn.textContent = 'Creating…';
-    btn.disabled = true;
-
-    // Load classes to pick one
-    try {
-      const res = await fetch(W + '/classes');
-      const _t4 = await res.text(); let classes; try { classes = JSON.parse(_t4); } catch(e) { throw new Error('/classes non-JSON: ' + _t4.slice(0,120)); }
-      if (!classes.length) {
-        showToast('No classes found — create a class first in teacher dashboard');
-        btn.textContent = '→ Create This Homework'; btn.disabled = false;
-        return;
-      }
-      // Use first class or prompt
-      const classId = classes[0].id;
-      const hwRes = await fetch(W + '/homework', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ class_id: classId, title: generatedHw.title, instructions: generatedHw.instructions })
-      });
-      const _hwt = await hwRes.text(); let hwData; try { hwData = JSON.parse(_hwt); } catch(e) { throw new Error('/homework non-JSON: ' + _hwt.slice(0,120)); }
-      if (!hwData.ok) throw new Error(hwData.error);
-      showToast(`✓ Homework created for ${hwData.submissions_created} student(s)!`);
-      closeHwModal();
-    } catch(e) {
-      showToast('Error: ' + e.message);
-    }
-    btn.textContent = '→ Create This Homework'; btn.disabled = false;
-  }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.opacity = '1';
-    setTimeout(() => t.style.opacity = '0', 3500);
-  }
-
-  function clearHistory() {
-    historyItems = [];
-    renderHistory();
+    const el = document.getElementById('historyLines');
+    const toShow = historyItems.slice(0, -1);
+    el.innerHTML = toShow.map(item => `
+      <div class="history-line">
+        <div class="hist-en">${item.en}</div>
+        ${item.zh ? `<div class="hist-zh">${item.zh}</div>` : ''}
+      </div>`).join('');
   }
 
   function setLang(mode) {
     currentMode = mode;
     document.querySelectorAll('.lang-opt').forEach(el => el.classList.toggle('active', el.dataset.mode === mode));
-    if (isListening) { recognition.stop(); setTimeout(toggleListening, 300); }
+    if (isListening) {
+      isListening = false; recognition.stop();
+      setTimeout(() => { recognition.lang = mode === 'zh-en' ? 'zh-CN' : 'en-US'; isListening = true; recognition.start(); }, 300);
+    }
   }
 
-  function toggleTranslation(el) {
-    translationEnabled = !translationEnabled;
-    el.classList.toggle('on', translationEnabled);
-    el.classList.toggle('off', !translationEnabled);
+  function changeSize(delta) {
+    enSize = Math.max(14, Math.min(64, enSize + delta));
+    zhSize = Math.max(14, Math.min(64, zhSize + delta));
+    const box = document.getElementById('liveBox');
+    box.style.setProperty('--en-size', enSize + 'px');
+    box.style.setProperty('--zh-size', zhSize + 'px');
   }
 
-  function toggleHistory(el) {
-    showHistory = !showHistory;
-    el.classList.toggle('on', showHistory);
-    el.classList.toggle('off', !showHistory);
-    renderHistory();
-  }
-
-  function changeSize(type, delta) {
-    if (type === 'en') enSize = Math.max(16, Math.min(60, enSize + delta));
-    else zhSize = Math.max(16, Math.min(72, zhSize + delta));
-    document.getElementById('liveBox').style.setProperty('--en-size', enSize + 'px');
-    document.getElementById('liveBox').style.setProperty('--zh-size', zhSize + 'px');
-  }
-
-  function toggleSettings() {
-    document.getElementById('settingsPanel').classList.toggle('open');
-  }
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); toggleListening(); }
+  });
 </script>
 </body>
 </html>
